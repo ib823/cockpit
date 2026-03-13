@@ -278,13 +278,13 @@ async function processSyncQueue(): Promise<void> {
       return;
     }
 
-    console.log(`[BackgroundSync] Processing ${pendingItems.length} pending sync items`);
+    logger.info(`[BackgroundSync] Processing ${pendingItems.length} pending sync items`);
 
     for (const item of pendingItems) {
       // Reset retry count for old items (gives them another chance after app reload or long delay)
       const itemAge = Date.now() - item.timestamp;
       if (item.retryCount > 0 && itemAge > RETRY_RESET_TIME) {
-        console.log(
+        logger.info(
           `[BackgroundSync] Resetting retry count for old item (age: ${Math.round(itemAge / 1000)}s)`,
           item.projectId
         );
@@ -302,10 +302,10 @@ async function processSyncQueue(): Promise<void> {
           if (response.ok) {
             const data = await response.json();
             serverState = data.project;
-            console.log("[BackgroundSync] Fetched server state for delta calculation");
+            logger.info("[BackgroundSync] Fetched server state for delta calculation");
           }
         } catch (fetchError) {
-          console.warn(
+          logger.warn(
             "[BackgroundSync] Could not fetch server state, syncing full state:",
             fetchError
           );
@@ -322,7 +322,7 @@ async function processSyncQueue(): Promise<void> {
         const isPermanentError = syncError.isPermanent === true;
         const errorStatus = syncError.status;
 
-        console.error("[BackgroundSync] Sync failed for", item.projectId, errorMessage);
+        logger.error("[BackgroundSync] Sync failed for", item.projectId, errorMessage);
 
         // Handle permanent errors (validation failures) - don't retry
         if (isPermanentError) {
@@ -343,7 +343,7 @@ async function processSyncQueue(): Promise<void> {
             itemId: item.id || "unknown",
           };
 
-          console.error("[BackgroundSync] Permanent error (validation/constraint failure), removing from queue:", errorInfo);
+          logger.error("[BackgroundSync] Permanent error (validation/constraint failure), removing from queue:", errorInfo);
 
           // Remove from queue - this error won't be fixed by retrying
           await removeFromSyncQueue(item.id);
@@ -407,8 +407,8 @@ async function processSyncQueue(): Promise<void> {
 
         if (item.retryCount >= MAX_RETRY_COUNT) {
           // Don't remove from queue - keep it for potential recovery
-          console.error("[BackgroundSync] Max retries exceeded for", item.projectId);
-          console.error("[BackgroundSync] Error details:", {
+          logger.error("[BackgroundSync] Max retries exceeded for", item.projectId);
+          logger.error("[BackgroundSync] Error details:", {
             projectId: item.projectId,
             retryCount: item.retryCount,
             lastError: errorMessage,
@@ -423,13 +423,13 @@ async function processSyncQueue(): Promise<void> {
           );
 
           // Skip this item for now but don't remove it - will retry after RETRY_RESET_TIME
-          console.log(
+          logger.info(
             `[BackgroundSync] Will retry again after ${RETRY_RESET_TIME / 1000}s or on app reload`
           );
         } else {
           // Schedule retry
           const delay = RETRY_DELAYS[Math.min(item.retryCount - 1, RETRY_DELAYS.length - 1)];
-          console.log(
+          logger.info(
             `[BackgroundSync] Retrying in ${delay}ms (attempt ${item.retryCount + 1}/${MAX_RETRY_COUNT})`
           );
 
@@ -449,14 +449,14 @@ async function processSyncQueue(): Promise<void> {
  * Start background sync
  */
 export function startBackgroundSync(callbacks?: typeof syncCallbacks): void {
-  console.log("[BackgroundSync] Starting background sync");
+  logger.info("[BackgroundSync] Starting background sync");
 
   if (callbacks) {
     syncCallbacks = callbacks;
   }
 
   // Process immediately
-  processSyncQueue().catch(console.error);
+  processSyncQueue().catch((err: unknown) => logger.error(err));
 
   // Start interval
   if (syncInterval) {
@@ -464,13 +464,13 @@ export function startBackgroundSync(callbacks?: typeof syncCallbacks): void {
   }
 
   syncInterval = setInterval(() => {
-    processSyncQueue().catch(console.error);
+    processSyncQueue().catch((err: unknown) => logger.error(err));
   }, SYNC_INTERVAL);
 
   // Listen for online/offline events
   window.addEventListener("online", () => {
-    console.log("[BackgroundSync] Back online, triggering sync");
-    processSyncQueue().catch(console.error);
+    logger.info("[BackgroundSync] Back online, triggering sync");
+    processSyncQueue().catch((err: unknown) => logger.error(err));
   });
 }
 
@@ -478,7 +478,7 @@ export function startBackgroundSync(callbacks?: typeof syncCallbacks): void {
  * Stop background sync
  */
 export function stopBackgroundSync(): void {
-  console.log("[BackgroundSync] Stopping background sync");
+  logger.info("[BackgroundSync] Stopping background sync");
 
   if (syncInterval) {
     clearInterval(syncInterval);
@@ -516,14 +516,14 @@ export async function clearSyncQueue(): Promise<void> {
     await removeFromSyncQueue(item.id);
   }
 
-  console.log(`[BackgroundSync] Cleared ${items.length} items from sync queue`);
+  logger.info(`[BackgroundSync] Cleared ${items.length} items from sync queue`);
 }
 
 /**
  * Force immediate sync (for debugging)
  */
 export async function forceSyncNow(projectId?: string): Promise<void> {
-  console.log("[BackgroundSync] Force sync triggered");
+  logger.info("[BackgroundSync] Force sync triggered");
 
   if (projectId) {
     await addToSyncQueue(projectId);

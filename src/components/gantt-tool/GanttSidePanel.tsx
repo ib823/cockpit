@@ -50,6 +50,7 @@ import { PhaseTaskResourceAllocationModal } from "./PhaseTaskResourceAllocationM
 import { HolidayAwareDatePicker } from "@/components/ui/HolidayAwareDatePicker";
 import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
 import { PhaseDeletionImpactModal } from "./PhaseDeletionImpactModal";
+import { logger } from "@/lib/logger";
 
 export function GanttSidePanel() {
   const {
@@ -478,7 +479,7 @@ function PhaseForm({
         });
       } catch (error) {
         // Ignore errors from invalid dates during input
-        console.warn("Date calculation skipped:", error);
+        logger.warn("Date calculation skipped:", { error });
       }
     }
   };
@@ -957,7 +958,7 @@ function TaskForm({
         });
       } catch (error) {
         // Ignore errors from invalid dates during input
-        console.warn("Date calculation skipped:", error);
+        logger.warn("Date calculation skipped:", { error });
       }
     }
   };

@@ -30,6 +30,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { logger } from "@/lib/logger";
 
 /**
  * DuckDB Connection Interface
@@ -126,16 +127,16 @@ export class DuckDBEngine {
     if (this.initialized) return;
 
     try {
-      console.log("[DuckDB] 🦆 Initializing DuckDB WASM...");
+      logger.info("[DuckDB] Initializing DuckDB WASM...");
 
       // For now, use a mock connection until DuckDB WASM is installed
       // TODO: Replace with actual DuckDB WASM when npm package is added
       this.connection = await this.createMockConnection();
 
       this.initialized = true;
-      console.log("[DuckDB] ✅ DuckDB initialized");
+      logger.info("[DuckDB] DuckDB initialized");
     } catch (error) {
-      console.error("[DuckDB] ❌ Initialization failed:", error);
+      logger.error("[DuckDB] Initialization failed", { error });
       throw error;
     }
   }
@@ -146,12 +147,12 @@ export class DuckDBEngine {
   private async createMockConnection(): Promise<DuckDBConnection> {
     return {
       query: async <T = unknown>(sql: string, params?: unknown[]): Promise<T[]> => {
-        console.log(`[DuckDB] Query: ${sql}`, params);
+        logger.info("[DuckDB] Query", { sql, params });
         // Mock implementation - replace with real DuckDB
         return [];
       },
       close: async () => {
-        console.log("[DuckDB] Connection closed");
+        logger.info("[DuckDB] Connection closed");
       },
     };
   }
@@ -164,7 +165,7 @@ export class DuckDBEngine {
       await this.initialize();
     }
 
-    console.log(`[DuckDB] Loading ${data.length} rows into ${tableName}...`);
+    logger.info("[DuckDB] Loading rows", { count: data.length, tableName });
 
     // Store in cache for now
     analyticsCache.set(`table:${tableName}`, data);
@@ -173,7 +174,7 @@ export class DuckDBEngine {
     // const sql = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM json_data`;
     // await this.connection.query(sql, [JSON.stringify(data)]);
 
-    console.log(`[DuckDB] ✅ Loaded ${data.length} rows into ${tableName}`);
+    logger.info("[DuckDB] Loaded rows", { count: data.length, tableName });
   }
 
   /**
@@ -190,7 +191,7 @@ export class DuckDBEngine {
     if (options?.cache !== false) {
       const cached = analyticsCache.get<T[]>(cacheKey);
       if (cached) {
-        console.log(`[DuckDB] ✅ Cache HIT: ${cacheKey}`);
+        logger.info("[DuckDB] Cache HIT", { cacheKey });
         return cached;
       }
     }
@@ -204,7 +205,7 @@ export class DuckDBEngine {
     const results = await this.connection!.query<T>(sql, params);
     const duration = performance.now() - startTime;
 
-    console.log(`[DuckDB] ✅ Query executed in ${duration.toFixed(2)}ms`);
+    logger.info("[DuckDB] Query executed", { durationMs: duration.toFixed(2) });
 
     // Cache results
     if (options?.cache !== false) {
@@ -312,7 +313,7 @@ export class DuckDBEngine {
    */
   clearCache(): void {
     analyticsCache.clear();
-    console.log("[DuckDB] 🗑️  Cache cleared");
+    logger.info("[DuckDB] Cache cleared");
   }
 
   /**
@@ -334,7 +335,7 @@ export class DuckDBEngine {
       this.connection = null;
     }
     this.initialized = false;
-    console.log("[DuckDB] 🔌 Closed");
+    logger.info("[DuckDB] Closed");
   }
 }
 

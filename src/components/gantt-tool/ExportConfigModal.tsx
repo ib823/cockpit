@@ -19,6 +19,7 @@ import { FormExample } from "@/lib/design-system/showcase-helpers";
 import { COLORS, SPACING, TYPOGRAPHY } from "@/lib/design-system/tokens";
 import type { GanttProject } from "@/types/gantt-tool";
 import { exportGanttEnhanced } from "@/lib/gantt-tool/export-utils";
+import { logger } from "@/lib/logger";
 
 interface ExportConfigModalProps {
   isOpen: boolean;
@@ -72,7 +73,7 @@ export default function ExportConfigModal({ isOpen, onClose, project }: ExportCo
       });
       onClose();
     } catch (error) {
-      console.error("Export failed:", error);
+      logger.error("Export failed:", { error });
     } finally {
       setIsExporting(false);
     }

@@ -15,7 +15,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format, addDays } from "date-fns";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { FormExample, WorkingDaysIndicator } from "@/lib/design-system/showcase-helpers";
@@ -23,6 +23,7 @@ import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "@/lib/design-system/tokens"
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { PHASE_COLOR_PRESETS } from "@/types/gantt-tool";
 import type { PhaseFormData } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 interface AddPhaseModalProps {
   isOpen: boolean;
@@ -128,12 +129,17 @@ export function AddPhaseModal({ isOpen, onClose }: AddPhaseModalProps) {
       await addPhase(formData);
       onClose();
     } catch (error) {
-      console.error("Failed to add phase:", error);
+      logger.error("Failed to add phase:", { error });
       alert("Failed to add phase. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Keep a stable ref to handleSubmit so the keyboard shortcut effect
+  // always calls the latest version without needing formData in its deps.
+  const handleSubmitRef = useRef(handleSubmit);
+  handleSubmitRef.current = handleSubmit;
 
   // Keyboard shortcut: Cmd/Ctrl + Enter to submit
   useEffect(() => {
@@ -142,14 +148,13 @@ export function AddPhaseModal({ isOpen, onClose }: AddPhaseModalProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        handleSubmit();
+        handleSubmitRef.current();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, formData]);
+  }, [isOpen]);
 
   return (
     <BaseModal

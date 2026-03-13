@@ -3,6 +3,8 @@
  * Uses IndexedDB for storing data when offline
  */
 
+import { logger } from "@/lib/logger";
+
 const DB_NAME = "sap-cockpit-offline";
 const DB_VERSION = 1;
 
@@ -72,7 +74,7 @@ class OfflineStorage {
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log("[OfflineStorage] Database initialized");
+        logger.info("[OfflineStorage] Database initialized");
         resolve(this.db);
       };
 
@@ -101,7 +103,7 @@ class OfflineStorage {
           cacheStore.createIndex("timestamp", "timestamp", { unique: false });
         }
 
-        console.log("[OfflineStorage] Database schema created");
+        logger.info("[OfflineStorage] Database schema created");
       };
     });
 
@@ -119,7 +121,7 @@ class OfflineStorage {
       const request = store.put(estimate);
 
       request.onsuccess = () => {
-        console.log("[OfflineStorage] Estimate saved:", estimate.id);
+        logger.info("[OfflineStorage] Estimate saved", { id: estimate.id });
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -183,7 +185,7 @@ class OfflineStorage {
       const request = store.delete(id);
 
       request.onsuccess = () => {
-        console.log("[OfflineStorage] Estimate deleted:", id);
+        logger.info("[OfflineStorage] Estimate deleted", { id });
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -201,7 +203,7 @@ class OfflineStorage {
       const request = store.put(project);
 
       request.onsuccess = () => {
-        console.log("[OfflineStorage] Project saved:", project.id);
+        logger.info("[OfflineStorage] Project saved", { id: project.id });
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -249,7 +251,7 @@ class OfflineStorage {
       const request = store.add(item);
 
       request.onsuccess = () => {
-        console.log("[OfflineStorage] Added to pending sync:", item.url);
+        logger.info("[OfflineStorage] Added to pending sync", { url: item.url });
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -282,7 +284,7 @@ class OfflineStorage {
       const request = store.delete(id);
 
       request.onsuccess = () => {
-        console.log("[OfflineStorage] Removed from pending sync:", id);
+        logger.info("[OfflineStorage] Removed from pending sync", { id });
         resolve();
       };
       request.onerror = () => reject(request.error);
@@ -377,7 +379,7 @@ class OfflineStorage {
           })
       )
     ).then(() => {
-      console.log("[OfflineStorage] All data cleared");
+      logger.info("[OfflineStorage] All data cleared");
     });
   }
 }

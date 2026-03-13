@@ -8,11 +8,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Trash2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
+import { logger } from "@/lib/logger";
 
 interface DuplicateGroup {
   phaseName: string;
@@ -84,15 +85,8 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
   const [isRemoving, setIsRemoving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Detect duplicates when modal opens
-  useEffect(() => {
-    if (isOpen && currentProject) {
-      detectDuplicates();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, currentProject]);
-
-  const detectDuplicates = () => {
+  // Detect duplicates
+  const detectDuplicates = useCallback(() => {
     if (!currentProject) return;
 
     // Group phases by name (case-insensitive)
@@ -133,7 +127,14 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
       });
     });
     setSelectedPhaseIds(autoSelected);
-  };
+  }, [currentProject]);
+
+  // Detect duplicates when modal opens
+  useEffect(() => {
+    if (isOpen && currentProject) {
+      detectDuplicates();
+    }
+  }, [isOpen, currentProject, detectDuplicates]);
 
   const handleTogglePhase = (phaseId: string) => {
     const newSelected = new Set(selectedPhaseIds);
@@ -175,10 +176,10 @@ export function DuplicateCleanupModal({ isOpen, onClose }: DuplicateCleanupModal
       await store.fetchProject(currentProject.id);
 
       // Show success (you may want to add a toast notification here)
-      console.warn(`Successfully removed ${selectedPhaseIds.size} duplicate phase(s)!`);
+      logger.warn(`Successfully removed ${selectedPhaseIds.size} duplicate phase(s)!`);
       onClose();
     } catch (error) {
-      console.error("[DuplicateCleanup] Failed to remove duplicates:", error);
+      logger.error("[DuplicateCleanup] Failed to remove duplicates:", { error });
       // Show error (you may want to add a toast notification here)
       alert("Failed to remove duplicates. Please try again.");
     } finally {

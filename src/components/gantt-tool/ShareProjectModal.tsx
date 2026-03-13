@@ -24,6 +24,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Copy, Check, Send, Clock, UserPlus, X, ChevronDown } from "lucide-react";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
+import { logger } from "@/lib/logger";
 
 type CollaboratorRole = "OWNER" | "EDITOR" | "RESOURCE_EDITOR" | "VIEWER";
 
@@ -134,7 +135,7 @@ export function ShareProjectModal({
       setCollaborators(data.collaborators || []);
       setPendingInvites(data.pendingInvites || []);
     } catch (err) {
-      console.error("Error fetching share data:", err);
+      logger.error("Error fetching share data:", { error: err });
       setError("Failed to load sharing information");
     } finally {
       setIsLoading(false);
@@ -159,7 +160,7 @@ export function ShareProjectModal({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy:", err);
+      logger.error("Failed to copy:", { error: err });
     }
   };
 
@@ -203,7 +204,7 @@ export function ShareProjectModal({
 
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error("Error sending invite:", err);
+      logger.error("Error sending invite:", { error: err });
       setError(err instanceof Error ? err.message : "Failed to send invite");
     } finally {
       setIsSending(false);
@@ -228,7 +229,7 @@ export function ShareProjectModal({
 
       await fetchShareData();
     } catch (err) {
-      console.error("Error removing collaborator:", err);
+      logger.error("Error removing collaborator:", { error: err });
       setError("Failed to remove collaborator");
     }
   };
@@ -247,7 +248,7 @@ export function ShareProjectModal({
 
       await fetchShareData();
     } catch (err) {
-      console.error("Error canceling invite:", err);
+      logger.error("Error canceling invite:", { error: err });
       setError("Failed to cancel invite");
     }
   };

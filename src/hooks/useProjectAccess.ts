@@ -18,6 +18,7 @@
  * ```
  */
 
+import { logger } from "@/lib/logger";
 import { useState, useEffect, useCallback } from "react";
 
 export type CollaboratorRole = "OWNER" | "EDITOR" | "RESOURCE_EDITOR" | "VIEWER";
@@ -91,7 +92,7 @@ export function useProjectAccess(projectId: string | null | undefined): UseProje
 
       setAccess(data);
     } catch (err) {
-      console.error("Error fetching project access:", err);
+      logger.error("Error fetching project access", { error: err });
       setError(err instanceof Error ? err.message : "Unknown error");
       setAccess(null);
     } finally {

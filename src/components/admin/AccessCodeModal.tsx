@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { logger } from "@/lib/logger";
 import { CheckCircle, Mail, Check } from "lucide-react";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
@@ -28,7 +29,7 @@ export default function AccessCodeModal({
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
     } catch (err) {
-      console.error("Failed to copy:", err);
+      logger.error("Failed to copy", { error: err });
     }
   };
 
@@ -39,7 +40,7 @@ export default function AccessCodeModal({
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
     } catch (err) {
-      console.error("Failed to copy:", err);
+      logger.error("Failed to copy", { error: err });
     }
   };
 

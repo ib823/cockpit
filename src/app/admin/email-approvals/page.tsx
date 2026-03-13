@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { logger } from "@/lib/logger";
 
 interface EmailApproval {
   email: string;
@@ -44,7 +45,7 @@ export default function EmailApprovalsPage() {
 
       setApprovals(data.approvals || []);
     } catch (err: unknown) {
-      console.error("[EmailApprovals] Failed to load:", err);
+      logger.error("[EmailApprovals] Failed to load:", { error: err });
       if (err instanceof Error) {
         setError(err.message);
       } else {

@@ -13,6 +13,7 @@
 
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import Image from "next/image";
 import type { OrgNode, DropZoneType, Designation } from "@/hooks/useOrgChartDragDrop";
 import { Trash2, GripVertical } from "lucide-react";
 import { useState } from "react";
@@ -308,10 +309,12 @@ export function DraggableOrgCardV3({
           }}
         >
           {node.companyLogoUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
+            <Image
               src={node.companyLogoUrl}
               alt={node.companyName || "Company"}
+              width={32}
+              height={32}
+              unoptimized
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (

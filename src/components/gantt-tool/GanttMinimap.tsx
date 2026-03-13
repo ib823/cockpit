@@ -42,7 +42,7 @@ export function GanttMinimap() {
     });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = React.useCallback((e: MouseEvent) => {
     if (!isDragging) return;
 
     const newX = e.clientX - dragStart.x;
@@ -56,11 +56,11 @@ export function GanttMinimap() {
       x: Math.max(0, Math.min(newX, maxX)),
       y: Math.max(0, Math.min(newY, maxY)),
     });
-  };
+  }, [isDragging, dragStart]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = React.useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
 
   // Attach global mouse listeners for dragging - MUST BE BEFORE CONDITIONAL RETURN
   React.useEffect(() => {
@@ -76,8 +76,7 @@ export function GanttMinimap() {
         window.removeEventListener("mouseup", upHandler);
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDragging, position, dragStart]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   // Get duration and check if minimap should render
   const duration = getProjectDuration();
@@ -118,10 +117,13 @@ export function GanttMinimap() {
       }}
     >
       {/* Header - Drag Handle */}
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
+        role="toolbar"
+        tabIndex={0}
+        aria-label="Minimap drag handle"
         className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-b-2 border-blue-800 cursor-grab active:cursor-grabbing"
         onMouseDown={handleMouseDown}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); } }}
       >
         <div className="flex items-center gap-2">
           <GripVertical className="w-4 h-4 opacity-60" />

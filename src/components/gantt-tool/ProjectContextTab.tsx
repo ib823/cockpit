@@ -15,6 +15,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { AlertCircle, X, Loader2 } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface ProjectContextTabProps {
   projectId: string;
@@ -147,7 +148,7 @@ export function ProjectContextTab({
       // Clear success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      console.error("Error saving context:", error);
+      logger.error("Error saving context:", { error });
       setSaveError(error instanceof Error ? error.message : "Failed to save context");
     } finally {
       setIsSaving(false);

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import type { ConfigTask } from "@/data/sap-deliverables";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -228,7 +229,7 @@ export const useResourcePlanningStore = create<ResourcePlanningStore>()(
           const { tasks, resources } = get();
 
           if (tasks.length === 0 || resources.length === 0) {
-            console.warn("[ResourcePlanning] Cannot optimize: no tasks or resources");
+            logger.warn("[ResourcePlanning] Cannot optimize: no tasks or resources");
             set({ isOptimizing: false });
             return;
           }
@@ -365,7 +366,7 @@ export const useResourcePlanningStore = create<ResourcePlanningStore>()(
           };
 
           const duration = performance.now() - startTime;
-          console.log(`[ResourcePlanning] Optimization complete in ${duration.toFixed(1)}ms`);
+          logger.info("[ResourcePlanning] Optimization complete", { durationMs: duration.toFixed(1) });
 
           set({
             optimizationResult: result,
@@ -374,7 +375,7 @@ export const useResourcePlanningStore = create<ResourcePlanningStore>()(
             isOptimizing: false,
           });
         } catch (error) {
-          console.error("[ResourcePlanning] Optimization failed:", error);
+          logger.error("[ResourcePlanning] Optimization failed", { error });
           set({ isOptimizing: false });
         }
       },

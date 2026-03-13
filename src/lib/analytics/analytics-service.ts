@@ -51,6 +51,8 @@ export interface UserProperties {
   [key: string]: string | number | boolean | undefined;
 }
 
+import { logger } from "@/lib/logger";
+
 class AnalyticsService {
   private config: AnalyticsConfig = {
     enabled: false,
@@ -69,12 +71,12 @@ class AnalyticsService {
 
     // Check Do Not Track
     if (this.config.respectDoNotTrack && this.isDoNotTrackEnabled()) {
-      console.log("[Analytics] Do Not Track enabled, skipping initialization");
+      logger.info("[Analytics] Do Not Track enabled, skipping initialization");
       return;
     }
 
     if (!this.config.enabled) {
-      console.log("[Analytics] Analytics disabled in config");
+      logger.info("[Analytics] Analytics disabled in config");
       return;
     }
 
@@ -88,7 +90,7 @@ class AnalyticsService {
     }
 
     this.initialized = true;
-    console.log("[Analytics] Service initialized");
+    logger.info("[Analytics] Service initialized");
   }
 
   /**
@@ -126,9 +128,9 @@ class AnalyticsService {
       head.appendChild(hjScript);
 
       this.hotjarLoaded = true;
-      console.log("[Analytics] Hotjar initialized");
+      logger.info("[Analytics] Hotjar initialized");
     } catch (error) {
-      console.error("[Analytics] Failed to initialize Hotjar:", error);
+      logger.error("[Analytics] Failed to initialize Hotjar", { error });
     }
   }
 
@@ -153,13 +155,13 @@ class AnalyticsService {
             persistence: "localStorage",
           });
           this.mixpanelLoaded = true;
-          console.log("[Analytics] Mixpanel initialized");
+          logger.info("[Analytics] Mixpanel initialized");
         }
       };
 
       document.head.appendChild(script);
     } catch (error) {
-      console.error("[Analytics] Failed to initialize Mixpanel:", error);
+      logger.error("[Analytics] Failed to initialize Mixpanel", { error });
     }
   }
 
@@ -182,7 +184,7 @@ class AnalyticsService {
     }
 
     // Hotjar tracks page views automatically
-    console.log("[Analytics] Page view tracked:", pageName, props);
+    logger.info("[Analytics] Page view tracked", { pageName, props });
   }
 
   /**
@@ -206,7 +208,7 @@ class AnalyticsService {
       (window as unknown as AnalyticsWindow).hj("event", eventName);
     }
 
-    console.log("[Analytics] Event tracked:", eventName, props);
+    logger.info("[Analytics] Event tracked", { eventName, props });
   }
 
   /**
@@ -228,7 +230,7 @@ class AnalyticsService {
       (window as unknown as AnalyticsWindow).hj("identify", userId, properties);
     }
 
-    console.log("[Analytics] User identified:", userId, properties);
+    logger.info("[Analytics] User identified", { userId, properties });
   }
 
   /**
@@ -242,7 +244,7 @@ class AnalyticsService {
       (window as unknown as AnalyticsWindow).mixpanel.reset();
     }
 
-    console.log("[Analytics] User identity reset");
+    logger.info("[Analytics] User identity reset");
   }
 
   /**
@@ -256,7 +258,7 @@ class AnalyticsService {
       (window as unknown as AnalyticsWindow).mixpanel.people.set(properties);
     }
 
-    console.log("[Analytics] User properties set:", properties);
+    logger.info("[Analytics] User properties set", { properties });
   }
 
   /**

@@ -18,6 +18,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import type { Designation, OrgNode, DropZoneType, DragData, DropZoneData, ResourceCategory } from "@/hooks/useOrgChartDragDrop";
 
@@ -551,10 +552,12 @@ export function DraggableOrgCardV4({
             title="Change company"
           >
             {node.companyLogoUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
+              <Image
                 src={node.companyLogoUrl}
                 alt={node.companyName || "Company"}
+                width={32}
+                height={32}
+                unoptimized
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
@@ -622,10 +625,12 @@ export function DraggableOrgCardV4({
                   }}
                 >
                   {/* Show actual logo from logo library */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={company.logoUrl}
                     alt={company.name}
+                    width={20}
+                    height={20}
+                    unoptimized
                     style={{
                       width: "20px",
                       height: "20px",

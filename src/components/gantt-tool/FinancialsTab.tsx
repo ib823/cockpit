@@ -14,7 +14,7 @@
  * - No clutter - information density matches authorization level
  */
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -135,6 +135,9 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
     process.env.NEXT_PUBLIC_DEV_ENABLE_FINANCIALS === "true" ? "FINANCE_ONLY" : "PUBLIC"
   );
 
+  // Ref to recalculateCosting so fetchCostingData can call it without a circular dependency
+  const recalculateCostingRef = useRef<() => Promise<void>>();
+
   // Fetch costing data
   const fetchCostingData = useCallback(async () => {
     if (!project?.id) return;
@@ -158,7 +161,7 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
         setError(null);
         setCostingData(null);
         // Still fetch visibility level from a calculation
-        await recalculateCosting();
+        await recalculateCostingRef.current?.();
         return;
       }
 
@@ -174,11 +177,10 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.id]);
 
   // Recalculate costing
-  const recalculateCosting = useCallback(async () => {
+  const recalculateCosting: () => Promise<void> = useCallback(async () => {
     if (!project?.id) return;
 
     setIsRecalculating(true);
@@ -224,6 +226,9 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
       setIsLoading(false);
     }
   }, [project?.id]);
+
+  // Keep ref in sync so fetchCostingData can call recalculateCosting
+  recalculateCostingRef.current = recalculateCosting;
 
   // Initial load
   useEffect(() => {

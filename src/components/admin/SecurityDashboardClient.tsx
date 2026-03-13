@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { BlockedIP } from "@/lib/security/ip-blocker";
 
 interface AuthMetricsSummary {
@@ -100,7 +101,7 @@ export function SecurityDashboardClient({
 
         setLastUpdate(new Date());
       } catch (error) {
-        console.error("Failed to refresh security data:", error);
+        logger.error("Failed to refresh security data", { error });
       }
     }, 30000);
 

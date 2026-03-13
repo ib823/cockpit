@@ -19,6 +19,7 @@ import { AlertTriangle, Download, RefreshCw, Trash2, Info } from "lucide-react";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY } from "@/lib/design-system/tokens";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { showSuccess, showError, showInfo } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 interface SyncErrorRecoveryModalProps {
   isOpen: boolean;
@@ -102,7 +103,7 @@ export function SyncErrorRecoveryModal({
       showSuccess("Backup downloaded successfully");
     } catch (error) {
       showError("Failed to download backup");
-      console.error("Download backup error:", error);
+      logger.error("Download backup error:", { error });
     }
   };
 
@@ -137,7 +138,7 @@ export function SyncErrorRecoveryModal({
       }, 500);
     } catch (error) {
       showError("Failed to discard changes");
-      console.error("Discard changes error:", error);
+      logger.error("Discard changes error:", { error });
       setIsProcessing(false);
     }
   };

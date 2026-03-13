@@ -8,6 +8,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { randomUUID } from "crypto";
 import { ZodError } from "zod";
+import { logger } from "@/lib/logger";
 import {
   AuditContext,
   Chip,
@@ -112,7 +113,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
     } catch (error: unknown) {
-      console.error("Failed to create audit log:", error);
+      logger.error("Failed to create audit log:", error);
       // Don't throw - audit failure shouldn't break business operations
     }
   }

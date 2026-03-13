@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { Holiday } from "@/lib/timeline/date-calculations";
 import type { Phase, Resource } from "@/types/core";
 import { create } from "zustand";
@@ -158,7 +159,7 @@ export const useTimelineStore = create<TimelineState>()(
       },
 
       updateProfile: async (profileData) => {
-        console.log("Dummy updateProfile called", profileData);
+        logger.info("Dummy updateProfile called", { profileData });
       },
 
       setProfile: (profile) => {
@@ -166,7 +167,7 @@ export const useTimelineStore = create<TimelineState>()(
       },
 
       setPhases: (phasesData) => {
-        console.log(`[TimelineStore] Setting ${phasesData.length} phases`);
+        logger.info("[TimelineStore] Setting phases", { count: phasesData.length });
         set((state) => {
           state.phases = phasesData as Phase[];
         });
@@ -347,7 +348,7 @@ export const useTimelineStore = create<TimelineState>()(
       }),
       version: 1,
       migrate: (persistedState: unknown, version: number) => {
-        console.log(`[TimelineStore Migration] Starting from v${version}`);
+        logger.info("[TimelineStore Migration] Starting migration", { version });
 
         if (version === 0) {
           // Handle v0 data structure where state was nested
@@ -372,7 +373,7 @@ export const useTimelineStore = create<TimelineState>()(
       },
       onRehydrateStorage: () => (state) => {
         if (state) {
-          console.log("[TimelineStore] Hydration complete:", {
+          logger.info("[TimelineStore] Hydration complete", {
             phases: state.phases?.length || 0,
             packages: state.selectedPackages?.length || 0,
           });

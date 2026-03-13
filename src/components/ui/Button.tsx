@@ -13,6 +13,7 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 /* ================================
  * BUTTON VARIANTS
@@ -90,7 +91,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Icon-only validation
     const isIconOnly = !children && (icon || iconAfter);
     if (isIconOnly && !props['aria-label']) {
-      console.warn(
+      logger.warn(
         'Button: Icon-only buttons require an aria-label for accessibility'
       );
     }

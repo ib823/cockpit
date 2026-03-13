@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { logger } from "@/lib/logger";
 import { Modal, Form, Input, Select, Switch, Button, App, Popconfirm } from "antd";
 import {
   PlusOutlined,
@@ -58,7 +59,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
         setUsers(data.users);
       }
     } catch (error) {
-      console.error("Failed to reload users:", error);
+      logger.error("Failed to reload users", { error });
     }
   };
 

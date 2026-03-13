@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { logger } from "@/lib/logger";
 import { Button } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 
@@ -151,7 +152,7 @@ SimpleModal.confirm = function confirm({
 }) {
   // For confirm modals, you need to manage state in the parent component
   // This is a placeholder that throws an error to guide developers
-  console.error(
+  logger.error(
     "SimpleModal.confirm requires state management in the parent component. " +
       "Please use a state variable and SimpleModal component instead. Example:\n\n" +
       "const [showConfirm, setShowConfirm] = useState(false);\n" +

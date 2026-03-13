@@ -30,6 +30,7 @@ interface ConflictResolution {
   customNames?: Map<string, string>;
 }
 import type { GanttPhase, Resource } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 // FIX ISSUE #16: Add file size limits
 const MAX_ROWS = 500; // Maximum total rows (tasks + resources)
@@ -143,10 +144,10 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         throw new Error("No data to import");
       }
 
-      console.warn("[ExcelImport] Applying conflict resolution:", resolution.strategy);
+      logger.warn("[ExcelImport] Applying conflict resolution:", { strategy: resolution.strategy });
       await performImport(ganttData, resolution);
     } catch (err) {
-      console.error("[ExcelImport] Import failed after conflict resolution:", err);
+      logger.error("[ExcelImport] Import failed after conflict resolution:", { error: err });
       setError(err instanceof Error ? err.message : "Failed to import project");
     } finally {
       setIsImporting(false);
@@ -168,7 +169,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
     setError(null);
 
     try {
-      console.warn("[ExcelImport] Starting import...", {
+      logger.warn("[ExcelImport] Starting import...", {
         mode: importMode,
         tasksCount: parsed.tasks.length,
         resourcesCount: parsed.resources.length,
@@ -178,7 +179,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       const transformedGanttData = transformToGanttProject(parsed, projectName);
       setGanttData(transformedGanttData);
 
-      console.warn("[ExcelImport] Transformed data:", {
+      logger.warn("[ExcelImport] Transformed data:", {
         name: transformedGanttData.name,
         phasesCount: transformedGanttData.phases.length,
         resourcesCount: transformedGanttData.resources.length,
@@ -194,7 +195,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         );
 
         if (conflicts.hasConflicts) {
-          console.warn("[ExcelImport] Conflicts detected:", conflicts.summary);
+          logger.warn("[ExcelImport] Conflicts detected:", { summary: conflicts.summary });
           setConflictResult(conflicts);
           setShowConflictModal(true);
           setIsImporting(false);
@@ -205,7 +206,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       // No conflicts or creating new project - proceed with import
       await performImport(transformedGanttData);
     } catch (err) {
-      console.error("[ExcelImport] Import failed:", err);
+      logger.error("[ExcelImport] Import failed:", { error: err });
       setError(err instanceof Error ? err.message : "Failed to import project");
     } finally {
       setIsImporting(false);
@@ -217,7 +218,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
     try {
       if (importMode === "append" && currentProject) {
         // Append to existing project
-        console.warn("[ExcelImport] Appending to current project:", currentProject.id);
+        logger.warn("[ExcelImport] Appending to current project:", { projectId: currentProject.id });
 
         let finalPhases = dataToImport.phases;
         let finalResources = dataToImport.resources;
@@ -226,7 +227,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
         if (resolution) {
           if (resolution.strategy === "refresh") {
             // Total Refresh: Replace all data
-            console.warn("[ExcelImport] Applying Total Refresh strategy");
+            logger.warn("[ExcelImport] Applying Total Refresh strategy");
             finalPhases = dataToImport.phases;
             finalResources = dataToImport.resources;
 
@@ -247,14 +248,14 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
               throw new Error(`Failed to refresh project data (${response.status}): ${errorText}`);
             }
 
-            console.warn("[ExcelImport] Total refresh complete");
+            logger.warn("[ExcelImport] Total refresh complete");
             const store = useGanttToolStoreV2.getState();
             await store.fetchProject(currentProject.id);
             onClose();
             return;
           } else if (resolution.strategy === "merge") {
             // Smart Merge: Apply suggested renames
-            console.warn("[ExcelImport] Applying Smart Merge strategy");
+            logger.warn("[ExcelImport] Applying Smart Merge strategy");
 
             // Generate suggested names for conflicts
             const phaseSuggestions = generatePhaseSuggestions(
@@ -305,8 +306,8 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           resources: [...currentProject.resources, ...finalResources],
         };
 
-        console.warn("[ExcelImport] Payload size:", JSON.stringify(payload).length, "bytes");
-        console.warn("[ExcelImport] Total phases:", payload.phases.length);
+        logger.warn("[ExcelImport] Payload size:", { bytes: JSON.stringify(payload).length });
+        logger.warn("[ExcelImport] Total phases:", { count: payload.phases.length });
 
         let response;
         try {
@@ -318,7 +319,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
             body: JSON.stringify(payload),
           });
         } catch (fetchError) {
-          console.error("[ExcelImport] Fetch failed:", fetchError);
+          logger.error("[ExcelImport] Fetch failed:", { error: fetchError });
           throw new Error(
             `Network error: ${fetchError instanceof Error ? fetchError.message : "Failed to connect to server"}`
           );
@@ -331,26 +332,25 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
           } catch (_e) {
             errorText = "Unable to read error response";
           }
-          console.error("[ExcelImport] Failed to append phases:", errorText);
-          console.error("[ExcelImport] Response status:", response.status);
-          console.error(
-            "[ExcelImport] Response headers:",
-            Object.fromEntries(response.headers.entries())
-          );
+          logger.error("[ExcelImport] Failed to append phases:", { errorText });
+          logger.error("[ExcelImport] Response status:", { status: response.status });
+          logger.error("[ExcelImport] Response headers:", {
+            headers: Object.fromEntries(response.headers.entries()),
+          });
           throw new Error(`Failed to append data (${response.status}): ${errorText}`);
         }
 
-        console.warn("[ExcelImport] Phases appended successfully");
+        logger.warn("[ExcelImport] Phases appended successfully");
 
         // Refresh the project from the API
         const store = useGanttToolStoreV2.getState();
         await store.fetchProject(currentProject.id);
 
-        console.warn("[ExcelImport] Append complete!");
+        logger.warn("[ExcelImport] Append complete!");
         onClose();
       } else {
         // Create new project
-        console.warn("[ExcelImport] Creating new project...");
+        logger.warn("[ExcelImport] Creating new project...");
         const response = await fetch("/api/gantt-tool/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -364,15 +364,15 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error("[ExcelImport] Failed to create project:", errorText);
+          logger.error("[ExcelImport] Failed to create project:", { errorText });
           throw new Error(`Failed to create project: ${errorText}`);
         }
 
         const { project } = await response.json();
-        console.warn("[ExcelImport] Project created:", project.id);
+        logger.warn("[ExcelImport] Project created:", { projectId: project.id });
 
         // Update project with phases, tasks, and resources
-        console.warn("[ExcelImport] Updating with phases and resources...");
+        logger.warn("[ExcelImport] Updating with phases and resources...");
         const updateResponse = await fetch(`/api/gantt-tool/projects/${project.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -384,23 +384,23 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
         if (!updateResponse.ok) {
           const errorText = await updateResponse.text();
-          console.error("[ExcelImport] Failed to update project:", errorText);
+          logger.error("[ExcelImport] Failed to update project:", { errorText });
           throw new Error(`Failed to import project data: ${errorText}`);
         }
 
-        console.warn("[ExcelImport] Project updated successfully");
+        logger.warn("[ExcelImport] Project updated successfully");
 
         // Refresh projects list and load the new project
-        console.warn("[ExcelImport] Loading project...");
+        logger.warn("[ExcelImport] Loading project...");
         const store = useGanttToolStoreV2.getState();
         await store.fetchProjects();
         await store.fetchProject(project.id);
 
-        console.warn("[ExcelImport] Import complete!");
+        logger.warn("[ExcelImport] Import complete!");
         onClose();
       }
     } catch (err) {
-      console.error("[ExcelImport] Import failed:", err);
+      logger.error("[ExcelImport] Import failed:", { error: err });
       setError(err instanceof Error ? err.message : "Failed to import project");
     } finally {
       setIsImporting(false);
@@ -455,7 +455,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
             try {
               await generateCopyPasteTemplate();
             } catch (err) {
-              console.error("Failed to generate template:", err);
+              logger.error("Failed to generate template:", { error: err });
               setError("Failed to generate template. Please try again.");
             }
           }}

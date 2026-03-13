@@ -24,6 +24,7 @@ import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { FormExample, WorkingDaysIndicator, ImpactWarning } from "@/lib/design-system/showcase-helpers";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import type { Task } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 
 interface EditTaskModalProps {
   isOpen: boolean;
@@ -111,7 +112,7 @@ export function EditTaskModal({ isOpen, onClose, task, taskId, phaseId }: EditTa
       });
       onClose();
     } catch (error) {
-      console.error("Failed to update task:", error);
+      logger.error("Failed to update task:", { error });
       alert("Failed to save. Please try again.");
     } finally {
       setIsSubmitting(false);

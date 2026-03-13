@@ -8,6 +8,7 @@
 import { Card, Space, Switch, Typography, Alert, Divider } from "antd";
 import { LineChartOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { HelpTooltip } from "./HelpTooltip";
 
 const { Text, Paragraph } = Typography;
@@ -37,7 +38,7 @@ export function AnalyticsSettings() {
         try {
           setPreferences(JSON.parse(saved));
         } catch (error) {
-          console.error("Failed to load analytics preferences:", error);
+          logger.error("Failed to load analytics preferences:", error);
         }
       }
     }

@@ -136,7 +136,7 @@ export function HeatmapPhaseBar({
   // Calculate heatmap slices
   const heatmapSlices = useMemo(() => {
     return calculateHeatmap(phase);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // calculateHeatmap only uses startDate, endDate, and tasks from phase
   }, [phase.startDate, phase.endDate, phase.tasks]);
 
   // Calculate total phase duration for percentage calculations

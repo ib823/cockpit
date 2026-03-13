@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { logger } from "@/lib/logger";
 
 interface SecurityOverview {
   passwordChangedAt: string | null;
@@ -87,7 +88,7 @@ export default function SecuritySettingsPage() {
 
       setOverview(mockOverview);
     } catch (err: unknown) {
-      console.error("[Security] Failed to load data:", err);
+      logger.error("[Security] Failed to load data:", { error: err });
       setError("Failed to load security settings. Please try again.");
     } finally {
       setLoading(false);

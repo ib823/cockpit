@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 
 export default function SecureLoginPage() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function SecureLoginPage() {
         const result = await fp.get();
         setDeviceFingerprint(result.visitorId);
       } catch (err) {
-        console.error("[Login] Failed to load device fingerprint:", err);
+        logger.error("[Login] Failed to load device fingerprint:", { error: err });
         // Continue without fingerprint - server will use fallback
       }
     };
@@ -137,7 +138,7 @@ export default function SecureLoginPage() {
         securityAlert.type ? 2000 : 500
       );
     } catch (err) {
-      console.error("[Login] Error:", err);
+      logger.error("[Login] Error:", { error: err });
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }

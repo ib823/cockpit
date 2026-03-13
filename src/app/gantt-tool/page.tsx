@@ -12,6 +12,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { logger } from "@/lib/logger";
 import { GanttCanvasV3 } from "@/components/gantt-tool/GanttCanvasV3";
 // Lazy-load modals and heavy tabs (E-02: route-level code splitting)
 const NewProjectModal = dynamic(() => import("@/components/gantt-tool/NewProjectModal").then(m => ({ default: m.NewProjectModal })), { ssr: false });
@@ -31,7 +32,7 @@ import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { useSession } from "next-auth/react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Share2, Users, GripHorizontal, GripVertical, FileSpreadsheet, Flag, Layers, CheckSquare, Image as ImageIcon } from "lucide-react";
 import { HexLoader } from "@/components/ui/HexLoader";
 import { format } from "date-fns";
@@ -170,9 +171,12 @@ export default function GanttToolV3Page() {
   }, [isResizingOrgChart, resourcePanelLayout]);
 
   // Check if project is already loaded on mount
+  // Use ref so the effect doesn't re-run when currentProject changes
+  const initialProjectRef = useRef(currentProject);
+
   useEffect(() => {
     // If project already loaded, we're good
-    if (currentProject) {
+    if (initialProjectRef.current) {
       setInitializing(false);
       return;
     }
@@ -205,15 +209,14 @@ export default function GanttToolV3Page() {
           }
         }
       } catch (error) {
-        console.error("[V3] Failed to initialize:", error);
+        logger.error("[V3] Failed to initialize:", { error });
       } finally {
         setInitializing(false);
       }
     };
 
     initialize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, [fetchProjects, loadProject, createProject]); // Store actions are stable references
 
   // Determine if we should show loading state
   const showLoading = initializing || isLoading || !currentProject;
@@ -236,7 +239,7 @@ export default function GanttToolV3Page() {
     } catch (error) {
       // Error is already stored in syncError state by the store
       // The error will be displayed via the syncStatus in the header
-      console.error('[GanttTool] Failed to delete project:', error);
+      logger.error('[GanttTool] Failed to delete project:', { error });
     }
   };
 

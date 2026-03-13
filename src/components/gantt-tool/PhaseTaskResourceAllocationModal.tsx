@@ -26,6 +26,7 @@ import {
 } from "@/types/gantt-tool";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
+import { logger } from "@/lib/logger";
 
 interface Props {
   itemId: string;
@@ -220,7 +221,7 @@ export function PhaseTaskResourceAllocationModal({ itemId, itemType, onClose }: 
         grouped[resource.category].push(resource);
       } else {
         // Fallback to 'other' if category is invalid or missing
-        console.warn(`Resource "${resource.name}" has invalid category: ${resource.category}`);
+        logger.warn(`Resource "${resource.name}" has invalid category: ${resource.category}`);
         grouped.other.push(resource);
       }
     });

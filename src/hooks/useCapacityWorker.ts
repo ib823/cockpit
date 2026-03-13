@@ -20,6 +20,7 @@
  * ```
  */
 
+import { logger } from "@/lib/logger";
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { GanttPhase, Resource } from "@/types/gantt-tool";
 import type { ResourceCapacityResult } from "@/lib/gantt-tool/resource-capacity-calculator";
@@ -73,7 +74,7 @@ function getWorker(): Worker | null {
         { type: "module" }
       );
     } catch (error) {
-      console.warn("[useCapacityWorker] Web Worker not supported, falling back to main thread:", error);
+      logger.warn("[useCapacityWorker] Web Worker not supported, falling back to main thread", { error });
       workerSupported = false;
       return null;
     }
@@ -131,7 +132,7 @@ export function useCapacityWorker(): UseCapacityWorkerResult {
       };
 
       const handleError = (event: ErrorEvent) => {
-        console.error("[useCapacityWorker] Worker error:", event);
+        logger.error("[useCapacityWorker] Worker error", { event });
         setError("Worker encountered an error");
         setIsCalculating(false);
       };

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { logger } from "@/lib/logger";
 import { useRouter } from "next/navigation";
 import { Modal, Button } from "antd";
 import { LogoutOutlined } from "@ant-design/icons";
@@ -34,7 +35,7 @@ export function LogoutButton({
       // SECURITY: Reload to clear any in-memory state
       window.location.href = "/login";
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error", { error });
       setLoading(false);
     }
   };

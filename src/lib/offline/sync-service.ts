@@ -6,6 +6,7 @@
 "use client";
 
 import { offlineStorage, PendingSyncItem } from "./offline-storage";
+import { logger } from "@/lib/logger";
 
 class SyncService {
   private syncing = false;
@@ -27,7 +28,7 @@ class SyncService {
    * Handle online event
    */
   private handleOnline() {
-    console.log("[SyncService] Connection restored");
+    logger.info("[SyncService] Connection restored");
     this.sync();
   }
 
@@ -35,7 +36,7 @@ class SyncService {
    * Handle offline event
    */
   private handleOffline() {
-    console.log("[SyncService] Connection lost");
+    logger.info("[SyncService] Connection lost");
   }
 
   /**
@@ -94,12 +95,12 @@ class SyncService {
    */
   async sync(): Promise<void> {
     if (this.syncing) {
-      console.log("[SyncService] Sync already in progress");
+      logger.info("[SyncService] Sync already in progress");
       return;
     }
 
     if (!this.isOnline()) {
-      console.log("[SyncService] Cannot sync while offline");
+      logger.info("[SyncService] Cannot sync while offline");
       return;
     }
 
@@ -107,17 +108,17 @@ class SyncService {
       this.syncing = true;
       this.notifyListeners();
 
-      console.log("[SyncService] Starting sync...");
+      logger.info("[SyncService] Starting sync...");
 
       // Get pending sync items
       const pendingItems = await offlineStorage.getPendingSync();
 
       if (pendingItems.length === 0) {
-        console.log("[SyncService] No items to sync");
+        logger.info("[SyncService] No items to sync");
         return;
       }
 
-      console.log(`[SyncService] Syncing ${pendingItems.length} items`);
+      logger.info("[SyncService] Syncing items", { count: pendingItems.length });
 
       // Sync each item
       let successCount = 0;
@@ -129,12 +130,12 @@ class SyncService {
           await offlineStorage.removeFromPendingSync(item.id!);
           successCount++;
         } catch (error) {
-          console.error("[SyncService] Failed to sync item:", error);
+          logger.error("[SyncService] Failed to sync item", { error });
           failureCount++;
         }
       }
 
-      console.log(`[SyncService] Sync complete: ${successCount} succeeded, ${failureCount} failed`);
+      logger.info("[SyncService] Sync complete", { successCount, failureCount });
 
       // Trigger service worker sync if available
       if ("serviceWorker" in navigator && "sync" in ServiceWorkerRegistration.prototype) {
@@ -143,7 +144,7 @@ class SyncService {
         await (registration as ServiceWorkerRegistration & { sync: { register: (tag: string) => Promise<void> } }).sync.register("sync-offline-data");
       }
     } catch (error) {
-      console.error("[SyncService] Sync error:", error);
+      logger.error("[SyncService] Sync error", { error });
     } finally {
       this.syncing = false;
       this.notifyListeners();
@@ -185,7 +186,7 @@ class SyncService {
     };
 
     await offlineStorage.addToPendingSync(item);
-    console.log("[SyncService] Request queued for sync:", url);
+    logger.info("[SyncService] Request queued for sync", { url });
 
     // Try to sync immediately if online
     if (this.isOnline()) {
@@ -211,7 +212,7 @@ class SyncService {
     for (const item of items) {
       await offlineStorage.removeFromPendingSync(item.id!);
     }
-    console.log("[SyncService] Cleared all pending sync items");
+    logger.info("[SyncService] Cleared all pending sync items");
   }
 
   /**

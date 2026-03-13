@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */
 /**
  * Gantt Canvas V3 - Apple HIG Specification (Proposal Mode)
  *
@@ -52,6 +51,7 @@ import { PhaseDeletionImpactModal } from "./PhaseDeletionImpactModal";
 import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
 import { ResourceEditModal } from "./ResourceEditModal";
 import { ResourceAllocationModal } from "./ResourceAllocationModal";
+import { logger } from "@/lib/logger";
 import {
   ResourceRowMemoized,
   ResourceCapacityRowMemoized,
@@ -265,15 +265,21 @@ export function GanttCanvasV3({
 
   // Auto-optimize column widths on project load/change
   // Jobs/Ive: Intelligent, non-intrusive, ensures all content visible
+  // We use a ref to read the latest project data without adding it as a dependency,
+  // so column widths only auto-optimize on project switch (not every mutation).
+  const currentProjectRef = useRef(currentProject);
+  currentProjectRef.current = currentProject;
+
   useEffect(() => {
-    if (!currentProject) return;
+    const project = currentProjectRef.current;
+    if (!project) return;
 
     const autoOptimize = async () => {
       // Wait for fonts to load for accurate measurement
       await waitForFonts();
 
       // Calculate optimal widths based on actual content
-      const optimized = optimizeColumnWidths(currentProject);
+      const optimized = optimizeColumnWidths(project);
 
       // Apply optimized widths (users can still manually resize after)
       setTaskNameWidth(optimized.taskName);
@@ -284,7 +290,6 @@ export function GanttCanvasV3({
     };
 
     autoOptimize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProject?.id]); // Re-run when project changes
 
   // Hydrate allocations from database on project load
@@ -299,7 +304,7 @@ export function GanttCanvasV3({
         );
 
         if (!response.ok) {
-          console.warn('[GanttCanvasV3] Could not load saved allocations');
+          logger.warn('[GanttCanvasV3] Could not load saved allocations');
           return;
         }
 
@@ -322,7 +327,7 @@ export function GanttCanvasV3({
           setManualOverrides(newOverrides);
         }
       } catch (error) {
-        console.error('[GanttCanvasV3] Error loading allocations:', error);
+        logger.error('[GanttCanvasV3] Error loading allocations:', { error });
       }
     };
 
@@ -441,8 +446,7 @@ export function GanttCanvasV3({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingPhaseId, editingTaskId, showMilestoneModal, taskResourceModal, selection, currentProject, selectItem]);
+  }, [editingPhaseId, editingTaskId, showMilestoneModal, taskResourceModal, selection, currentProject, selectItem, reorderTask]);
 
 
   // Deletion handlers
@@ -797,8 +801,7 @@ export function GanttCanvasV3({
     );
 
     return holidays;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [duration, timelineBounds, currentProject?.holidays]);
+  }, [duration, timelineBounds, currentProject]);
 
   // CRITICAL: Calculate extended duration BEFORE any early returns to maintain hooks order
   // This ensures that when timeline markers extend beyond the original timeline (e.g., to end of quarter),
@@ -1271,11 +1274,11 @@ export function GanttCanvasV3({
         });
 
         if (!response.ok) {
-          console.error('[GanttCanvasV3] Failed to save allocations:', await response.text());
+          logger.error('[GanttCanvasV3] Failed to save allocations:', { responseText: await response.text() });
         }
       }
     } catch (error) {
-      console.error('[GanttCanvasV3] Error saving allocations:', error);
+      logger.error('[GanttCanvasV3] Error saving allocations:', { error });
     }
   }, [currentProject]);
 
@@ -1509,6 +1512,9 @@ export function GanttCanvasV3({
               Phase/Task
               {!isAllocationEditMode && (
                 <div
+                  role="separator"
+                  tabIndex={0}
+                  aria-label="Resize task name column"
                   onMouseDown={(e) => handleColumnResizeStart(e, 'taskName', taskNameWidth)}
                   style={{
                     position: "absolute",
@@ -1535,6 +1541,9 @@ export function GanttCanvasV3({
                 <div style={{ width: `${calendarDurationWidth}px`, textAlign: "center", position: "relative" }}>
                   Duration
                   <div
+                    role="separator"
+                    tabIndex={0}
+                    aria-label="Resize duration column"
                     onMouseDown={(e) => handleColumnResizeStart(e, 'calendarDuration', calendarDurationWidth)}
                     style={{
                       position: "absolute",
@@ -1558,6 +1567,9 @@ export function GanttCanvasV3({
                 <div style={{ width: `${workingDaysWidth}px`, textAlign: "center", position: "relative" }}>
                   Work Days
                   <div
+                    role="separator"
+                    tabIndex={0}
+                    aria-label="Resize working days column"
                     onMouseDown={(e) => handleColumnResizeStart(e, 'workingDays', workingDaysWidth)}
                     style={{
                       position: "absolute",
@@ -1581,6 +1593,9 @@ export function GanttCanvasV3({
                 <div style={{ width: `${startEndDateWidth}px`, textAlign: "center", position: "relative" }}>
                   Start-End
                   <div
+                    role="separator"
+                    tabIndex={0}
+                    aria-label="Resize start-end date column"
                     onMouseDown={(e) => handleColumnResizeStart(e, 'startEndDate', startEndDateWidth)}
                     style={{
                       position: "absolute",
@@ -1628,6 +1643,7 @@ export function GanttCanvasV3({
                 <div key={phase.id}>
                   {/* Phase Row - Jobs/Ive: Enhanced visual hierarchy */}
                   <div
+                    role="row"
                     style={{
                       height: `${PHASE_ROW_HEIGHT}px`,
                       borderBottom: "2px solid rgba(0, 0, 0, 0.08)",
@@ -1878,7 +1894,10 @@ export function GanttCanvasV3({
                                   }),
                                 },
                               }}
+                              role="button"
+                              tabIndex={0}
                               onClick={() => selectItem(task.id, "task")}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectItem(task.id, "task"); } }}
                               style={{
                                 height: `${TASK_ROW_HEIGHT}px`,
                                 borderBottom: "1px solid rgba(0, 0, 0, 0.03)",
@@ -2158,7 +2177,10 @@ export function GanttCanvasV3({
                   }}
                 >
                   <div
+                    role="button"
+                    tabIndex={0}
                     onClick={onToggleResourceCapacity}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggleResourceCapacity?.(); } }}
                     style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
                   >
                     <ChevronDown
@@ -2267,6 +2289,7 @@ export function GanttCanvasV3({
 
                   {/* Search Input */}
                   <div
+                    role="presentation"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -2277,6 +2300,7 @@ export function GanttCanvasV3({
                       maxWidth: "200px",
                     }}
                     onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                   >
                     <Search size={12} style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }} />
                     <input
@@ -2373,6 +2397,8 @@ export function GanttCanvasV3({
                     <div key={group.id}>
                       {/* Group Header */}
                       <div
+                        role="button"
+                        tabIndex={0}
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -2385,9 +2411,13 @@ export function GanttCanvasV3({
                           cursor: "pointer",
                         }}
                         onClick={() => toggleGroupCollapse(group.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroupCollapse(group.id); } }}
                       >
                         {/* Group Checkbox */}
                         <div
+                          role="checkbox"
+                          tabIndex={0}
+                          aria-checked={allGroupSelected}
                           onClick={(e) => {
                             e.stopPropagation();
                             const allSelected = groupMembers.every((r) => selectedResourceIds.has(r.id));
@@ -2402,6 +2432,24 @@ export function GanttCanvasV3({
                               });
                               return newSet;
                             });
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const allSelected = groupMembers.every((r) => selectedResourceIds.has(r.id));
+                              setSelectedResourceIds((prev) => {
+                                const newSet = new Set(prev);
+                                groupMembers.forEach((r) => {
+                                  if (allSelected) {
+                                    newSet.delete(r.id);
+                                  } else {
+                                    newSet.add(r.id);
+                                  }
+                                });
+                                return newSet;
+                              });
+                            }
                           }}
                           style={{
                             width: 16,
@@ -2625,7 +2673,10 @@ export function GanttCanvasV3({
             {/* Resource Capacity Toggle Button - Shows when collapsed */}
             {!showResourceCapacity && totalResourceCount > 0 && (
               <div
+                role="button"
+                tabIndex={0}
                 onClick={onToggleResourceCapacity}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggleResourceCapacity?.(); } }}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -2667,6 +2718,9 @@ export function GanttCanvasV3({
         {/* Resizable Divider - Hidden when sidebar collapsed or on mobile */}
         {!isSidebarCollapsed && !isMobile && (
           <div
+            role="separator"
+            tabIndex={0}
+            aria-label="Resize sidebar"
             onMouseDown={handleResizeStart}
             style={{
               width: "4px",
@@ -2821,7 +2875,10 @@ export function GanttCanvasV3({
                   >
                     {/* Circle indicator - hollow for weekend, filled for public holiday */}
                     {holiday.isWeekend ? (
-                      <div style={{
+                      <div
+                        role="img"
+                        aria-label={`Weekend: ${holiday.name}`}
+                        style={{
                         width: "8px",
                         height: "8px",
                         borderRadius: "50%",
@@ -2841,7 +2898,10 @@ export function GanttCanvasV3({
                       }}
                       />
                     ) : (
-                      <div style={{
+                      <div
+                        role="img"
+                        aria-label={`Holiday: ${holiday.name}`}
+                        style={{
                         width: "8px",
                         height: "8px",
                         borderRadius: "50%",
@@ -2925,7 +2985,7 @@ export function GanttCanvasV3({
                           const resourceName = e.dataTransfer.getData("resourceName");
 
                           if (resourceId) {
-                            console.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                            logger.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
                           }
                           setDragOverPhaseId(null);
                         }}
@@ -2933,6 +2993,9 @@ export function GanttCanvasV3({
                     ) : phase.phaseType === "ams" ? (
                       // AMS Phase - Short chevron indicator (positioned at correct date)
                       <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (window.innerWidth >= 1024) { setEditingPhaseId(phase.id); } } }}
                         style={{
                           position: "absolute",
                           left: `${phasePos.left}%`,
@@ -2976,7 +3039,7 @@ export function GanttCanvasV3({
                           const resourceName = e.dataTransfer.getData("resourceName");
 
                           if (resourceId) {
-                            console.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                            logger.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
                           }
                           setDragOverPhaseId(null);
                         }}
@@ -3070,6 +3133,9 @@ export function GanttCanvasV3({
                     ) : (
                       // Standard Phase - Full-width bar
                       <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (window.innerWidth >= 1024) { setEditingPhaseId(phase.id); } } }}
                         style={{
                           position: "absolute",
                           left: `${phasePos.left}%`,
@@ -3120,7 +3186,7 @@ export function GanttCanvasV3({
                           const resourceName = e.dataTransfer.getData("resourceName");
 
                           if (resourceId) {
-                            console.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
+                            logger.warn(`Assigning resource ${resourceName} (${resourceId}) to phase ${phase.name} (${phase.id})`);
                           }
                           setDragOverPhaseId(null);
                         }}
@@ -3238,6 +3304,9 @@ export function GanttCanvasV3({
                             >
                           {/* Task Bar with Hover Info + Drop Zone */}
                           <div
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); selectItem(task.id, "task"); setEditingTaskId({ taskId: task.id, phaseId: phase.id }); } }}
                             onClick={(e) => {
                               e.stopPropagation();
                               selectItem(task.id, "task");
@@ -3709,6 +3778,9 @@ export function GanttCanvasV3({
                     >
                       {/* Milestone marker - clickable area with diamond shape */}
                       <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setShowMilestoneModal(true); } }}
                         style={{
                           position: "absolute",
                           top: "8px",
@@ -3730,7 +3802,7 @@ export function GanttCanvasV3({
                             e.preventDefault();
                             setShowMilestoneModal(true);
                           } catch (err) {
-                            console.error('Error opening milestone modal:', err);
+                            logger.error('Error opening milestone modal:', { error: err });
                           }
                         }}
                         onMouseEnter={(e) => {
@@ -3755,6 +3827,9 @@ export function GanttCanvasV3({
                       </div>
                       {/* Label - clickable to edit */}
                       <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setShowMilestoneModal(true); } }}
                         style={{
                           position: "absolute",
                           top: "36px",
@@ -3783,7 +3858,7 @@ export function GanttCanvasV3({
                             e.preventDefault();
                             setShowMilestoneModal(true);
                           } catch (err) {
-                            console.error('Error opening milestone modal:', err);
+                            logger.error('Error opening milestone modal:', { error: err });
                           }
                         }}
                         onMouseEnter={(e) => {
@@ -3884,7 +3959,7 @@ export function GanttCanvasV3({
             }
             setMilestoneDefaultDate(undefined);
           } catch (error) {
-            console.error('Error saving milestone:', error);
+            logger.error('Error saving milestone:', { error });
             alert('Failed to save milestone. Please try again.');
           }
         }}
@@ -3892,7 +3967,7 @@ export function GanttCanvasV3({
           try {
             await deleteMilestone(id);
           } catch (error) {
-            console.error('Error deleting milestone:', error);
+            logger.error('Error deleting milestone:', { error });
             alert('Failed to delete milestone. Please try again.');
           }
         }}

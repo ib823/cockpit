@@ -39,6 +39,7 @@ import type {
 import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, ASSIGNMENT_LEVELS } from "@/types/gantt-tool";
 import { getAllCompanyLogos } from "@/lib/default-company-logos";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
+import { logger } from "@/lib/logger";
 
 // ============================================================================
 // Types
@@ -1284,7 +1285,7 @@ function ResourceFormModal({ isOpen, onClose, resource, onSubmit, availableLogos
       await onSubmit(formData);
       onClose();
     } catch (error) {
-      console.error("Error submitting resource:", error);
+      logger.error("Error submitting resource:", { error });
       alert("Failed to save resource. Please try again.");
     } finally {
       setIsSubmitting(false);

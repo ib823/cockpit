@@ -7,6 +7,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { logger } from "@/lib/logger";
 import { Drawer, Form, Select, Button, Typography, Space, List, Tag, App } from "antd";
 import {
   TeamOutlined,
@@ -57,7 +58,7 @@ export function BatchOperationsPanel({
           assignManager(resourceId, managerId);
           successCount++;
         } catch (error) {
-          console.error(`Failed to assign manager to resource ${resourceId}:`, error);
+          logger.error(`Failed to assign manager to resource ${resourceId}:`, error);
           errorCount++;
         }
       });

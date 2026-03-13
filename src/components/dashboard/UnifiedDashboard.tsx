@@ -6,6 +6,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 import { useRouter } from 'next/navigation';
 import { Session } from 'next-auth';
 import {
@@ -74,7 +75,7 @@ export function UnifiedDashboard({ session }: UnifiedDashboardProps) {
           }
         }
       } catch (error) {
-        console.error('[Dashboard] Failed to fetch stats:', error);
+        logger.error('[Dashboard] Failed to fetch stats', { error });
       } finally {
         setIsLoading(false);
       }

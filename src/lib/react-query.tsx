@@ -9,6 +9,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
+import { logger } from "@/lib/logger";
 
 // Devtools import - may not be available in all environments
 let ReactQueryDevtools: React.ComponentType<{ initialIsOpen?: boolean; position?: string }> | undefined;
@@ -225,5 +226,5 @@ export function getQueryCacheStats(client: QueryClient) {
  */
 export function clearAllCache(client: QueryClient) {
   client.clear();
-  console.log("[React Query] 🗑️  All cache cleared");
+  logger.info("[React Query] All cache cleared");
 }

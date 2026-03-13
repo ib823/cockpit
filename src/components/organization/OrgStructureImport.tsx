@@ -8,6 +8,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { logger } from "@/lib/logger";
 import { Modal, Upload, Button, Typography, Alert, Table, App, Select } from "antd";
 import {
   UploadOutlined,
@@ -239,7 +240,7 @@ export function OrgStructureImport({
               assignManager(resourceId, managerId);
               managerAssignCount++;
             } catch (error) {
-              console.error("Failed to assign manager:", error);
+              logger.error("Failed to assign manager:", error);
             }
           }
         }

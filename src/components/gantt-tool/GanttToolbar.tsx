@@ -12,6 +12,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import {
   Plus,
@@ -618,10 +619,12 @@ export function GanttToolbar({
                         key: companyName,
                         label: (
                           <div className="flex items-center gap-2 py-1">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                            <Image
                               src={logoUrl as string}
                               alt={companyName}
+                              width={24}
+                              height={24}
+                              unoptimized
                               className="w-6 h-6 object-contain"
                             />
                             <span>{companyName}</span>
@@ -644,10 +647,12 @@ export function GanttToolbar({
                     const displayLogo = getDisplayLogo();
                     if (displayLogo) {
                       return (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
+                        <Image
                           src={displayLogo.logoUrl}
                           alt={displayLogo.companyName}
+                          width={40}
+                          height={40}
+                          unoptimized
                           className="w-10 h-10 object-contain p-1"
                         />
                       );

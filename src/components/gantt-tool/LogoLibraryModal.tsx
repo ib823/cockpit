@@ -18,6 +18,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import Image from "next/image";
 import { Upload, Trash2, AlertCircle, CheckCircle } from "lucide-react";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
@@ -436,10 +437,12 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                   padding: SPACING[3],
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={logo.logoUrl}
                   alt={logo.companyName}
+                  width={80}
+                  height={80}
+                  unoptimized
                   style={{
                     maxWidth: "100%",
                     maxHeight: "100%",
@@ -551,10 +554,12 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                   padding: SPACING[3],
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={logo.logoUrl}
                   alt={logo.companyName || "Uploaded logo"}
+                  width={80}
+                  height={80}
+                  unoptimized
                   style={{
                     maxWidth: "100%",
                     maxHeight: "100%",

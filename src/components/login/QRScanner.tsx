@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { logger } from "@/lib/logger";
 
 interface QRScannerProps {
   onScan: (email: string, code: string) => void;
@@ -41,7 +42,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         };
       }
     } catch (err) {
-      console.error("Camera access error:", err);
+      logger.error("Camera access error:", err);
       setError("Camera access denied");
       setScanning(false);
     }
@@ -105,7 +106,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
           // This is simplified - in production use jsQR or similar
           const dataURL = canvas.toDataURL();
           // Mock parsing - replace with actual QR decoder
-          console.log("QR Image loaded, would decode here");
+          logger.info("QR Image loaded, would decode here");
         } catch (err) {
           setError("Failed to read QR code");
         }

@@ -21,6 +21,7 @@ import { AlertTriangle } from "lucide-react";
 import { HexLoader } from "@/components/ui/HexLoader";
 import { useColorMorph } from "@/hooks/useColorMorph";
 import { showError } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 export function GanttToolShell() {
   const {
@@ -122,7 +123,7 @@ export function GanttToolShell() {
       try {
         await fetchProjects();
       } catch (error) {
-        console.error("[GanttToolShell] Initial fetch failed:", error);
+        logger.error("[GanttToolShell] Initial fetch failed:", { error });
       } finally {
         setInitialFetchDone(true);
       }
@@ -152,7 +153,7 @@ export function GanttToolShell() {
             await createProject(projectName, today);
           }
         } catch (error) {
-          console.error("[GanttToolShell] Auto-load failed:", error);
+          logger.error("[GanttToolShell] Auto-load failed:", { error });
           setAutoLoadError(error instanceof Error ? error.message : "Failed to load project");
         }
       };
