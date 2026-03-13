@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRetry } from "./db";
+import { logger } from "@/lib/logger";
 
 /**
  * Wrap an API route handler with automatic database retry logic
@@ -12,14 +13,13 @@ import { withRetry } from "./db";
  * });
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function withDatabaseRetry<T extends any[]>(handler: (...args: T) => Promise<NextResponse>) {
+export function withDatabaseRetry<T extends unknown[]>(handler: (...args: T) => Promise<NextResponse>) {
   return async (...args: T): Promise<NextResponse> => {
     try {
       return await withRetry(() => handler(...args));
     } catch (error: unknown) {
       // If we still fail after retries, return a proper error response
-      console.error("[API] Database operation failed after retries:", error);
+      logger.error("[API] Database operation failed after retries", { error });
 
       // Return user-friendly error based on error type
       const prismaError = error as { code?: string } | null;
@@ -47,5 +47,5 @@ export function logRequest(request: NextRequest, label: string) {
   const method = request.method;
   const url = request.url;
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${method} ${url} - ${label}`);
+  logger.info(`[${timestamp}] ${method} ${url} - ${label}`);
 }
