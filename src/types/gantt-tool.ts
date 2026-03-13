@@ -961,7 +961,7 @@ export interface ProjectDelta {
     startDate?: string;
     viewSettings?: GanttViewSettings;
     budget?: ProjectBudget;
-    orgChart?: any;
+    orgChart?: Record<string, unknown>;
   };
 
   // Phase changes
