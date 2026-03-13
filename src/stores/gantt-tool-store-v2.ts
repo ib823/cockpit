@@ -39,7 +39,7 @@ import type {
   DiagramSettings,
 } from "@/app/architecture/v3/types";
 import { PHASE_COLOR_PRESETS } from "@/types/gantt-tool";
-import { differenceInDays, addDays, addMonths, format } from "date-fns";
+import { differenceInDays, addDays, format } from "date-fns";
 import {
   adjustDatesToWorkingDays,
   calculateWorkingDaysInclusive,
@@ -51,14 +51,14 @@ import {
   getDeltaSummary,
   sanitizeDelta,
 } from "@/lib/gantt-tool/delta-calculator";
-import { shouldBatchDelta, batchDelta, type DeltaBatch } from "@/lib/gantt-tool/delta-batcher";
+import { shouldBatchDelta, batchDelta } from "@/lib/gantt-tool/delta-batcher";
 import {
   saveProjectLocal,
   addToSyncQueue,
   getProjectLocal,
   getAllProjectsLocal,
 } from "@/lib/gantt-tool/local-storage";
-import { startBackgroundSync, stopBackgroundSync } from "@/lib/gantt-tool/background-sync";
+import { startBackgroundSync } from "@/lib/gantt-tool/background-sync";
 // import { createDefaultResources } from '@/lib/gantt-tool/default-resources'; // No longer used - users add resources manually or via import
 
 // Debounce timer for save operations (500ms)
@@ -370,7 +370,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
 
         // Override with local projects (they're more recent if they exist)
         localProjects.forEach((p) => {
-          const localMeta = p as any;
+          const localMeta = p as GanttProject & { needsSync?: boolean; localUpdatedAt?: string };
           // If local project is newer or has unsaved changes, use it
           if (localMeta.needsSync || localMeta.localUpdatedAt) {
             projectMap.set(p.id, p);
@@ -645,7 +645,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
               ...phase,
               startDate: formatDateField(phase.startDate),
               endDate: formatDateField(phase.endDate),
-              tasks: phase.tasks.map((task: any) => ({
+              tasks: phase.tasks.map((task: GanttTask) => ({
                 ...task,
                 startDate: formatDateField(task.startDate),
                 endDate: formatDateField(task.endDate),
@@ -657,7 +657,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
               ...phase,
               startDate: formatDateField(phase.startDate),
               endDate: formatDateField(phase.endDate),
-              tasks: phase.tasks.map((task: any) => ({
+              tasks: phase.tasks.map((task: GanttTask) => ({
                 ...task,
                 startDate: formatDateField(task.startDate),
                 endDate: formatDateField(task.endDate),
@@ -739,7 +739,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           // If validation failed, show detailed error
           if (errorData.details && Array.isArray(errorData.details)) {
             const detailedErrors = errorData.details
-              .map((issue: any) => `${issue.path.join(".")}: ${issue.message}`)
+              .map((issue: { path: string[]; message: string }) => `${issue.path.join(".")}: ${issue.message}`)
               .join(", ");
             throw new Error(`Validation failed: ${detailedErrors}`);
           }
@@ -903,7 +903,7 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
         const localProject = await getProjectLocal(projectId);
 
         if (localProject) {
-          const localMeta = localProject as any;
+          const localMeta = localProject as GanttProject & { needsSync?: boolean; localUpdatedAt?: string };
 
           // STEP 2: If local version has unsaved changes, use it!
           if (localMeta.needsSync || localMeta.localUpdatedAt) {
@@ -1343,9 +1343,9 @@ export const useGanttToolStoreV2 = create<GanttToolStateV2>()(
           order: phase.tasks.length, // Set order to current array length
 
           // Task Hierarchy fields
-          parentTaskId: (data as any).parentTaskId || null,
-          level: (data as any).parentTaskId
-            ? (phase.tasks.find((t) => t.id === (data as any).parentTaskId)?.level ?? 0) + 1
+          parentTaskId: data.parentTaskId || null,
+          level: data.parentTaskId
+            ? (phase.tasks.find((t) => t.id === data.parentTaskId)?.level ?? 0) + 1
             : 0,
           collapsed: false,
           isParent: false,
