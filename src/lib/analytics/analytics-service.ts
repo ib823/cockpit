@@ -1,8 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Analytics Service
  * Unified interface for multiple analytics providers (Hotjar, Mixpanel, etc.)
  */
+
+/** Type-safe window extensions for analytics providers */
+interface HotjarQueue {
+  (...args: unknown[]): void;
+  q?: unknown[];
+}
+
+interface AnalyticsWindow extends Window {
+  hj?: HotjarQueue;
+  _hjSettings?: { hjid: string; hjsv: number };
+  mixpanel?: {
+    init: (token: string, config: Record<string, unknown>) => void;
+    track: (event: string, props?: Record<string, unknown>) => void;
+    identify: (userId: string) => void;
+    reset: () => void;
+    people: {
+      set: (props: Record<string, unknown>) => void;
+    };
+  };
+  doNotTrack?: string;
+  navigator: Navigator & { msDoNotTrack?: string };
+}
 
 export type AnalyticsProvider = "hotjar" | "mixpanel" | "custom";
 
@@ -76,10 +97,11 @@ class AnalyticsService {
   private isDoNotTrackEnabled(): boolean {
     if (typeof window === "undefined") return false;
 
+    const w = window as unknown as AnalyticsWindow;
     const dnt =
       window.navigator.doNotTrack ||
-      (window.navigator as any).msDoNotTrack ||
-      (window as any).doNotTrack;
+      w.navigator.msDoNotTrack ||
+      w.doNotTrack;
 
     return dnt === "1" || dnt === "yes";
   }
@@ -92,19 +114,16 @@ class AnalyticsService {
 
     try {
       // Hotjar initialization script
-      (function (h: any, o: any, t: any, j: any, a?: any, r?: any) {
-        h.hj =
-          h.hj ||
-          function () {
-            (h.hj.q = h.hj.q || []).push(arguments);
-          };
-        h._hjSettings = { hjid: id, hjsv: version };
-        a = o.getElementsByTagName("head")[0];
-        r = o.createElement("script");
-        r.async = 1;
-        r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
-        a.appendChild(r);
-      })(window, document, "https://static.hotjar.com/c/hotjar-", ".js?sv=");
+      const w = window as unknown as AnalyticsWindow;
+      w.hj = w.hj || function (...args: unknown[]) {
+        (w.hj!.q = w.hj!.q || []).push(args);
+      };
+      w._hjSettings = { hjid: id, hjsv: version };
+      const head = document.getElementsByTagName("head")[0];
+      const hjScript = document.createElement("script");
+      hjScript.async = true;
+      hjScript.src = `https://static.hotjar.com/c/hotjar-${id}.js?sv=${version}`;
+      head.appendChild(hjScript);
 
       this.hotjarLoaded = true;
       console.log("[Analytics] Hotjar initialized");
@@ -127,8 +146,8 @@ class AnalyticsService {
       script.src = "https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";
 
       script.onload = () => {
-        if ((window as any).mixpanel) {
-          (window as any).mixpanel.init(token, {
+        if ((window as unknown as AnalyticsWindow).mixpanel) {
+          (window as unknown as AnalyticsWindow).mixpanel.init(token, {
             debug,
             track_pageview: true,
             persistence: "localStorage",
@@ -158,8 +177,8 @@ class AnalyticsService {
     };
 
     // Mixpanel
-    if (this.mixpanelLoaded && (window as any).mixpanel) {
-      (window as any).mixpanel.track("Page View", props);
+    if (this.mixpanelLoaded && (window as unknown as AnalyticsWindow).mixpanel) {
+      (window as unknown as AnalyticsWindow).mixpanel.track("Page View", props);
     }
 
     // Hotjar tracks page views automatically
@@ -178,13 +197,13 @@ class AnalyticsService {
     };
 
     // Mixpanel
-    if (this.mixpanelLoaded && (window as any).mixpanel) {
-      (window as any).mixpanel.track(eventName, props);
+    if (this.mixpanelLoaded && (window as unknown as AnalyticsWindow).mixpanel) {
+      (window as unknown as AnalyticsWindow).mixpanel.track(eventName, props);
     }
 
     // Hotjar (via custom events)
-    if (this.hotjarLoaded && (window as any).hj) {
-      (window as any).hj("event", eventName);
+    if (this.hotjarLoaded && (window as unknown as AnalyticsWindow).hj) {
+      (window as unknown as AnalyticsWindow).hj("event", eventName);
     }
 
     console.log("[Analytics] Event tracked:", eventName, props);
@@ -197,16 +216,16 @@ class AnalyticsService {
     if (!this.initialized || !this.config.enabled) return;
 
     // Mixpanel
-    if (this.mixpanelLoaded && (window as any).mixpanel) {
-      (window as any).mixpanel.identify(userId);
+    if (this.mixpanelLoaded && (window as unknown as AnalyticsWindow).mixpanel) {
+      (window as unknown as AnalyticsWindow).mixpanel.identify(userId);
       if (properties) {
-        (window as any).mixpanel.people.set(properties);
+        (window as unknown as AnalyticsWindow).mixpanel.people.set(properties);
       }
     }
 
     // Hotjar (via user attributes)
-    if (this.hotjarLoaded && (window as any).hj) {
-      (window as any).hj("identify", userId, properties);
+    if (this.hotjarLoaded && (window as unknown as AnalyticsWindow).hj) {
+      (window as unknown as AnalyticsWindow).hj("identify", userId, properties);
     }
 
     console.log("[Analytics] User identified:", userId, properties);
@@ -219,8 +238,8 @@ class AnalyticsService {
     if (!this.initialized || !this.config.enabled) return;
 
     // Mixpanel
-    if (this.mixpanelLoaded && (window as any).mixpanel) {
-      (window as any).mixpanel.reset();
+    if (this.mixpanelLoaded && (window as unknown as AnalyticsWindow).mixpanel) {
+      (window as unknown as AnalyticsWindow).mixpanel.reset();
     }
 
     console.log("[Analytics] User identity reset");
@@ -233,8 +252,8 @@ class AnalyticsService {
     if (!this.initialized || !this.config.enabled) return;
 
     // Mixpanel
-    if (this.mixpanelLoaded && (window as any).mixpanel) {
-      (window as any).mixpanel.people.set(properties);
+    if (this.mixpanelLoaded && (window as unknown as AnalyticsWindow).mixpanel) {
+      (window as unknown as AnalyticsWindow).mixpanel.people.set(properties);
     }
 
     console.log("[Analytics] User properties set:", properties);
