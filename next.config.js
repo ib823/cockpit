@@ -2,6 +2,14 @@
 const nextConfig = {
   allowedDevOrigins: ["http://127.0.0.1", "http://localhost"],
 
+  // Keep these server-only. jsdom (pulled in by isomorphic-dompurify for
+  // server-side sanitization) reads its default stylesheet from disk at module
+  // load via `fs.readFileSync(path.resolve(__dirname, "../../browser/default-stylesheet.css"))`.
+  // Bundling it into the .next server chunks breaks that __dirname-relative path
+  // and fails the build during page-data collection (ENOENT). Externalizing makes
+  // Next require them from node_modules at runtime, where the asset exists.
+  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
+
   // React 19 compatibility
   experimental: {
     reactCompiler: false,
