@@ -22,6 +22,7 @@ const AddTaskModal = dynamic(() => import("@/components/gantt-tool/AddTaskModal"
 const LogoLibraryModal = dynamic(() => import("@/components/gantt-tool/LogoLibraryModal").then(m => ({ default: m.LogoLibraryModal })), { ssr: false });
 const OrgChartPro = dynamic(() => import("@/components/gantt-tool/OrgChartPro").then(m => ({ default: m.OrgChartPro })), { ssr: false });
 const ResourceDashboardModal = dynamic(() => import("@/components/gantt-tool/ResourceDashboardModal").then(m => ({ default: m.ResourceDashboardModal })), { ssr: false });
+const ExportConfigModal = dynamic(() => import("@/components/gantt-tool/ExportConfigModal"), { ssr: false });
 // ResourceCapacityPanel is now integrated directly into GanttCanvasV3
 import { ViewModeSelector, type ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { ProjectTabNavigation, type ProjectTab } from "@/components/gantt-tool/ProjectTabNavigation";
@@ -64,6 +65,7 @@ export default function GanttToolV3Page() {
   const [showLogoLibrary, setShowLogoLibrary] = useState(false);
   const [showOrgChart, setShowOrgChart] = useState(false);
   const [showOrgChartModal, setShowOrgChartModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [orgChartHeight, setOrgChartHeight] = useState(400); // Default 400px (also used for sidebar width)
   const [showAddPhaseModal, setShowAddPhaseModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
@@ -500,15 +502,16 @@ export default function GanttToolV3Page() {
               </button>
               )}
 
-              {/* Share Button */}
+              {/* Export Button - opens the real export configuration modal */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  alert('Share & Export functionality coming soon!\n\nThis will allow you to:\n• Export to PNG/PDF\n• Share project link\n• Export to Excel');
+                  if (currentProject) setShowExportModal(true);
                 }}
-                title="Share & export project"
+                disabled={!currentProject}
+                title="Export project (PNG / PDF)"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -518,11 +521,12 @@ export default function GanttToolV3Page() {
                   borderRadius: "6px",
                   border: "1px solid var(--line)",
                   backgroundColor: "transparent",
-                  color: "var(--color-text-secondary)",
-                  cursor: "pointer",
+                  color: currentProject ? "var(--color-text-secondary)" : "var(--color-gray-3)",
+                  cursor: currentProject ? "pointer" : "not-allowed",
+                  opacity: currentProject ? 1 : 0.5,
                   transition: "all 0.15s ease",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
+                onMouseEnter={(e) => { if (currentProject) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
                 <Share2 className="w-4 h-4" aria-hidden="true" />
@@ -1227,6 +1231,15 @@ export default function GanttToolV3Page() {
         onClose={() => setShowResourceDashboard(false)}
         projectName={currentProject?.name}
       />
+
+      {/* Export Configuration Modal - real PNG/PDF export via exportGanttEnhanced */}
+      {showExportModal && currentProject && (
+        <ExportConfigModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          project={currentProject}
+        />
+      )}
     </>
   );
 }

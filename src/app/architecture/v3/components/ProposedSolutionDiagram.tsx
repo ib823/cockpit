@@ -98,6 +98,7 @@ export function ProposedSolutionDiagram({
 
       {/* Main Diagram Container */}
       <div
+        id="architecture-diagram-capture"
         className="p-12 border-2 border-[var(--color-text-primary)] rounded-xl bg-[var(--color-bg-primary)] min-h-[600px]"
         role="main"
         aria-label="TO-BE architecture diagram content"

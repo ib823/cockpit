@@ -29,14 +29,13 @@ import { StyleSelector } from "./components/StyleSelector";
 import { useTabKeyboardNavigation } from "./hooks/useKeyboardNavigation";
 import styles from "./styles.module.css";
 
-type Tab = "business-context" | "current-landscape" | "proposed-solution" | "process-mapping";
+type Tab = "business-context" | "current-landscape" | "proposed-solution";
 
 // Tab definitions for keyboard navigation
 const TABS = [
   { id: "business-context" as const, label: "Business Context" },
   { id: "current-landscape" as const, label: "Current Business Landscape" },
   { id: "proposed-solution" as const, label: "Proposed Solution" },
-  { id: "process-mapping" as const, label: "Process Mapping" },
 ];
 
 export default function ArchitectureV3Page() {
@@ -214,9 +213,26 @@ export default function ArchitectureV3Page() {
   };
 
   const handleExport = async (options: ExportOptions) => {
-    // TODO: Implement actual export functionality
-    logger.warn("Export requested:", { options });
-    alert(`Export functionality coming soon!\nFormat: ${options.format}\nFilename: ${options.filename}`);
+    // Export the currently-rendered diagram via the real element-capture exporters.
+    // The active diagram container carries id="architecture-diagram-capture".
+    const elementId = "architecture-diagram-capture";
+    const exportName = currentProject?.name
+      ? `${currentProject.name}-architecture`
+      : options.filename.replace(/\.[^.]+$/, "");
+    try {
+      const { exportOrgChartToPDF, exportOrgChartToPNG, exportOrgChartToPPT } = await import(
+        "@/lib/gantt-tool/export-utils"
+      );
+      if (options.format === "png") {
+        await exportOrgChartToPNG(exportName, elementId);
+      } else if (options.format === "ppt") {
+        await exportOrgChartToPPT(exportName, elementId);
+      } else {
+        await exportOrgChartToPDF(exportName, elementId);
+      }
+    } catch (error) {
+      logger.error("[Architecture V3] Export failed:", { error });
+    }
   };
 
   const handleUpdateProjectName = async (newName: string) => {
@@ -342,14 +358,6 @@ export default function ArchitectureV3Page() {
               id="tab-proposed-solution"
               controls="panel-proposed-solution"
             />
-            <TabButton
-              label="Process Mapping"
-              isActive={activeTab === "process-mapping"}
-              onClick={() => handleTabChange("process-mapping")}
-              onKeyDown={handleTabKeyDown}
-              id="tab-process-mapping"
-              controls="panel-process-mapping"
-            />
           </div>
 
           {/* Main Content */}
@@ -410,60 +418,6 @@ export default function ArchitectureV3Page() {
                   onChange={updateProposedSolution}
                   onGenerate={handleGenerate}
                 />
-              )}
-            </div>
-            <div
-              role="tabpanel"
-              id="panel-process-mapping"
-              aria-labelledby="tab-process-mapping"
-              hidden={activeTab !== "process-mapping"}
-            >
-              {activeTab === "process-mapping" && (
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "400px",
-                  padding: "48px 32px",
-                  maxWidth: "1400px",
-                  margin: "0 auto",
-                }}>
-                  <div style={{ textAlign: "center", maxWidth: "600px" }}>
-                    <h2 style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "24px",
-                      fontWeight: 600,
-                      color: "#000",
-                      marginBottom: "16px",
-                    }}>
-                      Process Mapping Canvas (Coming Soon)
-                    </h2>
-                    <p style={{
-                      fontFamily: "var(--font-text)",
-                      fontSize: "16px",
-                      color: "#666",
-                      lineHeight: 1.6,
-                      marginBottom: "24px",
-                    }}>
-                      This optional canvas will allow you to map business processes with flowcharts, swimlanes, and workflow diagrams - perfect for documenting AS-IS and TO-BE processes.
-                    </p>
-                    <div style={{
-                      padding: "16px",
-                      backgroundColor: "#E3F2FD",
-                      borderRadius: "8px",
-                      border: "1px solid #2196F3",
-                    }}>
-                      <p style={{
-                        fontFamily: "var(--font-text)",
-                        fontSize: "14px",
-                        color: "#1565C0",
-                        margin: 0,
-                      }}>
-                        <strong>Planned Features:</strong> Drag-and-drop process nodes, swimlane diagrams, status flows, system integrations, role assignments, and workflow automation mapping
-                      </p>
-                    </div>
-                  </div>
-                </div>
               )}
             </div>
           </>

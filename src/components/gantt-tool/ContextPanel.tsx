@@ -20,9 +20,15 @@ import {
   AlertTriangle,
   CheckCircle,
 } from "lucide-react";
-import { Tabs, Badge, Input, Button, Progress, Tag } from "antd";
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, type Resource } from "@/types/gantt-tool";
+import { Tabs, Badge, Input, Progress, Tag } from "antd";
+import {
+  RESOURCE_CATEGORIES,
+  RESOURCE_DESIGNATIONS,
+  type Resource,
+  type ResourceCategory,
+} from "@/types/gantt-tool";
 import { differenceInDays } from "date-fns";
+import { calculateProjectCost } from "@/lib/gantt-tool/cost-calculator";
 
 interface ContextPanelProps {
   isOpen: boolean;
@@ -102,35 +108,34 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
     );
   }, [currentProject, searchQuery]);
 
-  // Calculate cost estimate (placeholder - will be enhanced with real rates)
+  // Calculate cost estimate from REAL resource rates and allocations.
+  // Labor cost = sum over billable assignments of (working hours x allocation% x chargeRatePerHour).
+  // If no billable rates/allocations are configured, hasRealCost is false and the UI
+  // shows an honest "Not estimated" state instead of a fabricated figure.
   const costEstimate = useMemo(() => {
     if (!currentProject) {
-      return {
-        total: 0,
-        byCategory: {
-          pm: 0,
-          technical: 0,
-          functional: 0,
-          security: 0,
-          change: 0,
-        },
-      };
+      return { total: 0, byCategory: [] as Array<{ category: ResourceCategory; cost: number }>, hasRealCost: false };
     }
-    // Placeholder cost calculation
-    // In real implementation, this would use resource rates and allocations
-    const resources = currentProject.resources || [];
-    const baselineCost = resources.length * 50000; // $50K per resource placeholder
 
-    return {
-      total: baselineCost,
-      byCategory: {
-        pm: baselineCost * 0.15,
-        technical: baselineCost * 0.4,
-        functional: baselineCost * 0.3,
-        security: baselineCost * 0.1,
-        change: baselineCost * 0.05,
-      },
-    };
+    const costData = calculateProjectCost(currentProject);
+    const total = costData.laborCost;
+    const byCategory = Array.from(costData.costByCategory.entries())
+      .filter(([, cost]) => cost > 0)
+      .map(([category, cost]) => ({ category, cost }))
+      .sort((a, b) => b.cost - a.cost);
+
+    return { total, byCategory, hasRealCost: total > 0 };
+  }, [currentProject]);
+
+  // Format amounts in the project's currency (resources carry a currency code, default MYR).
+  const formatProjectCurrency = useMemo(() => {
+    const currency = currentProject?.resources?.find((r) => r.currency)?.currency || "MYR";
+    const formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    });
+    return (amount: number) => formatter.format(amount);
   }, [currentProject]);
 
   // Resource drag handler
@@ -304,93 +309,65 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
             ),
             children: (
               <div className="h-full overflow-y-auto px-4 py-3">
-                {/* Total Cost */}
-                <div className="mb-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                  <div className="text-sm text-gray-600 mb-1">Estimated Project Cost</div>
-                  <div className="text-3xl font-bold text-green-700">
-                    ${Math.round(costEstimate.total / 1000)}K
-                  </div>
-                  <div className="text-xs text-gray-600 mt-1">
-                    Based on {projectMetrics.totalResources} resources over{" "}
-                    {projectMetrics.durationDays} days
-                  </div>
-                </div>
-
-                {/* Cost Breakdown by Category */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Cost by Category</h3>
-                  <div className="space-y-3">
-                    {Object.entries(costEstimate.byCategory).map(([cat, cost]) => {
-                      const category = RESOURCE_CATEGORIES[cat as keyof typeof RESOURCE_CATEGORIES];
-                      const percentage = (cost / costEstimate.total) * 100;
-
-                      return (
-                        <div key={cat}>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                              <span>{category.icon}</span>
-                              {category.label}
-                            </span>
-                            <span className="text-xs font-bold" style={{ color: category.color }}>
-                              ${Math.round(cost / 1000)}K
-                            </span>
-                          </div>
-                          <Progress
-                            percent={percentage}
-                            strokeColor={category.color}
-                            showInfo={false}
-                            size="small"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Cost Insights */}
-                <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Insights</h3>
-
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <TrendingUp className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-medium text-blue-900">Resource Balance</p>
-                        <p className="text-xs text-blue-700 mt-1">
-                          40% technical resources - Good balance for implementation projects
-                        </p>
+                {costEstimate.hasRealCost ? (
+                  <>
+                    {/* Total Cost */}
+                    <div className="mb-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                      <div className="text-sm text-gray-600 mb-1">Estimated Labor Cost</div>
+                      <div className="text-3xl font-bold text-green-700">
+                        {formatProjectCurrency(costEstimate.total)}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        Based on billable resource rates and allocations across{" "}
+                        {projectMetrics.totalResources} resources
                       </div>
                     </div>
-                  </div>
 
-                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-medium text-purple-900">
-                          Optimization Opportunity
-                        </p>
-                        <p className="text-xs text-purple-700 mt-1">
-                          Consider adding 1 analyst role to reduce senior consultant utilization
-                        </p>
+                    {/* Cost Breakdown by Category */}
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Cost by Category</h3>
+                      <div className="space-y-3">
+                        {costEstimate.byCategory.map(({ category: cat, cost }) => {
+                          const category = RESOURCE_CATEGORIES[cat];
+                          const percentage = (cost / costEstimate.total) * 100;
+
+                          return (
+                            <div key={cat}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                                  <span>{category.icon}</span>
+                                  {category.label}
+                                </span>
+                                <span
+                                  className="text-xs font-bold"
+                                  style={{ color: category.color }}
+                                >
+                                  {formatProjectCurrency(cost)}
+                                </span>
+                              </div>
+                              <Progress
+                                percent={percentage}
+                                strokeColor={category.color}
+                                showInfo={false}
+                                size="small"
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
+                  </>
+                ) : (
+                  /* Honest empty state - no fabricated figure when rates/allocations are missing */
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                    <DollarSign className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                    <div className="text-2xl font-bold text-gray-400 mb-1">Not estimated</div>
+                    <p className="text-xs text-gray-600">
+                      Add billable resource rates and assign resources to phases or tasks to see a
+                      cost estimate.
+                    </p>
                   </div>
-                </div>
-
-                {/* Coming Soon Badge */}
-                <div className="mt-6 p-4 bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-orange-600" />
-                    <h4 className="text-sm font-semibold text-gray-900">Coming Soon</h4>
-                  </div>
-                  <ul className="text-xs text-gray-700 space-y-1">
-                    <li>• Custom resource rates (hourly/daily)</li>
-                    <li>• Budget constraints & alerts</li>
-                    <li>• What-if cost scenarios</li>
-                    <li>• ROI calculator</li>
-                  </ul>
-                </div>
+                )}
               </div>
             ),
           },
@@ -545,7 +522,8 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                   </p>
                 </div>
 
-                {/* Smart Suggestions */}
+                {/* Data-derived guidance only. Fabricated "detections" and dead-end
+                    action buttons have been removed in favor of honest, computed signals. */}
                 <div className="space-y-3">
                   <div className="p-4 bg-white border-2 border-blue-200 rounded-lg">
                     <div className="flex items-start gap-3">
@@ -554,88 +532,57 @@ export function ContextPanel({ isOpen, onClose }: ContextPanelProps) {
                       </div>
                       <div className="flex-1">
                         <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                          Timeline Optimization
+                          Timeline Overview
                         </h4>
-                        <p className="text-xs text-gray-600 mb-2">
-                          Similar CRM implementation projects typically take 6-8 months. Your
-                          timeline of {Math.round(projectMetrics.durationDays / 30)} months is{" "}
-                          {projectMetrics.durationDays < 180 ? "aggressive" : "conservative"}.
-                        </p>
-                        <Button size="small" type="link" className="px-0 h-auto text-xs">
-                          View industry benchmarks →
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-white border-2 border-purple-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Users className="w-4 h-4 text-purple-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                          Resource Suggestion
-                        </h4>
-                        <p className="text-xs text-gray-600 mb-2">
-                          Based on your project scope, we recommend adding 1-2 Senior Consultants
-                          for phases 3-5 to maintain velocity.
-                        </p>
-                        <Button size="small" type="link" className="px-0 h-auto text-xs">
-                          Auto-add suggested resources →
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-white border-2 border-green-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                          Best Practice Detected
-                        </h4>
-                        <p className="text-xs text-gray-600 mb-2">
-                          Great job! Your 2-week buffer between phases follows industry best
-                          practices for change management.
+                        <p className="text-xs text-gray-600">
+                          This project spans {Math.round(projectMetrics.durationDays / 30)} month
+                          {Math.round(projectMetrics.durationDays / 30) === 1 ? "" : "s"} (
+                          {projectMetrics.durationDays} days) across {projectMetrics.totalPhases}{" "}
+                          phase{projectMetrics.totalPhases === 1 ? "" : "s"}.
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-white border-2 border-orange-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <AlertTriangle className="w-4 h-4 text-orange-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-1">Risk Alert</h4>
-                        <p className="text-xs text-gray-600 mb-2">
-                          Holiday season detected in Q4 phases. Consider adding 15-20% buffer or
-                          rescheduling critical tasks.
-                        </p>
-                        <Button size="small" type="link" className="px-0 h-auto text-xs">
-                          Auto-adjust for holidays →
-                        </Button>
+                  {projectMetrics.utilizationRate < 70 && (
+                    <div className="p-4 bg-white border-2 border-orange-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <AlertTriangle className="w-4 h-4 text-orange-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                            Low Utilization
+                          </h4>
+                          <p className="text-xs text-gray-600">
+                            {Math.round(projectMetrics.utilizationRate)}% of resources are assigned
+                            to phases or tasks. Consider assigning the remaining{" "}
+                            {projectMetrics.totalResources - projectMetrics.assignedResources} or
+                            adjusting team size.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  )}
 
-                {/* Coming Soon */}
-                <div className="mt-6 p-4 bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-indigo-600" />
-                    <h4 className="text-sm font-semibold text-gray-900">Coming Soon</h4>
-                  </div>
-                  <ul className="text-xs text-gray-700 space-y-1">
-                    <li>• Natural language project generation</li>
-                    <li>• Auto-detect project risks & mitigation</li>
-                    <li>• Smart resource matching by skills</li>
-                    <li>• Predictive timeline adjustments</li>
-                  </ul>
+                  {projectMetrics.utilizationRate >= 90 && (
+                    <div className="p-4 bg-white border-2 border-green-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                            High Utilization
+                          </h4>
+                          <p className="text-xs text-gray-600">
+                            {Math.round(projectMetrics.utilizationRate)}% of resources are assigned —
+                            a well-utilized team.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ),

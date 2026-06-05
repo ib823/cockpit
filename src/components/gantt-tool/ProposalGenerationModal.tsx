@@ -18,8 +18,6 @@ import { useState, useMemo } from "react";
 import {
   FileText,
   Download,
-  Presentation,
-  Globe,
   DollarSign,
   Users,
   Calendar,
@@ -34,8 +32,9 @@ import {
 } from "lucide-react";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { differenceInDays, format } from "date-fns";
-import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } from "@/types/gantt-tool";
+import { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS, type ResourceCategory } from "@/types/gantt-tool";
 import { exportToPDF } from "@/lib/gantt-tool/export-utils";
+import { calculateProjectCost } from "@/lib/gantt-tool/cost-calculator";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import { COLORS, SPACING, RADIUS, TYPOGRAPHY, TRANSITIONS } from "@/lib/design-system/tokens";
 
@@ -147,15 +146,16 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
     const totalTasks = phases.reduce((sum, p) => sum + p.tasks.length, 0);
     const resources = currentProject.resources || [];
 
-    // Calculate costs (placeholder - use real rates in production)
-    const estimatedCost = resources.length * 50000; // $50K per resource baseline
-    const costByCategory = {
-      pm: estimatedCost * 0.15,
-      technical: estimatedCost * 0.4,
-      functional: estimatedCost * 0.3,
-      security: estimatedCost * 0.1,
-      change: estimatedCost * 0.05,
-    };
+    // Calculate costs from REAL resource rates and allocations (billable resources only).
+    // If no rates/allocations are configured, estimatedCost is 0 and the UI shows an
+    // honest "Not estimated" state instead of a fabricated figure.
+    const costData = calculateProjectCost(currentProject);
+    const estimatedCost = costData.laborCost;
+    const costByCategory = Array.from(costData.costByCategory.entries())
+      .filter(([, cost]) => cost > 0)
+      .map(([category, cost]) => ({ category, cost }))
+      .sort((a, b) => b.cost - a.cost);
+    const currencyCode = resources.find((r) => r.currency)?.currency || "MYR";
 
     // Resource utilization
     const assignedResources = new Set<string>();
@@ -192,6 +192,8 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
       utilizationRate,
       estimatedCost,
       costByCategory,
+      hasRealCost: estimatedCost > 0,
+      currencyCode,
       milestones: milestones.length,
       complexityScore,
       phasesList: phases.map((p) => ({
@@ -211,6 +213,14 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
 
   if (!proposalData) return null;
 
+  // Format amounts in the project's currency (resources carry a currency code, default MYR).
+  const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: proposalData.currencyCode,
+    maximumFractionDigits: 0,
+  });
+  const formatCurrency = (amount: number) => currencyFormatter.format(amount);
+
   const showNotification = (type: 'success' | 'info' | 'error', message: string) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 3000);
@@ -227,14 +237,6 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
     } finally {
       setIsExporting(false);
     }
-  };
-
-  const handleExportPowerPoint = () => {
-    showNotification('info', "PowerPoint export is coming soon! This will generate a client-ready presentation.");
-  };
-
-  const handleExportHTML = () => {
-    showNotification('info', "Interactive HTML export is coming soon! Share a live, explorable proposal with clients.");
   };
 
   const ProgressBar = ({ percent, color }: { percent: number; color: string }) => (
@@ -404,9 +406,11 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
                   <div style={{
                     fontSize: '32px',
                     fontWeight: TYPOGRAPHY.fontWeight.bold,
-                    color: COLORS.orange,
+                    color: proposalData.hasRealCost ? COLORS.orange : COLORS.text.tertiary,
                   }}>
-                    ${Math.round(proposalData.estimatedCost / 1000)}K
+                    {proposalData.hasRealCost
+                      ? formatCurrency(proposalData.estimatedCost)
+                      : "—"}
                   </div>
                   <div style={{
                     fontSize: '11px',
@@ -414,7 +418,7 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
                     marginTop: SPACING[1],
                     fontFamily: TYPOGRAPHY.fontFamily.text,
                   }}>
-                    Investment
+                    {proposalData.hasRealCost ? "Investment" : "Not estimated"}
                   </div>
                 </div>
               </div>
@@ -638,153 +642,186 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
         {/* COSTS TAB */}
         {activeTab === 'costs' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[5] }}>
-            {/* Total Investment */}
-            <div style={{
-              padding: SPACING[5],
-              background: `linear-gradient(135deg, ${COLORS.status.success}15, ${COLORS.greenLight}15)`,
-              borderRadius: RADIUS.default,
-              border: `1px solid ${COLORS.status.success}40`,
-            }}>
-              <div style={{ textAlign: 'center' }}>
+            {proposalData.hasRealCost ? (
+              <>
+                {/* Total Investment */}
                 <div style={{
+                  padding: SPACING[5],
+                  background: `linear-gradient(135deg, ${COLORS.status.success}15, ${COLORS.greenLight}15)`,
+                  borderRadius: RADIUS.default,
+                  border: `1px solid ${COLORS.status.success}40`,
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                      fontSize: TYPOGRAPHY.fontSize.caption,
+                      color: COLORS.text.secondary,
+                      marginBottom: SPACING[2],
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                    }}>
+                      Total Estimated Labor Cost
+                    </div>
+                    <div style={{
+                      fontSize: '48px',
+                      fontWeight: TYPOGRAPHY.fontWeight.bold,
+                      color: COLORS.status.success,
+                      marginBottom: SPACING[2],
+                    }}>
+                      {formatCurrency(proposalData.estimatedCost)}
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: COLORS.text.secondary,
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                    }}>
+                      Based on billable resource rates and allocations across{" "}
+                      {proposalData.resources} team members
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cost by Category */}
+                <div>
+                  <h4 style={{
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
+                    marginBottom: SPACING[3],
+                    margin: 0,
+                  }}>
+                    Cost by Category
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[3] }}>
+                    {proposalData.costByCategory.map(({ category: cat, cost }) => {
+                      const category = RESOURCE_CATEGORIES[cat];
+                      const percentage = (cost / proposalData.estimatedCost) * 100;
+
+                      return (
+                        <div key={cat}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: SPACING[1],
+                          }}>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                              color: COLORS.text.secondary,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: SPACING[1],
+                              fontFamily: TYPOGRAPHY.fontFamily.text,
+                            }}>
+                              <span>{category.icon}</span>
+                              {category.label}
+                            </span>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: TYPOGRAPHY.fontWeight.bold,
+                              color: category.color,
+                              fontFamily: TYPOGRAPHY.fontFamily.text,
+                            }}>
+                              {formatCurrency(cost)} ({Math.round(percentage)}%)
+                            </span>
+                          </div>
+                          <ProgressBar percent={percentage} color={category.color} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Payment Schedule - standard 30/40/30 milestone split of the real total */}
+                <div style={{
+                  padding: SPACING[4],
+                  backgroundColor: `${COLORS.blue}15`,
+                  border: `1px solid ${COLORS.blue}40`,
+                  borderRadius: RADIUS.default,
+                }}>
+                  <h4 style={{
+                    fontFamily: TYPOGRAPHY.fontFamily.text,
+                    fontSize: TYPOGRAPHY.fontSize.caption,
+                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                    color: COLORS.text.primary,
+                    marginBottom: SPACING[3],
+                    margin: 0,
+                  }}>
+                    Suggested Payment Schedule
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2], fontSize: '11px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                    }}>
+                      <span style={{ color: COLORS.text.secondary }}>Project Kickoff (30%)</span>
+                      <span style={{
+                        fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                        color: COLORS.text.primary,
+                      }}>
+                        {formatCurrency(proposalData.estimatedCost * 0.3)}
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                    }}>
+                      <span style={{ color: COLORS.text.secondary }}>Mid-Project (40%)</span>
+                      <span style={{
+                        fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                        color: COLORS.text.primary,
+                      }}>
+                        {formatCurrency(proposalData.estimatedCost * 0.4)}
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontFamily: TYPOGRAPHY.fontFamily.text,
+                    }}>
+                      <span style={{ color: COLORS.text.secondary }}>Project Completion (30%)</span>
+                      <span style={{
+                        fontWeight: TYPOGRAPHY.fontWeight.semibold,
+                        color: COLORS.text.primary,
+                      }}>
+                        {formatCurrency(proposalData.estimatedCost * 0.3)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Honest empty state - no fabricated figure when rates/allocations are missing */
+              <div style={{
+                padding: SPACING[5],
+                backgroundColor: COLORS.bg.subtle,
+                borderRadius: RADIUS.default,
+                border: `1px solid ${COLORS.border.default}`,
+                textAlign: 'center',
+              }}>
+                <DollarSign style={{ width: '40px', height: '40px', color: COLORS.text.tertiary, margin: '0 auto' }} />
+                <div style={{
+                  fontSize: '24px',
+                  fontWeight: TYPOGRAPHY.fontWeight.bold,
+                  color: COLORS.text.tertiary,
+                  marginTop: SPACING[2],
+                  marginBottom: SPACING[2],
+                }}>
+                  Not estimated
+                </div>
+                <p style={{
                   fontSize: TYPOGRAPHY.fontSize.caption,
                   color: COLORS.text.secondary,
-                  marginBottom: SPACING[2],
                   fontFamily: TYPOGRAPHY.fontFamily.text,
+                  margin: 0,
                 }}>
-                  Total Project Investment
-                </div>
-                <div style={{
-                  fontSize: '48px',
-                  fontWeight: TYPOGRAPHY.fontWeight.bold,
-                  color: COLORS.status.success,
-                  marginBottom: SPACING[2],
-                }}>
-                  ${Math.round(proposalData.estimatedCost / 1000)}K
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  color: COLORS.text.secondary,
-                  fontFamily: TYPOGRAPHY.fontFamily.text,
-                }}>
-                  Estimated based on {proposalData.resources} team members over{" "}
-                  {proposalData.durationMonths} months
-                </div>
+                  Add billable resource rates and assign resources to phases or tasks to generate a
+                  cost estimate for this proposal.
+                </p>
               </div>
-            </div>
-
-            {/* Cost by Category */}
-            <div>
-              <h4 style={{
-                fontFamily: TYPOGRAPHY.fontFamily.text,
-                fontSize: TYPOGRAPHY.fontSize.caption,
-                fontWeight: TYPOGRAPHY.fontWeight.semibold,
-                color: COLORS.text.primary,
-                marginBottom: SPACING[3],
-                margin: 0,
-              }}>
-                Cost by Category
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[3] }}>
-                {Object.entries(proposalData.costByCategory).map(([cat, cost]) => {
-                  const category = RESOURCE_CATEGORIES[cat as keyof typeof RESOURCE_CATEGORIES];
-                  const percentage = (cost / proposalData.estimatedCost) * 100;
-
-                  return (
-                    <div key={cat}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: SPACING[1],
-                      }}>
-                        <span style={{
-                          fontSize: '11px',
-                          fontWeight: TYPOGRAPHY.fontWeight.semibold,
-                          color: COLORS.text.secondary,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: SPACING[1],
-                          fontFamily: TYPOGRAPHY.fontFamily.text,
-                        }}>
-                          <span>{category.icon}</span>
-                          {category.label}
-                        </span>
-                        <span style={{
-                          fontSize: '11px',
-                          fontWeight: TYPOGRAPHY.fontWeight.bold,
-                          color: category.color,
-                          fontFamily: TYPOGRAPHY.fontFamily.text,
-                        }}>
-                          ${Math.round(cost / 1000)}K ({Math.round(percentage)}%)
-                        </span>
-                      </div>
-                      <ProgressBar percent={percentage} color={category.color} />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Payment Schedule */}
-            <div style={{
-              padding: SPACING[4],
-              backgroundColor: `${COLORS.blue}15`,
-              border: `1px solid ${COLORS.blue}40`,
-              borderRadius: RADIUS.default,
-            }}>
-              <h4 style={{
-                fontFamily: TYPOGRAPHY.fontFamily.text,
-                fontSize: TYPOGRAPHY.fontSize.caption,
-                fontWeight: TYPOGRAPHY.fontWeight.semibold,
-                color: COLORS.text.primary,
-                marginBottom: SPACING[3],
-                margin: 0,
-              }}>
-                Suggested Payment Schedule
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: SPACING[2], fontSize: '11px' }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontFamily: TYPOGRAPHY.fontFamily.text,
-                }}>
-                  <span style={{ color: COLORS.text.secondary }}>Project Kickoff (30%)</span>
-                  <span style={{
-                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-                    color: COLORS.text.primary,
-                  }}>
-                    ${Math.round((proposalData.estimatedCost * 0.3) / 1000)}K
-                  </span>
-                </div>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontFamily: TYPOGRAPHY.fontFamily.text,
-                }}>
-                  <span style={{ color: COLORS.text.secondary }}>Mid-Project (40%)</span>
-                  <span style={{
-                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-                    color: COLORS.text.primary,
-                  }}>
-                    ${Math.round((proposalData.estimatedCost * 0.4) / 1000)}K
-                  </span>
-                </div>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontFamily: TYPOGRAPHY.fontFamily.text,
-                }}>
-                  <span style={{ color: COLORS.text.secondary }}>Project Completion (30%)</span>
-                  <span style={{
-                    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-                    color: COLORS.text.primary,
-                  }}>
-                    ${Math.round((proposalData.estimatedCost * 0.3) / 1000)}K
-                  </span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -1007,32 +1044,6 @@ export function ProposalGenerationModal({ isOpen, onClose }: ProposalGenerationM
           >
             <FileText style={{ width: '16px', height: '16px' }} />
             {isExporting ? 'Exporting...' : 'Export PDF'}
-          </button>
-          <button
-            onClick={handleExportPowerPoint}
-            style={styles.exportButton(false)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = COLORS.blueLight;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            <Presentation style={{ width: '16px', height: '16px' }} />
-            PowerPoint
-          </button>
-          <button
-            onClick={handleExportHTML}
-            style={styles.exportButton(false)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = COLORS.blueLight;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            <Globe style={{ width: '16px', height: '16px' }} />
-            Interactive HTML
           </button>
         </div>
       </div>

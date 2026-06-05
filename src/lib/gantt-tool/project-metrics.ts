@@ -7,6 +7,7 @@
 import { differenceInDays, format } from "date-fns";
 import type { GanttProject, Resource } from "@/types/gantt-tool";
 import { calculateWorkingDaysInclusive } from "./working-days";
+import { calculateProjectCost } from "./cost-calculator";
 
 export interface ProjectMetrics {
   // Date information
@@ -210,33 +211,11 @@ function calculateBudgetMetrics(project: GanttProject) {
 
   const budgetTotal = project.budget.totalBudget;
 
-  // Calculate spent from resource assignments
-  // TODO: Implement proper budget calculation based on:
-  // - Task/phase duration (working days)
-  // - Resource allocation percentage
-  // - Resource hourly rate
-  // Formula: (duration_hours * allocation% * hourly_rate)
-  const budgetSpent = 0;
-
-  // This is a placeholder - proper implementation requires:
-  // 1. Calculate working hours from task dates
-  // 2. Multiply by allocation percentage
-  // 3. Multiply by resource hourly rate
-  // For now, return 0 to avoid TypeScript errors
-  project.phases?.forEach(phase => {
-    // Placeholder for phase-level resource cost calculation
-    phase.phaseResourceAssignments?.forEach(assignment => {
-      const resource = project.resources?.find(r => r.id === assignment.resourceId);
-      // Will implement: budgetSpent += calculateResourceCost(phase, assignment, resource);
-    });
-
-    phase.tasks?.forEach(task => {
-      task.resourceAssignments?.forEach(assignment => {
-        const resource = project.resources?.find(r => r.id === assignment.resourceId);
-        // Will implement: budgetSpent += calculateResourceCost(task, assignment, resource);
-      });
-    });
-  });
+  // Calculate spent from real resource assignments using the shared cost engine.
+  // Labor cost = sum over billable assignments of (working hours x allocation% x chargeRatePerHour).
+  // When no billable rates/assignments exist this is 0, and the consumer surfaces
+  // only the total budget (no fabricated "spent" figure) — see ProjectMetrics.tsx.
+  const budgetSpent = calculateProjectCost(project).laborCost;
 
   const budgetUtilization = budgetTotal > 0 ? (budgetSpent / budgetTotal) * 100 : 0;
 

@@ -84,6 +84,7 @@ export function BusinessContextDiagram({
 
       {/* Main Diagram Container */}
       <div
+        id="architecture-diagram-capture"
         className="p-12 border-2 border-[var(--color-text-primary)] rounded-xl bg-[var(--color-bg-primary)] min-h-[600px]"
         role="main"
         aria-label="Business context diagram content"
