@@ -53,7 +53,7 @@ function getIdentifier(request: NextRequest): string {
 }
 
 // PUBLIC_PATHS: Exact matches or specific allowed prefixes
-const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/register-secure", "/api/favicon", "/api/health"]);
+const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/register-secure", "/design", "/api/favicon", "/api/health"]);
 const PUBLIC_PREFIXES = ["/api/auth/"]; // NextAuth and login endpoints
 // SENSITIVE_PATHS: Require strict rate limiting
 const SENSITIVE_PATHS = ["/api/auth/begin-login", "/api/auth/magic-login", "/api/auth/verify-otp", "/api/auth/check-admin"];
