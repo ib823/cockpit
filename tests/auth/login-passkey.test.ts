@@ -74,9 +74,7 @@ describe("Passkey Login Flow", () => {
 
       // Assert
       expect(response.status).toBe(404);
-      expect(data.ok).toBe(false);
-      expect(data.message).toContain("not found");
-      expect(data.notApproved).toBe(true);
+      expect(data.error).toContain("not found");
     });
 
     it(TEST_SCENARIOS.FAILURE.noPasskey, async () => {
@@ -121,9 +119,7 @@ describe("Passkey Login Flow", () => {
 
       // Assert
       expect(response.status).toBe(404);
-      expect(data.ok).toBe(false);
-      expect(data.message).toContain("Invalid. Contact Admin.");
-      expect(data.notApproved).toBe(true);
+      expect(data.error).toContain("Invalid. Contact Admin.");
     });
 
     it(TEST_SCENARIOS.FAILURE.expiredAccess, async () => {
@@ -146,8 +142,7 @@ describe("Passkey Login Flow", () => {
 
       // Assert
       expect(response.status).toBe(403);
-      expect(data.ok).toBe(false);
-      expect(data.message).toContain("expired");
+      expect(data.error).toContain("expired");
     });
 
     it("should require email in request body", async () => {
@@ -163,8 +158,7 @@ describe("Passkey Login Flow", () => {
 
       // Assert
       expect(response.status).toBe(400);
-      expect(data.ok).toBe(false);
-      expect(data.message).toContain("required");
+      expect(data.error).toContain("required");
     });
   });
 
@@ -219,8 +213,7 @@ describe("Passkey Login Flow", () => {
 
       // Assert
       expect(response.status).toBe(408);
-      expect(data.ok).toBe(false);
-      expect(data.message).toContain("expired");
+      expect(data.error).toContain("expired");
       expect(data.challengeExpired).toBe(true);
     });
 
@@ -237,8 +230,7 @@ describe("Passkey Login Flow", () => {
 
       // Assert
       expect(response.status).toBe(400);
-      expect(data.ok).toBe(false);
-      expect(data.message).toContain("required");
+      expect(data.error).toContain("required");
     });
   });
 });

@@ -606,7 +606,15 @@ describe('BaseModal - Design Token Compliance', () => {
     );
 
     const borderedElements = Array.from(container.querySelectorAll('[style*="border"]'))
-      .filter(el => (el as HTMLElement).style.borderTop || (el as HTMLElement).style.borderBottom);
+      .filter(el => {
+        // Only assert on elements with an actual styled divider border. Elements
+        // with only border-radius, or border:"none", are matched by the attribute
+        // selector but jsdom serializes their borderTop/Bottom as "medium none" —
+        // those are not divider borders and must be excluded from the token check.
+        const s = (el as HTMLElement).style;
+        const b = s.borderTop || s.borderBottom;
+        return Boolean(b) && b.includes("solid");
+      });
 
     expect(borderedElements.length).toBeGreaterThan(0);
     borderedElements.forEach(el => {
