@@ -63,7 +63,7 @@ export async function GET(req: Request) {
   try {
     const mod = await import("@/lib/db").catch(() => null);
     if (mod && "prisma" in mod) {
-      prisma = (mod as { prisma: PrismaClient }).prisma;
+      prisma = (mod as unknown as { prisma: PrismaClient }).prisma;
     } else if (mod && "default" in mod) {
       prisma = (mod as { default: PrismaClient }).default;
     }

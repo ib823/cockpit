@@ -14,6 +14,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import type { JSX } from "react";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { X, Plus, ZoomIn, ZoomOut, Save, Check } from "lucide-react";
 import { useOrgChartDragDrop } from "@/hooks/useOrgChartDragDrop";

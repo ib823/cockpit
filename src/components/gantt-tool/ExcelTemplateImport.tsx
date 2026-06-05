@@ -32,6 +32,23 @@ interface ConflictResolution {
 import type { GanttPhase, Resource } from "@/types/gantt-tool";
 import { logger } from "@/lib/logger";
 
+/**
+ * Imported gantt data with phases/resources typed to the canonical domain types.
+ * transformToGanttProject() returns a structurally looser shape (its own inline
+ * literal types); the produced objects are runtime-compatible with GanttPhase /
+ * Resource for every consumer here, so we view it through the real types.
+ */
+type ImportedGanttData = Omit<ReturnType<typeof transformToGanttProject>, "phases" | "resources"> & {
+  phases: GanttPhase[];
+  resources: Resource[];
+};
+
+function toImportedGanttData(
+  data: ReturnType<typeof transformToGanttProject>
+): ImportedGanttData {
+  return data as unknown as ImportedGanttData;
+}
+
 // FIX ISSUE #16: Add file size limits
 const MAX_ROWS = 500; // Maximum total rows (tasks + resources)
 const MAX_PASTE_SIZE = 1024 * 1024; // 1MB maximum paste size
@@ -44,7 +61,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   const [importMode, setImportMode] = useState<"new" | "append">("new");
   const [conflictResult, setConflictResult] = useState<ConflictDetectionResult | null>(null);
   const [showConflictModal, setShowConflictModal] = useState(false);
-  const [ganttData, setGanttData] = useState<ReturnType<typeof transformToGanttProject> | null>(null);
+  const [ganttData, setGanttData] = useState<ImportedGanttData | null>(null);
 
   const { currentProject } = useGanttToolStoreV2();
 
@@ -176,7 +193,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
       });
 
       const projectName = `Imported Project - ${new Date().toLocaleDateString()}`;
-      const transformedGanttData = transformToGanttProject(parsed, projectName);
+      const transformedGanttData = toImportedGanttData(transformToGanttProject(parsed, projectName));
       setGanttData(transformedGanttData);
 
       logger.warn("[ExcelImport] Transformed data:", {
@@ -214,7 +231,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
   };
 
   // Actually perform the import (called after conflict resolution or directly if no conflicts)
-  const performImport = async (dataToImport: ReturnType<typeof transformToGanttProject>, resolution?: ConflictResolution) => {
+  const performImport = async (dataToImport: ImportedGanttData, resolution?: ConflictResolution) => {
     try {
       if (importMode === "append" && currentProject) {
         // Append to existing project
@@ -270,7 +287,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
             // Apply custom names from user input or use suggestions
             finalPhases = dataToImport.phases.map((phase: GanttPhase) => {
               const conflictId = conflictResult?.conflicts.find(
-                (c) => c.type === "phase" && (c.detail as Record<string, unknown>).phaseName === phase.name
+                (c) => c.type === "phase" && (c.detail as unknown as Record<string, unknown>).phaseName === phase.name
               )?.id;
 
               if (conflictId && resolution.customNames?.has(conflictId)) {
@@ -285,7 +302,7 @@ export function ExcelTemplateImport({ onClose }: { onClose: () => void }) {
 
             finalResources = dataToImport.resources.map((resource: Resource) => {
               const conflictId = conflictResult?.conflicts.find(
-                (c) => c.type === "resource" && (c.detail as Record<string, unknown>).resourceName === resource.name
+                (c) => c.type === "resource" && (c.detail as unknown as Record<string, unknown>).resourceName === resource.name
               )?.id;
 
               if (conflictId && resolution.customNames?.has(conflictId)) {

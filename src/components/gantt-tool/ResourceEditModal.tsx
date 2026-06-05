@@ -84,7 +84,7 @@ export function ResourceEditModal({
 
   // Only show companies that have logos uploaded in the Logo Library
   const projectLogos = currentProject?.orgChartPro?.companyLogos || {};
-  const subCompanies = (currentProject?.orgChartPro?.subCompanies || []) as Array<{ id: string; name: string; parentCompany?: string }>;
+  const subCompanies = (currentProject?.orgChartPro?.subCompanies || []) as Array<{ id: string; name: string; parentCompany?: string; indicatorColor?: string }>;
   const parentCompanyNames = Object.keys(projectLogos);
   const subCompanyNames = subCompanies.map((sc) => sc.name);
   // Combine parent companies and sub-companies for dropdown
@@ -686,7 +686,7 @@ export function ResourceEditModal({
                     {formData.companyName && (() => {
                       const selectedSubCompany = subCompanies.find((sc) => sc.name === formData.companyName);
                       const logoKey = selectedSubCompany ? selectedSubCompany.parentCompany : formData.companyName;
-                      const logo = projectLogos[logoKey];
+                      const logo = logoKey ? projectLogos[logoKey] : undefined;
 
                       if (!logo) return null;
 

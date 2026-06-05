@@ -136,7 +136,7 @@ export function FinancialsTab({ project }: FinancialsTabProps) {
   );
 
   // Ref to recalculateCosting so fetchCostingData can call it without a circular dependency
-  const recalculateCostingRef = useRef<() => Promise<void>>();
+  const recalculateCostingRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   // Fetch costing data
   const fetchCostingData = useCallback(async () => {

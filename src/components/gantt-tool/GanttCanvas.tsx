@@ -210,10 +210,11 @@ export function GanttCanvas() {
     handleTaskClick: (id: string) => { selectItem(id, "task"); openSidePanel("edit", "task", id); },
     handlePhaseDoubleClick: focusPhase,
     handleTaskDoubleClick: (id: string) => setResourceModalState({ itemId: id, itemType: "task" }),
-    handleMouseDown: (e: React.MouseEvent, id: string, mode: "move" | "resize-start" | "resize-end") => {
+    handleMouseDown: (e: React.MouseEvent, id: string, mode: string) => {
       const item = currentProject.phases.find(p => p.id === id);
       if (!item) return;
-      setDragState({ itemId: id, itemType: "phase", mode, startX: e.clientX, initialStartDate: item.startDate, initialEndDate: item.endDate });
+      const dragMode = mode as "move" | "resize-start" | "resize-end";
+      setDragState({ itemId: id, itemType: "phase", mode: dragMode, startX: e.clientX, initialStartDate: item.startDate, initialEndDate: item.endDate });
     },
     handleTaskMouseDown: (e: React.MouseEvent, id: string, phaseId: string, mode: unknown) => {
       const phase = currentProject.phases.find(p => p.id === phaseId);
@@ -286,7 +287,7 @@ export function GanttCanvas() {
                 selection={selection}
                 dragState={dragState}
                 focusedPhaseId={focusedPhaseId}
-                viewSettings={viewSettings}
+                viewSettings={viewSettings ?? null}
                 handlers={handlers}
               />
               {!phase.collapsed && (

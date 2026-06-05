@@ -58,7 +58,8 @@ export async function POST(req: Request) {
       .toLowerCase();
     const password = body.password;
     const totpCode = body.totpCode;
-    const clientFingerprint = body.fingerprint; // From client-side FingerprintJS
+    const clientFingerprint =
+      typeof body.fingerprint === "string" ? body.fingerprint : undefined; // From client-side FingerprintJS
     const rememberDevice = body.rememberDevice === true;
 
     // ============================================
@@ -68,12 +69,18 @@ export async function POST(req: Request) {
     const ipAddress = await getClientIP();
     const userAgent = headersList.get("user-agent") || "Unknown";
     const serverFingerprint = await getServerSideFingerprint(headersList);
-    const deviceFingerprint = clientFingerprint || serverFingerprint;
+    const deviceFingerprint = clientFingerprint || serverFingerprint.fingerprint;
 
     // ============================================
     // 2. Validate Input
     // ============================================
-    if (!email || !password || !totpCode) {
+    if (
+      !email ||
+      typeof password !== "string" ||
+      !password ||
+      typeof totpCode !== "string" ||
+      !totpCode
+    ) {
       return badRequest("Email, password, and TOTP code are required.");
     }
 

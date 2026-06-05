@@ -126,8 +126,8 @@ export function calculateProjectDelta(
     projectUpdates.budget = current.budget;
     hasProjectUpdates = true;
   }
-  const currentRecord = current as Record<string, unknown>;
-  const lastSavedRecord = lastSaved as Record<string, unknown>;
+  const currentRecord = current as unknown as Record<string, unknown>;
+  const lastSavedRecord = lastSaved as unknown as Record<string, unknown>;
   if (!deepEqual(currentRecord.orgChart, lastSavedRecord.orgChart)) {
     (projectUpdates as Record<string, unknown>).orgChart = currentRecord.orgChart;
     hasProjectUpdates = true;
@@ -302,13 +302,13 @@ export function sanitizeDelta(delta: ProjectDelta): ProjectDelta {
    * Helper to validate and deduplicate resource assignments
    * Returns cleaned assignments and logs removed entries
    */
-  function cleanResourceAssignments(
-    assignments: Array<{ resourceId: string; [key: string]: unknown }>,
+  function cleanResourceAssignments<T extends { resourceId: string }>(
+    assignments: T[],
     context: string,
     allowMissingResources: boolean = true
-  ): Array<{ resourceId: string; [key: string]: unknown }> {
+  ): T[] {
     const seen = new Set<string>();
-    const cleaned: Array<{ resourceId: string; [key: string]: unknown }> = [];
+    const cleaned: T[] = [];
 
     for (const assignment of assignments) {
       const resourceId = assignment.resourceId;

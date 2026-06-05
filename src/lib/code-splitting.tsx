@@ -15,6 +15,7 @@
 
 import dynamic from "next/dynamic";
 import { ComponentType, lazy, Suspense, ReactNode } from "react";
+import type { JSX } from "react";
 import { logger } from "@/lib/logger";
 
 /**
@@ -131,7 +132,7 @@ export const GanttSidePanel = lazyLoadWithRetry<ComponentType<Record<string, unk
 
 // Import Modal (347 lines - showcase compliant)
 export const ImportModal = lazyLoadWithRetry<ComponentType<Record<string, unknown>>>(() =>
-  import("@/components/gantt-tool/ImportModal").then((m) => ({ default: m.ImportModal as ComponentType<Record<string, unknown>> }))
+  import("@/components/gantt-tool/ImportModal").then((m) => ({ default: m.ImportModal as unknown as ComponentType<Record<string, unknown>> }))
 );
 
 // Plan Mode (1,137 lines) - DISABLED: Module removed
@@ -140,7 +141,7 @@ export const ImportModal = lazyLoadWithRetry<ComponentType<Record<string, unknow
 
 // Dashboard Content
 export const DashboardContent = lazyLoad<ComponentType<Record<string, unknown>>>(() =>
-  import("@/components/dashboard/DashboardContent").then((m) => ({ default: m.DashboardContent as ComponentType<Record<string, unknown>> }))
+  import("@/components/dashboard/DashboardContent").then((m) => ({ default: m.DashboardContent as unknown as ComponentType<Record<string, unknown>> }))
 );
 
 // Export components - DISABLED: Module removed

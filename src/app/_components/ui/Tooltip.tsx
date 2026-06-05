@@ -10,7 +10,7 @@ import { clsx } from "clsx";
 
 export interface TooltipProps {
   content: React.ReactNode;
-  children: React.ReactElement;
+  children: React.ReactElement<React.HTMLAttributes<HTMLElement>>;
   placement?: "top" | "bottom" | "left" | "right";
   delay?: number;
   className?: string;
@@ -24,7 +24,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   className,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
 
   const showTooltip = () => {
     timeoutRef.current = setTimeout(() => {

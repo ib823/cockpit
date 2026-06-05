@@ -254,7 +254,7 @@ export function DraggableOrgCardV3({
         role="button"
         tabIndex={0}
         onClick={onSelect}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.(e as unknown as React.MouseEvent); } }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
         style={{
           ...dragStyle,
           position: "relative",

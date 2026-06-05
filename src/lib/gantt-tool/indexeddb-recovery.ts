@@ -63,7 +63,7 @@ export async function getAllLocalProjects(): Promise<GanttProject[]> {
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    logger.error("[Recovery] Failed to get local projects", error);
+    logger.error("[Recovery] Failed to get local projects", { error });
     return [];
   }
 }
@@ -83,7 +83,7 @@ export async function getLocalProject(projectId: string): Promise<GanttProject |
       request.onerror = () => reject(request.error);
     });
   } catch (error) {
-    logger.error("[Recovery] Failed to get local project", error);
+    logger.error("[Recovery] Failed to get local project", { error });
     return null;
   }
 }
@@ -267,7 +267,7 @@ export function installConsoleHelpers(): void {
         logger.info(`[Recovery] SUCCESS: Updated ${result.updatedCount} resources`);
         logger.info("[Recovery] Please refresh the page to see the recovered data.");
       } else {
-        logger.error("[Recovery] FAILED:", result.errors);
+        logger.error("[Recovery] FAILED:", { errors: result.errors });
       }
 
       return result;

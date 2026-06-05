@@ -320,7 +320,7 @@ export function extractSelectedPackages(decisions: Record<string, unknown>): str
 
   // Check module combo decision
   const moduleCombo = decisions.moduleCombo;
-  if (moduleCombo) {
+  if (typeof moduleCombo === "string") {
     // Map module combo to SAP packages (simplified)
     const packageMap: Record<string, string[]> = {
       "finance-only": ["sap-fico"],

@@ -220,15 +220,21 @@ async function sendDeltaToServer(projectId: string, delta: ProjectDelta): Promis
     }
 
     const errorMessage =
-      errorData.error || errorData.message || `Sync failed with status ${response.status}`;
+      typeof errorData.error === "string"
+        ? errorData.error
+        : typeof errorData.message === "string"
+          ? errorData.message
+          : `Sync failed with status ${response.status}`;
 
     // Extract detailed error information for better debugging
     const details = errorData.details || errorData.validationDetails || errorData.issues || null;
-    const conflictField = errorData.conflictField || null;
-    const code = errorData.code || null;
+    const conflictField = Array.isArray(errorData.conflictField)
+      ? (errorData.conflictField as string[])
+      : undefined;
+    const code = typeof errorData.code === "string" ? errorData.code : undefined;
 
     // Log sync failure with comprehensive details
-    logger.error("[BackgroundSync] Sync failed", new Error(String(errorMessage)));
+    logger.error("[BackgroundSync] Sync failed", { error: new Error(errorMessage) });
 
     // Create error with status code for retry logic
     const error = new Error(errorMessage) as Error & {
@@ -286,7 +292,7 @@ async function processSyncQueue(): Promise<void> {
       if (item.retryCount > 0 && itemAge > RETRY_RESET_TIME) {
         logger.info(
           `[BackgroundSync] Resetting retry count for old item (age: ${Math.round(itemAge / 1000)}s)`,
-          item.projectId
+          { projectId: item.projectId }
         );
         item.retryCount = 0;
         item.lastError = undefined;
@@ -307,7 +313,7 @@ async function processSyncQueue(): Promise<void> {
         } catch (fetchError) {
           logger.warn(
             "[BackgroundSync] Could not fetch server state, syncing full state:",
-            fetchError
+            { error: fetchError }
           );
         }
 
@@ -322,7 +328,7 @@ async function processSyncQueue(): Promise<void> {
         const isPermanentError = syncError.isPermanent === true;
         const errorStatus = syncError.status;
 
-        logger.error("[BackgroundSync] Sync failed for", item.projectId, errorMessage);
+        logger.error("[BackgroundSync] Sync failed for", { projectId: item.projectId, error: errorMessage });
 
         // Handle permanent errors (validation failures) - don't retry
         if (isPermanentError) {
@@ -407,7 +413,7 @@ async function processSyncQueue(): Promise<void> {
 
         if (item.retryCount >= MAX_RETRY_COUNT) {
           // Don't remove from queue - keep it for potential recovery
-          logger.error("[BackgroundSync] Max retries exceeded for", item.projectId);
+          logger.error("[BackgroundSync] Max retries exceeded for", { projectId: item.projectId });
           logger.error("[BackgroundSync] Error details:", {
             projectId: item.projectId,
             retryCount: item.retryCount,
@@ -456,7 +462,7 @@ export function startBackgroundSync(callbacks?: typeof syncCallbacks): void {
   }
 
   // Process immediately
-  processSyncQueue().catch((err: unknown) => logger.error(err));
+  processSyncQueue().catch((err: unknown) => logger.error("[BackgroundSync] Sync queue error", { error: err }));
 
   // Start interval
   if (syncInterval) {
@@ -464,13 +470,13 @@ export function startBackgroundSync(callbacks?: typeof syncCallbacks): void {
   }
 
   syncInterval = setInterval(() => {
-    processSyncQueue().catch((err: unknown) => logger.error(err));
+    processSyncQueue().catch((err: unknown) => logger.error("[BackgroundSync] Sync queue error", { error: err }));
   }, SYNC_INTERVAL);
 
   // Listen for online/offline events
   window.addEventListener("online", () => {
     logger.info("[BackgroundSync] Back online, triggering sync");
-    processSyncQueue().catch((err: unknown) => logger.error(err));
+    processSyncQueue().catch((err: unknown) => logger.error("[BackgroundSync] Sync queue error", { error: err }));
   });
 }
 

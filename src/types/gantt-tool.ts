@@ -899,26 +899,39 @@ export interface EnhancedPhaseResourceAssignment extends PhaseResourceAssignment
  */
 export function migrateResourceToNewSchema(resource: Record<string, unknown>): Resource {
   // Determine assignment level based on category (PM can assign to both, others only tasks)
-  const assignmentLevel: AssignmentLevel = resource.category === "pm" ? "both" : "task";
+  const defaultAssignmentLevel: AssignmentLevel = resource.category === "pm" ? "both" : "task";
 
-  // Calculate chargeRatePerHour from legacy fields
+  // Calculate chargeRatePerHour from legacy fields (narrow the unknown values safely)
   let chargeRatePerHour = 0;
-  if (resource.hourlyRate !== undefined && resource.hourlyRate !== null) {
-    chargeRatePerHour = resource.hourlyRate;
-  } else if (resource.dailyRate !== undefined && resource.dailyRate !== null) {
+  const hourlyRate = resource.hourlyRate;
+  const dailyRate = resource.dailyRate;
+  if (typeof hourlyRate === "number") {
+    chargeRatePerHour = hourlyRate;
+  } else if (typeof dailyRate === "number") {
     // Convert daily rate to hourly (assuming 8-hour workday)
-    chargeRatePerHour = resource.dailyRate / 8;
+    chargeRatePerHour = dailyRate / 8;
   }
 
   // Default to billable unless explicitly set
-  const isBillable = resource.isBillable !== undefined ? resource.isBillable : true;
+  const isBillable = typeof resource.isBillable === "boolean" ? resource.isBillable : true;
+
+  // Preserve an existing assignment level only when it is a valid enum value
+  const existingAssignmentLevel = resource.assignmentLevel;
+  const assignmentLevel: AssignmentLevel =
+    existingAssignmentLevel === "phase" ||
+    existingAssignmentLevel === "task" ||
+    existingAssignmentLevel === "both"
+      ? existingAssignmentLevel
+      : defaultAssignmentLevel;
+
+  const existingChargeRate = resource.chargeRatePerHour;
 
   return {
     ...resource,
-    assignmentLevel: resource.assignmentLevel || assignmentLevel,
-    isBillable: resource.isBillable !== undefined ? resource.isBillable : isBillable,
-    chargeRatePerHour: resource.chargeRatePerHour || chargeRatePerHour,
-  };
+    assignmentLevel,
+    isBillable,
+    chargeRatePerHour: typeof existingChargeRate === "number" ? existingChargeRate : chargeRatePerHour,
+  } as Resource;
 }
 
 /**

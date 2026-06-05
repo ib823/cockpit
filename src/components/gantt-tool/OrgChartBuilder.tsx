@@ -16,6 +16,7 @@
 "use client";
 
 import { useState } from "react";
+import type { JSX } from "react";
 import { X, Plus, Trash2, Link2, DollarSign, ArrowDown, ArrowRight, Building2 } from "lucide-react";
 
 interface OrgChartBuilderProps {

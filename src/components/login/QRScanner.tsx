@@ -42,7 +42,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         };
       }
     } catch (err) {
-      logger.error("Camera access error:", err);
+      logger.error("Camera access error:", { error: err });
       setError("Camera access denied");
       setScanning(false);
     }

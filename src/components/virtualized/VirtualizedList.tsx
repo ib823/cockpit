@@ -16,14 +16,8 @@
 
 import { memo, useCallback, useMemo, useState, useRef, useEffect } from "react";
 import { List } from "react-window";
+import type { ListImperativeAPI, RowComponentProps } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
-
-// Type for list child props
-interface ListChildComponentProps {
-  index: number;
-  style: React.CSSProperties;
-  data?: unknown;
-}
 
 export interface VirtualizedListItem {
   id: string | number;
@@ -104,7 +98,7 @@ export function VirtualizedList<T extends VirtualizedListItem>({
   overscanCount = 5,
 }: VirtualizedListProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
-  const listRef = useRef<List>(null);
+  const listRef = useRef<ListImperativeAPI | null>(null);
 
   // Filter items based on search query
   const filteredItems = useMemo(() => {
@@ -128,7 +122,7 @@ export function VirtualizedList<T extends VirtualizedListItem>({
 
   // Render row component
   const Row = useCallback(
-    ({ index, style, ariaAttributes }: { index: number; style: React.CSSProperties; ariaAttributes: Record<string, string> }) => {
+    ({ index, style, ariaAttributes }: RowComponentProps) => {
       const item = filteredItems[index];
 
       return (
@@ -156,13 +150,13 @@ export function VirtualizedList<T extends VirtualizedListItem>({
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     // Reset scroll position when searching
-    listRef.current?.scrollToItem(0);
+    listRef.current?.scrollToRow({ index: 0 });
   }, []);
 
   // Clear search
   const handleClearSearch = useCallback(() => {
     setSearchQuery("");
-    listRef.current?.scrollToItem(0);
+    listRef.current?.scrollToRow({ index: 0 });
   }, []);
 
   if (loading) {
@@ -214,10 +208,10 @@ export function VirtualizedList<T extends VirtualizedListItem>({
             {({ height, width }) => (
               <List
                 listRef={listRef}
-                rowComponent={Row as React.ComponentType<ListChildComponentProps>}
+                rowComponent={Row}
                 rowCount={filteredItems.length}
                 rowHeight={itemHeight}
-                rowProps={{} as Record<string, unknown>}
+                rowProps={{}}
                 style={{ height, width }}
                 overscanCount={overscanCount}
               />

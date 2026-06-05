@@ -136,7 +136,7 @@ export function useCachedData<T>(key: string, defaultValue: T | null = null) {
       .then(() => offlineStorage.getCache(key))
       .then((cached) => {
         if (cached) {
-          setData(cached);
+          setData(cached as T);
         }
         setLoading(false);
       })

@@ -909,10 +909,10 @@ export function GanttCanvasV3({
 
   // Company logos and sub-companies for resource display (single source of truth with OrgChartPro)
   const companyLogos = currentProject?.orgChartPro?.companyLogos || {};
-  const subCompanies: SubCompanyInfo[] = currentProject?.orgChartPro?.subCompanies || [];
+  const subCompanies: SubCompanyInfo[] = (currentProject?.orgChartPro?.subCompanies as SubCompanyInfo[] | undefined) || [];
 
   // Org Chart functional groups - user-defined groupings from the Org Chart Builder
-  const orgChartGroups: OrgChartGroup[] = useMemo(() => currentProject?.orgChartPro?.groups || [], [currentProject?.orgChartPro?.groups]);
+  const orgChartGroups: OrgChartGroup[] = useMemo(() => (currentProject?.orgChartPro?.groups as OrgChartGroup[] | undefined) || [], [currentProject?.orgChartPro?.groups]);
 
   // Group resources by category for hierarchical display
   const groupedResources = useMemo(() => {

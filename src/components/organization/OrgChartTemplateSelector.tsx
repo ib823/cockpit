@@ -11,7 +11,7 @@ interface OrgChartTemplateSelectorProps {
 export function OrgChartTemplateSelector({ onClose }: OrgChartTemplateSelectorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<OrgChartTemplate | null>(null);
   const [replaceExisting, setReplaceExisting] = useState(false);
-  const applyOrgChartTemplate = useGanttToolStore((state) => (state as Record<string, unknown>).applyOrgChartTemplate as (template: OrgChartTemplate, replace: boolean) => void);
+  const applyOrgChartTemplate = useGanttToolStore((state) => (state as unknown as Record<string, unknown>).applyOrgChartTemplate as (template: OrgChartTemplate, replace: boolean) => void);
   const currentProject = useGanttToolStore((state) => state.currentProject);
 
   const handleApplyTemplate = () => {

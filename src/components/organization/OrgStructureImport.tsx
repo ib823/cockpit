@@ -17,6 +17,7 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import type { UploadFile } from "antd";
+import type { RcFile } from "antd/es/upload";
 import * as XLSX from "xlsx";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import type { ResourceCategory, ResourceDesignation } from "@/types/gantt-tool";
@@ -55,7 +56,7 @@ export function OrgStructureImport({
 
   const currentProject = useGanttToolStore((state) => state.currentProject);
   const addResource = useGanttToolStore((state) => state.addResource);
-  const assignManager = useGanttToolStore((state) => (state as Record<string, unknown>).assignManager) as ((resourceId: string, managerId: string) => void) | undefined;
+  const assignManager = useGanttToolStore((state) => (state as unknown as Record<string, unknown>).assignManager) as ((resourceId: string, managerId: string) => void) | undefined;
 
   const parseFile = useCallback(async (file: File) => {
     return new Promise<ParsedResource[]>((resolve, reject) => {
@@ -186,7 +187,11 @@ export function OrgStructureImport({
   }, []);
 
   const handleUpload = useCallback(
-    async ({ file }: { file: File | Blob }) => {
+    async (rcFile: RcFile) => {
+      // Preserve existing behavior: the original code destructured `.file` from the
+      // argument. antd/rc-upload passes the file itself as the first argument, so this
+      // reads the (absent) `.file` property exactly as before.
+      const file = (rcFile as unknown as { file?: File | Blob }).file;
       try {
         const parsed = await parseFile(file as File);
         setParsedData(parsed);
@@ -220,7 +225,10 @@ export function OrgStructureImport({
           department: parsed.department,
           location: parsed.location,
           projectRole: parsed.projectRole,
-        } as Record<string, unknown>);
+          assignmentLevel: "both",
+          isBillable: true,
+          chargeRatePerHour: 150,
+        });
 
         // addResource may not return an ID, so we generate one if needed
         if (parsed.email && resourceId) {
@@ -235,12 +243,12 @@ export function OrgStructureImport({
           const resourceId = emailToIdMap.get(parsed.email.toLowerCase());
           const managerId = emailToIdMap.get(parsed.managerEmail.toLowerCase());
 
-          if (resourceId && managerId) {
+          if (resourceId && managerId && assignManager) {
             try {
               assignManager(resourceId, managerId);
               managerAssignCount++;
             } catch (error) {
-              logger.error("Failed to assign manager:", error);
+              logger.error("Failed to assign manager:", { error });
             }
           }
         }

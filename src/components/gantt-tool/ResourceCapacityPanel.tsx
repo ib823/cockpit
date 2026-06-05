@@ -507,7 +507,7 @@ export function ResourceCapacityPanel({
 
   // Company logos and sub-companies from OrgChartPro (single source of truth)
   const companyLogos = project.orgChartPro?.companyLogos || {};
-  const subCompanies = project.orgChartPro?.subCompanies || [];
+  const subCompanies = (project.orgChartPro?.subCompanies as SubCompanyInfo[] | undefined) || [];
 
   // Responsive sidebar width
   const effectiveSidebarWidth = isMobile ? 200 : isTablet ? Math.min(sidebarWidth, 350) : sidebarWidth;

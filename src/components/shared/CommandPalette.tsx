@@ -63,7 +63,7 @@ export function CommandPalette({ userRole = "USER" }: CommandPaletteProps) {
       try {
         setRecentItems(JSON.parse(stored));
       } catch (e) {
-        logger.warn("[CommandPalette] Failed to parse recent items:", e);
+        logger.warn("[CommandPalette] Failed to parse recent items:", { error: e });
       }
     }
   }, []);

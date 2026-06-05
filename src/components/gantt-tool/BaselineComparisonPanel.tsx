@@ -29,6 +29,7 @@ import {
   type BaselineComparison,
   type TaskVariance,
   type PhaseVariance,
+  type VarianceIssue,
 } from "@/lib/project-analytics/baseline";
 import { colorValues, withOpacity } from "@/lib/design-system";
 import { format, parseISO } from "date-fns";
@@ -705,8 +706,11 @@ function MetricCard({
     );
   }
 
-  const isPositive = reverseGoodBad ? variance < 0 : variance > 0;
-  const isNegative = reverseGoodBad ? variance > 0 : variance < 0;
+  const baselineValue = baseline ?? 0;
+  const actualValue = actual ?? 0;
+  const varianceValue = variance ?? 0;
+  const isPositive = reverseGoodBad ? varianceValue < 0 : varianceValue > 0;
+  const isNegative = reverseGoodBad ? varianceValue > 0 : varianceValue < 0;
 
   return (
     <div
@@ -724,9 +728,9 @@ function MetricCard({
       </div>
       <div className="flex items-baseline gap-2 mb-1">
         <div className="text-2xl font-bold" style={{ color: colorValues.neutral[900] }}>
-          {format === "percentage" ? `${actual.toFixed(1)}%` : `${actual} ${format}`}
+          {format === "percentage" ? `${actualValue.toFixed(1)}%` : `${actualValue} ${format}`}
         </div>
-        {variance !== 0 && (
+        {varianceValue !== 0 && (
           <div
             className="text-sm font-semibold flex items-center gap-0.5"
             style={{
@@ -739,13 +743,13 @@ function MetricCard({
           >
             {isPositive && <TrendingUp className="w-3 h-3" />}
             {isNegative && <TrendingDown className="w-3 h-3" />}
-            {variance > 0 ? "+" : ""}
-            {format === "percentage" ? `${variance.toFixed(1)}%` : `${variance}`}
+            {varianceValue > 0 ? "+" : ""}
+            {format === "percentage" ? `${varianceValue.toFixed(1)}%` : `${varianceValue}`}
           </div>
         )}
       </div>
       <div className="text-xs" style={{ color: colorValues.neutral[500] }}>
-        Baseline: {format === "percentage" ? `${baseline.toFixed(1)}%` : `${baseline} ${format}`}
+        Baseline: {format === "percentage" ? `${baselineValue.toFixed(1)}%` : `${baselineValue} ${format}`}
       </div>
     </div>
   );
@@ -796,7 +800,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function IssueCard({ issue }: { issue: { type: string; title: string; description: string; impact?: string } }) {
+function IssueCard({ issue }: { issue: VarianceIssue }) {
   const isCritical = issue.type === "critical";
 
   return (

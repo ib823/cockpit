@@ -357,7 +357,7 @@ export function DraggableOrgCardV4({
       tabIndex={0}
       style={getCardStyle()}
       onClick={onSelect}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.(e as unknown as React.MouseEvent); } }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >

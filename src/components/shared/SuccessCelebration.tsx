@@ -56,7 +56,7 @@ export function SuccessCelebration({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const [isVisible, setIsVisible] = useState(true);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   // Check for reduced motion preference
   const prefersReducedMotion =

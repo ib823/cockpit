@@ -3105,7 +3105,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
     deleteResourceGroup = async (_id: string) => {},
     getResourceGroups = () => [] as ResourceGroup[],
   } = useGanttToolStoreV2() as unknown as {
-    addResourceGroup: () => Promise<void>;
+    addResourceGroup: (group: ResourceGroup) => Promise<void>;
     updateResourceGroup: (id: string, data: unknown) => Promise<void>;
     deleteResourceGroup: (id: string) => Promise<void>;
     getResourceGroups: () => ResourceGroup[];
@@ -3115,9 +3115,9 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
   const resources = useMemo(() => currentProject?.resources || [], [currentProject?.resources]);
   // Only use logos that are uploaded in the project's Logo Library
   const companyLogos = currentProject?.orgChartPro?.companyLogos || {};
-  const subCompanies: SubCompanyInfo[] = currentProject?.orgChartPro?.subCompanies || [];
+  const subCompanies: SubCompanyInfo[] = (currentProject?.orgChartPro?.subCompanies as SubCompanyInfo[] | undefined) || [];
   // Resource groups for canvas display
-  const groups: ResourceGroup[] = useMemo(() => currentProject?.orgChartPro?.groups || [], [currentProject?.orgChartPro?.groups]);
+  const groups: ResourceGroup[] = useMemo(() => (currentProject?.orgChartPro?.groups as ResourceGroup[] | undefined) || [], [currentProject?.orgChartPro?.groups]);
 
   // State
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -3155,9 +3155,9 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
   const [connectionLabel, setConnectionLabel] = useState("");
 
   // Get stored card positions, group positions, and connections from project
-  const storedCardPositions: OrgChartCardPosition[] = useMemo(() => currentProject?.orgChartPro?.cardPositions || [], [currentProject?.orgChartPro?.cardPositions]);
-  const storedGroupPositions: Array<{ groupId: string; x: number; y: number }> = useMemo(() => currentProject?.orgChartPro?.groupCardPositions || [], [currentProject?.orgChartPro?.groupCardPositions]);
-  const storedConnections: OrgChartConnection[] = useMemo(() => currentProject?.orgChartPro?.connections || [], [currentProject?.orgChartPro?.connections]);
+  const storedCardPositions: OrgChartCardPosition[] = useMemo(() => (currentProject?.orgChartPro?.cardPositions as OrgChartCardPosition[] | undefined) || [], [currentProject?.orgChartPro?.cardPositions]);
+  const storedGroupPositions: Array<{ groupId: string; x: number; y: number }> = useMemo(() => (currentProject?.orgChartPro?.groupCardPositions as Array<{ groupId: string; x: number; y: number }> | undefined) || [], [currentProject?.orgChartPro?.groupCardPositions]);
+  const storedConnections: OrgChartConnection[] = useMemo(() => (currentProject?.orgChartPro?.connections as OrgChartConnection[] | undefined) || [], [currentProject?.orgChartPro?.connections]);
 
   // Zoom/Pan - start with reasonable defaults
   // Min zoom 0.4 ensures text stays readable even with 40+ resources
@@ -3720,7 +3720,9 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
   const EFFECTIVE_CARD_HEIGHT = 160; // Account for group card content
 
   // Get saved hierarchy from project
-  const savedHierarchy = currentProject?.orgChartPro?.savedHierarchy;
+  const savedHierarchy = currentProject?.orgChartPro?.savedHierarchy as
+    | { rows: Array<{ rowIndex: number; itemIds: string[] }>; savedAt: string }
+    | undefined;
 
   // Save current layout as the preferred hierarchy structure
   const handleSaveHierarchy = useCallback(() => {
@@ -5038,7 +5040,7 @@ export function OrgChartPro({ onClose, project, isFullPage = false, onOpenLogoLi
                           {logo ? (
                             <Image
                               src={logo}
-                              alt={resource.companyName}
+                              alt={resource.companyName ?? ""}
                               width={24}
                               height={24}
                               unoptimized

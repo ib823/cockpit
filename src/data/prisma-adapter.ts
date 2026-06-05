@@ -39,23 +39,6 @@ type PrismaPhaseWithResources = Prisma.phasesGetPayload<{ include: { resources: 
 type PrismaResource = Prisma.resourcesGetPayload<Record<string, never>>;
 type PrismaChip = Prisma.chipsGetPayload<Record<string, never>>;
 
-interface AuditLogEntry {
-  id: string;
-  userId: string;
-  action: string;
-  entity: string;
-  entityId: string;
-  changes: Prisma.JsonValue;
-  ipAddress: string | null;
-  userAgent: string | null;
-  createdAt: Date;
-  users: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
-}
-
 interface PrismaError {
   code: string;
   message: string;
@@ -113,7 +96,7 @@ export class PrismaAdapter implements IDAL {
         },
       });
     } catch (error: unknown) {
-      logger.error("Failed to create audit log:", error);
+      logger.error("Failed to create audit log:", { error });
       // Don't throw - audit failure shouldn't break business operations
     }
   }
@@ -901,9 +884,9 @@ export class PrismaAdapter implements IDAL {
   // AUDIT LOG
   // ============================================================================
 
-  async getAuditLog(entityId: string, limit: number = 50): Promise<AuditLogEntry[]> {
+  async getAuditLog(entityId: string, limit: number = 50): Promise<Record<string, unknown>[]> {
     try {
-      return await this.prisma.audit_logs.findMany({
+      const entries = await this.prisma.audit_logs.findMany({
         where: { entityId },
         orderBy: { createdAt: "desc" },
         take: limit,
@@ -917,6 +900,7 @@ export class PrismaAdapter implements IDAL {
           },
         },
       });
+      return entries as unknown as Record<string, unknown>[];
     } catch (error: unknown) {
       throw new DALError("Failed to get audit log", "DATABASE", error);
     }

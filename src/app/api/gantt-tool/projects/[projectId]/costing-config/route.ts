@@ -52,7 +52,7 @@ export async function GET(
         id: projectId,
         OR: [
           { userId: session.user.id },
-          { sharedWith: { some: { userId: session.user.id } } },
+          { collaborators: { some: { userId: session.user.id } } },
         ],
       },
       select: { id: true, userId: true },
@@ -150,7 +150,7 @@ export async function PUT(
         id: projectId,
         OR: [
           { userId: session.user.id },
-          { sharedWith: { some: { userId: session.user.id } } },
+          { collaborators: { some: { userId: session.user.id } } },
         ],
       },
       select: { id: true, userId: true },

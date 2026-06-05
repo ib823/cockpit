@@ -200,7 +200,7 @@ export function useKeyboardNavigation({
                 await deletePhase(selection.selectedItemId);
                 lastActionRef.current = "delete-phase";
               } catch (error) {
-                logger.error("Failed to delete phase:", error);
+                logger.error("Failed to delete phase:", { error });
               }
             }
           } else if (selection.selectedItemType === "task" && deleteTask) {

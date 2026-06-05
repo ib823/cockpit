@@ -173,29 +173,39 @@ export function CommandPalette({
 
   // Handle selection
   const handleSelect = (result: SearchResult) => {
+    const data = result.data;
     switch (result.type) {
       case "resource":
         onSelectResource?.(result.id);
         break;
-      case "team":
+      case "team": {
         // Select first resource in team
-        if (result.data.resources?.length > 0) {
-          onSelectResource?.(result.data.resources[0].id);
+        const teamData = data as { resources?: Resource[] } | undefined;
+        const firstResource = teamData?.resources?.[0];
+        if (firstResource) {
+          onSelectResource?.(firstResource.id);
         }
         break;
+      }
       case "phase":
         onSelectPhase?.(result.id);
         break;
-      case "task":
-        onSelectTask?.(result.data.phase.id, result.data.task.id);
+      case "task": {
+        const taskData = data as { phase: GanttPhase; task: GanttTask } | undefined;
+        if (taskData) {
+          onSelectTask?.(taskData.phase.id, taskData.task.id);
+        }
         break;
-      case "action":
-        if (result.data.level) {
-          onJumpToLevel?.(result.data.level);
-        } else if (result.data.action === "toggle-filters") {
+      }
+      case "action": {
+        const actionData = data as { level?: number; action?: string } | undefined;
+        if (actionData?.level) {
+          onJumpToLevel?.(actionData.level);
+        } else if (actionData?.action === "toggle-filters") {
           onToggleFilters?.();
         }
         break;
+      }
     }
     onClose();
   };

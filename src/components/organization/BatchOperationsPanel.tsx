@@ -37,8 +37,8 @@ export function BatchOperationsPanel({
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const currentProject = useGanttToolStore((state) => state.currentProject);
-  const assignManager = useGanttToolStore((state) => (state as Record<string, unknown>).assignManager as (resourceId: string, managerId: string | null) => void);
-  const unassignManager = useGanttToolStore((state) => (state as Record<string, unknown>).unassignManager as (resourceId: string) => void);
+  const assignManager = useGanttToolStore((state) => (state as unknown as Record<string, unknown>).assignManager as (resourceId: string, managerId: string | null) => void);
+  const unassignManager = useGanttToolStore((state) => (state as unknown as Record<string, unknown>).unassignManager as (resourceId: string) => void);
 
   const selectedResources =
     currentProject?.resources.filter((r) => selectedResourceIds.has(r.id)) || [];
@@ -58,7 +58,7 @@ export function BatchOperationsPanel({
           assignManager(resourceId, managerId);
           successCount++;
         } catch (error) {
-          logger.error(`Failed to assign manager to resource ${resourceId}:`, error);
+          logger.error(`Failed to assign manager to resource ${resourceId}:`, { error });
           errorCount++;
         }
       });

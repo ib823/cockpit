@@ -455,7 +455,7 @@ export async function PATCH(
         if (isDev) {
           logger.warn(
             `[API] Resource validation warnings for project ${projectId}:`,
-            resourceValidation.warnings
+            { warnings: resourceValidation.warnings }
           );
         }
       }

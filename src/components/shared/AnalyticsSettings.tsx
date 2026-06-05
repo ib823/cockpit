@@ -38,7 +38,7 @@ export function AnalyticsSettings() {
         try {
           setPreferences(JSON.parse(saved));
         } catch (error) {
-          logger.error("Failed to load analytics preferences:", error);
+          logger.error("Failed to load analytics preferences:", { error });
         }
       }
     }

@@ -202,7 +202,7 @@ export function GanttToolbar({
       return;
     }
 
-    const startDate = values.startDate.format("YYYY-MM-DD");
+    const startDate = dayjs(values.startDate).format("YYYY-MM-DD");
     await createProject(values.projectName, startDate);
     setShowCreateProjectModal(false);
     createProjectForm.resetFields();

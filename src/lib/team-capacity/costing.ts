@@ -19,6 +19,8 @@ import type {
   CostCalculationResult,
   SubcontractorCostResult,
   ProjectCostingSummary,
+  CostBreakdownByRegion,
+  CostBreakdownByDesignation,
 } from "./types";
 import { prisma } from "@/lib/db";
 
@@ -360,18 +362,11 @@ function aggregateAllocationsByResource(
 /**
  * Calculate cost breakdown by region (with security filtering)
  */
-interface CostBreakdownItem {
-  label: string;
-  mandays: number;
-  gsr: number;
-  nsr: number;
-}
-
 function calculateCostBreakdownByRegion(
   _allocations: unknown[],
   _costs: CostCalculationResult[],
   _visibilityLevel: CostVisibilityLevel
-): CostBreakdownItem[] {
+): CostBreakdownByRegion[] {
   // Implementation would group by region
   // Simplified for now
   return [];
@@ -383,7 +378,7 @@ function calculateCostBreakdownByRegion(
 function calculateCostBreakdownByDesignation(
   _allocations: unknown[],
   _costs: CostCalculationResult[]
-): CostBreakdownItem[] {
+): CostBreakdownByDesignation[] {
   // Implementation would group by designation
   // Simplified for now
   return [];

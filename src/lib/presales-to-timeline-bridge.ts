@@ -35,7 +35,7 @@ function sanitizePhase(phase: Phase): Phase {
     id: sanitizeHtml(String(phase.id || "")),
     name: sanitizeHtml(String(phase.name || "")),
     description: phase.description ? sanitizeHtml(String(phase.description)) : undefined,
-    category: phase.category ? sanitizeHtml(String(phase.category)) : undefined,
+    category: sanitizeHtml(String(phase.category || "")),
     workingDays: Math.max(0, Math.min(1000, Number(phase.workingDays) || 0)), // Clamp to 0-1000
     startBusinessDay: Math.max(0, Number(phase.startBusinessDay) || 0),
     effort: Math.max(0, Number(phase.effort) || 0),
@@ -45,6 +45,7 @@ function sanitizePhase(phase: Phase): Phase {
       role: sanitizeHtml(String(r.role || "")),
       allocation: Math.max(0, Math.min(100, Number(r.allocation) || 0)),
       hourlyRate: Math.max(0, Number(r.hourlyRate) || 0),
+      region: r.region ?? "",
     })),
   };
 }
@@ -158,7 +159,9 @@ export function convertPresalesToTimeline(
 ): TimelineConversionResult {
   try {
     // Sanitize chips
-    const sanitizedChips = chips.map((chip) => sanitizeObject(chip)) as Chip[];
+    const sanitizedChips = chips.map(
+      (chip) => sanitizeObject(chip as unknown as Record<string, unknown>) as unknown as Chip
+    );
 
     const profile = extractClientProfile(chips);
     const selectedPackages = mapModulesToPackages(chips);
@@ -303,8 +306,12 @@ export function mapModulesToPackages(chips: Chip[]): string[] {
 }
 
 export function extractClientProfile(chips: Chip[]): ClientProfile {
-  // Chips should already be sanitized, but double-check for security
-  const sanitizedChips = chips.map((chip) => sanitizeObject(chip)) as Chip[];
+  // Chips should already be sanitized, but double-check for security.
+  // Chip is a structured type without an index signature, so launder it
+  // through Record<string, unknown> for the generic sanitizer.
+  const sanitizedChips = chips.map(
+    (chip) => sanitizeObject(chip as unknown as Record<string, unknown>) as unknown as Chip
+  );
 
   const countryChip = sanitizedChips.find((c) => c.type === "COUNTRY");
   const industryChip = sanitizedChips.find((c) => c.type === "INDUSTRY");

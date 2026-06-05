@@ -52,6 +52,15 @@ import { TaskDeletionImpactModal } from "./TaskDeletionImpactModal";
 import { PhaseDeletionImpactModal } from "./PhaseDeletionImpactModal";
 import { logger } from "@/lib/logger";
 
+/**
+ * Narrow the project's stored org-chart location (typed `unknown` via the
+ * orgChartPro index signature) to the holiday region union supported by
+ * HolidayAwareDatePicker. Defaults to "ABMY" for any unrecognised value.
+ */
+function resolveProjectRegion(location: unknown): "ABMY" | "ABSG" | "ABVN" {
+  return location === "ABSG" || location === "ABVN" ? location : "ABMY";
+}
+
 export function GanttSidePanel() {
   const {
     sidePanel,
@@ -632,7 +641,7 @@ function PhaseForm({
           label="Start Date"
           value={formData.startDate}
           onChange={(value) => handleStartDateChange(value)}
-          region={currentProject?.orgChartPro?.location || "ABMY"}
+          region={resolveProjectRegion(currentProject?.orgChartPro?.location)}
           required={true}
           size="medium"
         />
@@ -705,7 +714,7 @@ function PhaseForm({
           <HolidayAwareDatePicker
             value={formData.endDate}
             onChange={(value) => setFormData({ ...formData, endDate: value })}
-            region={currentProject?.orgChartPro?.location || "ABMY"}
+            region={resolveProjectRegion(currentProject?.orgChartPro?.location)}
             required={true}
             size="medium"
             placeholder="Select end date"
@@ -1215,7 +1224,7 @@ function TaskForm({
           label="Start Date"
           value={formData.startDate}
           onChange={(value) => handleStartDateChange(value)}
-          region={currentProject?.orgChartPro?.location || "ABMY"}
+          region={resolveProjectRegion(currentProject?.orgChartPro?.location)}
           minDate={selectedPhase?.startDate}
           maxDate={selectedPhase?.endDate}
           required={true}
@@ -1290,7 +1299,7 @@ function TaskForm({
           <HolidayAwareDatePicker
             value={formData.endDate}
             onChange={(value) => setFormData({ ...formData, endDate: value })}
-            region={currentProject?.orgChartPro?.location || "ABMY"}
+            region={resolveProjectRegion(currentProject?.orgChartPro?.location)}
             minDate={selectedPhase?.startDate}
             maxDate={selectedPhase?.endDate}
             required={true}

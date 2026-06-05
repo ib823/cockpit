@@ -243,7 +243,7 @@ export function ResourceUtilizationTable({
       dataIndex: "utilization",
       key: "utilization",
       render: (value: number) => `${value.toFixed(0)}%`,
-      sorter: (a, b) => a.utilization - b.utilization,
+      sorter: (a, b) => Number(a.utilization) - Number(b.utilization),
     },
     {
       title: "Allocated Days",

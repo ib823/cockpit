@@ -346,7 +346,7 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
         const resourceId = `resource-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 9)}`;
         resourceIdMap.set(resource.name, resourceId);
 
-        return {
+        const newResource: Resource = {
           id: resourceId,
           name: resource.name,
           category: resource.category,
@@ -354,11 +354,15 @@ export function ImportModalV2({ isOpen, onClose }: ImportModalV2Props) {
           description: `Imported resource with ${resource.totalDays} total mandays`,
           createdAt: new Date().toISOString(),
           managerResourceId: null,
-          email: null, // FIX: Use null instead of undefined for consistency
-          department: null, // FIX: Use null instead of undefined for consistency
-          location: null, // FIX: Use null instead of undefined for consistency
-          projectRole: null, // FIX: Use null instead of undefined for consistency
+          email: undefined, // Optional contact field - unknown on import
+          department: undefined, // Optional field - unknown on import
+          location: undefined, // Optional field - unknown on import
+          projectRole: undefined, // Optional field - unknown on import
+          assignmentLevel: "task",
+          isBillable: true,
+          chargeRatePerHour: 0,
         };
+        return newResource;
       });
 
       targetProject.resources = [...(targetProject.resources || []), ...newResources];
@@ -1403,7 +1407,10 @@ function ResourceMappingStage({
   mappings: Map<number, { designation: string; category: string }>;
   onMappingsChange: (mappings: Map<number, { designation: string; category: string }>) => void;
 }) {
-  const { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } = require("@/types/gantt-tool");
+  const { RESOURCE_CATEGORIES, RESOURCE_DESIGNATIONS } = require("@/types/gantt-tool") as {
+    RESOURCE_CATEGORIES: Record<string, ResourceCategoryConfig>;
+    RESOURCE_DESIGNATIONS: Record<string, string>;
+  };
 
   const handleDesignationChange = (rowNumber: number, designation: string) => {
     const newMappings = new Map(mappings);
