@@ -474,7 +474,7 @@ function LoginContent() {
                       value={code}
                       onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
                     />
-                    <p className="text-xs text-slate-500 mt-2 text-center">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
                       Enter the code provided by your administrator
                     </p>
                   </div>

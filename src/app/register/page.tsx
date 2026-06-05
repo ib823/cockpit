@@ -77,13 +77,13 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       <div className="w-full max-w-md px-6">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-800 dark:ring-1 dark:ring-slate-700 rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">Register Your Passkey</h1>
-            <p className="text-sm text-slate-600">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Register Your Passkey</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               {stage === "input" && "Enter your email and 6-digit code"}
               {stage === "waiting" && "Creating your passkey..."}
               {stage === "done" && "Registration complete!"}
@@ -92,7 +92,7 @@ export default function RegisterPage() {
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-300 text-sm">
               {errorMessage}
             </div>
           )}
@@ -101,7 +101,7 @@ export default function RegisterPage() {
           {stage === "input" && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Email Address
                 </label>
                 <input
@@ -113,12 +113,12 @@ export default function RegisterPage() {
                   }}
                   placeholder="you@example.com"
                   autoFocus
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   6-Digit Code
                 </label>
                 <input
@@ -138,9 +138,9 @@ export default function RegisterPage() {
                   }
                   placeholder="000000"
                   maxLength={6}
-                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
                 />
-                <p className="text-xs text-slate-500 mt-2 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
                   Enter the code provided by your administrator
                 </p>
               </div>
@@ -169,7 +169,7 @@ export default function RegisterPage() {
               <div className="text-center">
                 <button
                   onClick={() => router.push("/login")}
-                  className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
+                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
                 >
                   Already have a passkey? Sign in
                 </button>
@@ -180,17 +180,17 @@ export default function RegisterPage() {
           {/* Waiting Stage */}
           {stage === "waiting" && (
             <div className="text-center py-8">
-              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 mb-4"></div>
-              <p className="text-slate-600">{message || "Setting up your passkey..."}</p>
+              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 mb-4"></div>
+              <p className="text-slate-600 dark:text-slate-400">{message || "Setting up your passkey..."}</p>
             </div>
           )}
 
           {/* Success Stage */}
           {stage === "done" && (
             <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
                 <svg
-                  className="w-8 h-8 text-green-600"
+                  className="w-8 h-8 text-green-600 dark:text-green-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -203,8 +203,8 @@ export default function RegisterPage() {
                   />
                 </svg>
               </div>
-              <p className="text-xl text-slate-900 font-semibold">{message}</p>
-              <p className="text-sm text-slate-600 mt-2">Logging you in...</p>
+              <p className="text-xl text-slate-900 dark:text-slate-100 font-semibold">{message}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Logging you in...</p>
             </div>
           )}
         </div>

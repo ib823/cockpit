@@ -154,13 +154,13 @@ export default function SecureLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-12 px-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-800 dark:ring-1 dark:ring-slate-700 rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Secure Sign In</h1>
-            <p className="text-sm text-slate-600">Enter your credentials to access your account</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Secure Sign In</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Enter your credentials to access your account</p>
           </div>
 
           {/* Security Alert */}
@@ -168,8 +168,8 @@ export default function SecureLoginPage() {
             <div
               className={`mb-6 p-4 rounded-lg border ${
                 securityAlert.type === "password_expiring"
-                  ? "bg-yellow-50 border-yellow-200 text-yellow-800"
-                  : "bg-blue-50 border-blue-200 text-blue-800"
+                  ? "bg-yellow-50 dark:bg-yellow-950/40 border-yellow-200 dark:border-yellow-900 text-yellow-800 dark:text-yellow-300"
+                  : "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 text-blue-800 dark:text-blue-300"
               }`}
             >
               <div className="flex items-start gap-3">
@@ -193,7 +193,7 @@ export default function SecureLoginPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-300 text-sm">
               {error}
             </div>
           )}
@@ -202,7 +202,7 @@ export default function SecureLoginPage() {
           <form onSubmit={handleLogin} className="space-y-5">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
               <input
                 type="email"
                 value={email}
@@ -214,13 +214,13 @@ export default function SecureLoginPage() {
                 autoComplete="email"
                 autoFocus
                 disabled={loading}
-                className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-50"
+                className="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-800"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -232,13 +232,13 @@ export default function SecureLoginPage() {
                   placeholder="Enter your password"
                   autoComplete="current-password"
                   disabled={loading}
-                  className="w-full px-4 py-3 pr-12 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-50"
+                  className="w-full px-4 py-3 pr-12 text-base border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-800"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={loading}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 disabled:opacity-50"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-50"
                 >
                   {showPassword ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +271,7 @@ export default function SecureLoginPage() {
 
             {/* TOTP Code */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Authenticator Code (TOTP)
               </label>
               <input
@@ -282,9 +282,9 @@ export default function SecureLoginPage() {
                 placeholder="000000"
                 maxLength={6}
                 disabled={loading}
-                className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-50"
+                className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-800"
               />
-              <p className="text-xs text-slate-500 mt-2 text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
                 Enter the 6-digit code from your authenticator app
               </p>
             </div>
@@ -296,9 +296,9 @@ export default function SecureLoginPage() {
                 checked={rememberDevice}
                 onChange={(e) => setRememberDevice(e.target.checked)}
                 disabled={loading}
-                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 disabled:opacity-50"
+                className="w-4 h-4 text-blue-600 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500 disabled:opacity-50"
               />
-              <span className="text-sm text-slate-700">
+              <span className="text-sm text-slate-700 dark:text-slate-300">
                 Remember this device (skip security alerts)
               </span>
             </label>
@@ -334,23 +334,23 @@ export default function SecureLoginPage() {
           <div className="mt-6 space-y-2 text-center">
             <button
               onClick={() => router.push("/forgot-password")}
-              className="text-sm text-blue-600 hover:text-blue-700 transition-colors block w-full"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors block w-full"
             >
               Forgot your password?
             </button>
             <button
               onClick={() => router.push("/register-secure")}
-              className="text-sm text-slate-500 hover:text-slate-900 transition-colors block w-full"
+              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors block w-full"
             >
               Don&apos;t have an account? Register
             </button>
           </div>
 
           {/* Security Notice */}
-          <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
             <div className="flex items-start gap-2">
               <svg
-                className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0"
+                className="w-4 h-4 text-slate-600 dark:text-slate-400 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -362,7 +362,7 @@ export default function SecureLoginPage() {
                   d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                 />
               </svg>
-              <div className="text-xs text-slate-600">
+              <div className="text-xs text-slate-600 dark:text-slate-400">
                 <strong className="block mb-1">Secure Login</strong>
                 <p>
                   Your connection is encrypted. We&apos;ll never ask for your password via email.

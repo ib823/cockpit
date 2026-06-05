@@ -209,19 +209,19 @@ export default function SecureRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-12 px-4">
       <div className="w-full max-w-2xl">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-800 dark:ring-1 dark:ring-slate-700 rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
               {step === "email" && "Create Your Account"}
               {step === "password" && "Set Up Password"}
               {step === "totp" && "Enable Two-Factor Authentication"}
               {step === "backup-codes" && "Save Your Backup Codes"}
               {step === "complete" && "All Set!"}
             </h1>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               {step === "email" && "Enter your approved email and access code"}
               {step === "password" && "Create a strong, secure password"}
               {step === "totp" && "Scan the QR code with your authenticator app"}
@@ -245,15 +245,15 @@ export default function SecureRegisterPage() {
                         ? "bg-blue-600 text-white"
                         : index <
                             ["email", "password", "totp", "backup-codes", "complete"].indexOf(step)
-                          ? "bg-green-500 text-white"
-                          : "bg-slate-200 text-slate-500"
+                          ? "bg-green-500 dark:bg-green-600 text-white"
+                          : "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
                     }`}
                   >
                     {index < ["email", "password", "totp", "backup-codes", "complete"].indexOf(step)
                       ? "✓"
                       : index + 1}
                   </div>
-                  <span className="text-xs mt-1 text-slate-600 hidden sm:block">{label}</span>
+                  <span className="text-xs mt-1 text-slate-600 dark:text-slate-400 hidden sm:block">{label}</span>
                 </div>
               ))}
             </div>
@@ -261,7 +261,7 @@ export default function SecureRegisterPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-300 text-sm">
               {error}
             </div>
           )}
@@ -270,7 +270,7 @@ export default function SecureRegisterPage() {
           {step === "email" && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Email Address
                 </label>
                 <input
@@ -282,12 +282,12 @@ export default function SecureRegisterPage() {
                   }}
                   placeholder="you@example.com"
                   autoFocus
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   6-Digit Access Code
                 </label>
                 <input
@@ -302,9 +302,9 @@ export default function SecureRegisterPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleEmailSubmit()}
                   placeholder="000000"
                   maxLength={6}
-                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
                 />
-                <p className="text-xs text-slate-500 mt-2 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
                   Enter the code provided by your administrator
                 </p>
               </div>
@@ -320,7 +320,7 @@ export default function SecureRegisterPage() {
               <div className="text-center">
                 <button
                   onClick={() => router.push("/login")}
-                  className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
+                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
                 >
                   Already have an account? Sign in
                 </button>
@@ -332,7 +332,7 @@ export default function SecureRegisterPage() {
           {step === "password" && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Create Password
                 </label>
                 <div className="relative">
@@ -342,12 +342,12 @@ export default function SecureRegisterPage() {
                     onChange={(e) => handlePasswordChange(e.target.value)}
                     placeholder="Enter a strong password"
                     autoFocus
-                    className="w-full px-4 py-3 pr-12 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                    className="w-full px-4 py-3 pr-12 text-base border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                   >
                     {showPassword ? (
                       <svg
@@ -391,22 +391,22 @@ export default function SecureRegisterPage() {
                 {password && (
                   <div className="mt-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-slate-600">Password Strength</span>
+                      <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Password Strength</span>
                       <span
                         className={`text-xs font-medium ${
                           passwordStrength.score < 2
-                            ? "text-red-600"
+                            ? "text-red-600 dark:text-red-400"
                             : passwordStrength.score < 3
-                              ? "text-orange-600"
+                              ? "text-orange-600 dark:text-orange-400"
                               : passwordStrength.score < 4
-                                ? "text-yellow-600"
-                                : "text-green-600"
+                                ? "text-yellow-600 dark:text-yellow-400"
+                                : "text-green-600 dark:text-green-400"
                         }`}
                       >
                         {getStrengthLabel(passwordStrength.score)}
                       </span>
                     </div>
-                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all duration-300 ${getStrengthColor(passwordStrength.score)}`}
                         style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
@@ -416,7 +416,7 @@ export default function SecureRegisterPage() {
                       {passwordStrength.feedback.map((item, i) => (
                         <li
                           key={i}
-                          className={`text-xs ${item.startsWith("✓") ? "text-green-600" : "text-slate-500"}`}
+                          className={`text-xs ${item.startsWith("✓") ? "text-green-600 dark:text-green-400" : "text-slate-500 dark:text-slate-400"}`}
                         >
                           {item}
                         </li>
@@ -427,7 +427,7 @@ export default function SecureRegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Confirm Password
                 </label>
                 <input
@@ -444,18 +444,18 @@ export default function SecureRegisterPage() {
                     handlePasswordSubmit()
                   }
                   placeholder="Re-enter your password"
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
                 />
                 {confirmPassword && password !== confirmPassword && (
-                  <p className="text-xs text-red-600 mt-1">Passwords do not match</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 )}
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900">
+              <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
+                <p className="text-sm text-blue-900 dark:text-blue-300">
                   <strong>Password Requirements:</strong>
                 </p>
-                <ul className="text-xs text-blue-800 mt-2 space-y-1 list-disc list-inside">
+                <ul className="text-xs text-blue-800 dark:text-blue-300 mt-2 space-y-1 list-disc list-inside">
                   <li>At least 12 characters long</li>
                   <li>Mix of uppercase and lowercase letters</li>
                   <li>At least one number</li>
@@ -478,7 +478,7 @@ export default function SecureRegisterPage() {
           {step === "totp" && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="bg-slate-50 rounded-lg p-6 inline-block">
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-6 inline-block">
                   {totpQRCode && (
                     <Image
                       src={totpQRCode}
@@ -489,7 +489,7 @@ export default function SecureRegisterPage() {
                     />
                   )}
                 </div>
-                <p className="text-sm text-slate-600 mt-4">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-4">
                   Scan this QR code with an authenticator app like Google Authenticator, Authy, or
                   1Password
                 </p>
@@ -497,22 +497,22 @@ export default function SecureRegisterPage() {
 
               <button
                 onClick={() => setShowTotpManual(!showTotpManual)}
-                className="text-sm text-blue-600 hover:text-blue-700 mx-auto block"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mx-auto block"
               >
                 {showTotpManual ? "Hide" : "Show"} manual entry code
               </button>
 
               {showTotpManual && (
-                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <p className="text-xs text-slate-600 mb-2">Manual Entry Code:</p>
-                  <code className="text-sm font-mono bg-white px-3 py-2 rounded border border-slate-300 block text-center">
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">Manual Entry Code:</p>
+                  <code className="text-sm font-mono bg-white dark:bg-slate-800 px-3 py-2 rounded border border-slate-300 dark:border-slate-600 block text-center dark:text-slate-100">
                     {totpManualEntry}
                   </code>
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Verify Setup - Enter 6-Digit Code
                 </label>
                 <input
@@ -529,9 +529,9 @@ export default function SecureRegisterPage() {
                   }
                   placeholder="000000"
                   maxLength={6}
-                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
                 />
-                <p className="text-xs text-slate-500 mt-2 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
                   Enter the code from your authenticator app
                 </p>
               </div>
@@ -549,22 +549,22 @@ export default function SecureRegisterPage() {
           {/* Step 4: Backup Codes */}
           {step === "backup-codes" && (
             <div className="space-y-6">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h3 className="text-sm font-bold text-yellow-900 mb-2">
+              <div className="bg-yellow-50 dark:bg-yellow-950/40 border border-yellow-200 dark:border-yellow-900 rounded-lg p-4">
+                <h3 className="text-sm font-bold text-yellow-900 dark:text-yellow-300 mb-2">
                   ⚠️ Important: Save These Codes
                 </h3>
-                <p className="text-sm text-yellow-800">
+                <p className="text-sm text-yellow-800 dark:text-yellow-300">
                   Each code can only be used once. You&apos;ll need these if you lose access to your
                   authenticator app.
                 </p>
               </div>
 
-              <div className="bg-slate-50 rounded-lg p-6 border border-slate-300">
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-6 border border-slate-300 dark:border-slate-600">
                 <div className="grid grid-cols-2 gap-3">
                   {backupCodes.map((code, index) => (
                     <div
                       key={index}
-                      className="bg-white px-4 py-3 rounded-lg border border-slate-200 text-center font-mono text-sm"
+                      className="bg-white dark:bg-slate-800 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 text-center font-mono text-sm dark:text-slate-100"
                     >
                       {code}
                     </div>
@@ -574,7 +574,7 @@ export default function SecureRegisterPage() {
 
               <button
                 onClick={handleDownloadBackupCodes}
-                className="w-full py-3 bg-slate-600 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                className="w-full py-3 bg-slate-600 dark:bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors shadow-sm flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -595,9 +595,9 @@ export default function SecureRegisterPage() {
                     setBackupCodesAcknowledged(e.target.checked);
                     setError("");
                   }}
-                  className="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                  className="mt-1 w-4 h-4 text-blue-600 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-slate-700">
+                <span className="text-sm text-slate-700 dark:text-slate-300">
                   I have saved these backup codes in a secure location and understand that I will
                   not be able to see them again.
                 </span>
@@ -616,9 +616,9 @@ export default function SecureRegisterPage() {
           {/* Step 5: Complete */}
           {step === "complete" && (
             <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 mb-6">
                 <svg
-                  className="w-10 h-10 text-green-600"
+                  className="w-10 h-10 text-green-600 dark:text-green-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -631,22 +631,22 @@ export default function SecureRegisterPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                 Account Created Successfully!
               </h2>
-              <p className="text-slate-600 mb-4">Your account is now secure with:</p>
-              <ul className="text-sm text-slate-700 space-y-2 mb-6 inline-block text-left">
+              <p className="text-slate-600 dark:text-slate-400 mb-4">Your account is now secure with:</p>
+              <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-2 mb-6 inline-block text-left">
                 <li className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span> Strong password protection
+                  <span className="text-green-600 dark:text-green-400">✓</span> Strong password protection
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span> Two-factor authentication (TOTP)
+                  <span className="text-green-600 dark:text-green-400">✓</span> Two-factor authentication (TOTP)
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span> 10 backup recovery codes
+                  <span className="text-green-600 dark:text-green-400">✓</span> 10 backup recovery codes
                 </li>
               </ul>
-              <p className="text-sm text-slate-600">Redirecting to your dashboard...</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Redirecting to your dashboard...</p>
             </div>
           )}
         </div>
