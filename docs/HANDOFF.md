@@ -35,17 +35,27 @@ PASS (0 errors), build PASS (78 pages), test --run PASS (1843 passed, 0 failed).
 Also note: the husky `pre-commit` hook is a no-op (`exit 0`) — local commit-time
 enforcement does not match the documented policy (`pre-push` still runs `ci:strict`).
 
-### Outstanding roadmap (beyond the P0 build foundation)
-- **P1 Truthful UX** — remove placeholder cost data (~$50k/resource in
-  `ProposalGenerationModal`/`ContextPanel`) and "coming soon" export stubs;
-  finish or hide them.
-- **P1 Security** — add ownership checks to project data routes missing them
-  (IDOR risk, e.g. `/api/projects/[projectId]/chips`); actually invoke the Zod
-  validators in `api-validators.ts` (currently defined but unused).
-- **P2 Design system** — consolidate the 5+ competing token sources, ban raw
-  hex via lint, finish dark mode (~948 hardcoded colors today).
-- **P3 De-duplication** — collapse the 7 OrgChart variants and architecture
-  v1/v3; split the 248KB/178KB monolith components.
+### Roadmap status
+- **P1 Truthful UX — DONE** (commit `fix(ux)`): the fabricated $50k/resource
+  cost is wired to the real `calculateProjectCost` engine with honest
+  "Not estimated" fallbacks; export buttons wired to real functions or hidden;
+  all "Coming Soon" badges + the placeholder Process Mapping tab removed.
+- **P1 Security — DONE** (commit `fix(security)`): the `/api/projects/[projectId]/chips`
+  IDOR is closed with an owner check; all 22 param-routes audited (only that
+  one was vulnerable); Zod validation activated on `projects` POST + admin
+  user PATCH.
+- **P2 Design system — IN PROGRESS.** Done: removed dead `design-tokens.ts`
+  files; `src/lib/design-system/tokens.ts` + `apple-design-system.css` are now
+  the single sources of truth. REMAINING (needs visual verification — do not
+  blind-edit): token VALUES are not reconciled with component usage (e.g.
+  `--color-text-primary` is `rgb(0,0,0)` but components hardcode `#1D1D1F`), so
+  the hex→variable migration (~948 instances), dark-mode completion, and a
+  raw-hex lint ban must be done with a live preview/screenshots to avoid visual
+  regressions.
+- **P3 De-duplication — NOT STARTED** (needs the app running to confirm which
+  variants are live): collapse the 7 OrgChart variants and architecture v1/v3;
+  split the 248KB/178KB monolith components; remove or wire the vestigial
+  Rust/WASM engine (`rust-formula-engine/`, currently never imported).
 
 ## 1. Current Objective
 Execute `docs/MASTER_PLAN.md` to reach enterprise-grade production readiness with top-tier UI/UX quality while maintaining strict public-repo hygiene and proprietary protection.
