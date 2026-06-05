@@ -5,11 +5,21 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+# pnpm is the canonical package manager (see "packageManager" in package.json);
+# never commit an npm/yarn lockfile alongside pnpm-lock.yaml.
+package-lock.json
+yarn.lock
 
 # testing
 /coverage
 test-results-*.log
 ultimate-test-results-*.log
+
+# lint / typecheck output captures (generated artifacts, never commit)
+lint_errors.txt
+lint-errors.txt
+typecheck-errors.txt
+*.lint.log
 
 # next.js
 /.next/
