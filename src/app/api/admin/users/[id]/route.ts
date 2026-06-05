@@ -2,6 +2,9 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/nextauth-helpers";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { z } from "zod";
+import { validateRequest, ValidationError, UserUpdateSchema } from "@/lib/api-validators";
+import { validationErrorResponse } from "@/lib/api-response";
 
 export const runtime = "nodejs";
 
@@ -11,22 +14,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
 
     const body = await req.json();
-    const { email, name, role, accessExpiresAt, exception } = body;
 
-    // Validation
-    if (email && !email.includes("@")) {
-      return NextResponse.json(
-        { error: "Valid email is required" },
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+    // Validate input against the canonical user-update schema.
+    let data: z.infer<typeof UserUpdateSchema>;
+    try {
+      data = validateRequest(UserUpdateSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return validationErrorResponse(err);
+      }
+      throw err;
     }
-
-    if (role && !["USER", "MANAGER", "ADMIN"].includes(role)) {
-      return NextResponse.json(
-        { error: "Invalid role. Must be USER, MANAGER, or ADMIN" },
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    const { email, name, role, accessExpiresAt, exception } = data;
 
     // Check if user exists
     const existingUser = await prisma.users.findUnique({
@@ -69,7 +68,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (email !== undefined) updateData.email = email;
     if (name !== undefined) updateData.name = name;
     if (role !== undefined) updateData.role = role;
-    if (accessExpiresAt !== undefined) updateData.accessExpiresAt = new Date(accessExpiresAt);
+    if (accessExpiresAt !== undefined) updateData.accessExpiresAt = accessExpiresAt;
     if (exception !== undefined) updateData.exception = exception;
 
     // Update user

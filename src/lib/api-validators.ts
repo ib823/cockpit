@@ -150,6 +150,10 @@ export const UserUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   email: z.string().email("Invalid email format").max(320).optional(),
   role: z.enum(["USER", "MANAGER", "ADMIN"]).optional(),
+  // Admin-only access-management fields (optional so the schema also fits the
+  // simpler name/email/role update payloads).
+  accessExpiresAt: z.coerce.date().optional(),
+  exception: z.boolean().optional(),
 });
 
 export const AdminAccessSchema = z.object({
