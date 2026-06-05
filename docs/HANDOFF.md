@@ -6,11 +6,56 @@ Last Updated (UTC): 2026-02-20
 
 This file is the takeover ledger for any AI LLM CLI.
 
+## 0. Gate-Status Correction & P0 Remediation (2026-06-05)
+
+This ledger previously reported "CERTIFIED — all gates pass." That was **not
+true on a clean checkout**. Verified results BEFORE remediation:
+
+| Gate | Was claimed | Actual (clean checkout, 2026-06-05) |
+|---|---|---|
+| `pnpm lint:strict` | pass | pass (0 warnings) |
+| `pnpm typecheck:strict` | pass | **FAIL — 158 errors across 42 files** |
+| `pnpm build` | pass | **FAIL — page-data collection (jsdom ENOENT)** |
+| `pnpm test --run` | pass | **FAIL — 7 tests** |
+
+Root causes: an unfinished React 18→19 / dependency upgrade (JSX namespace,
+`useRef` arity, react-window v2), a deprecated `@types/dompurify` stub masking
+the errors via TS2688, `jsdom` bundled into server chunks, and committed
+generated artifacts (`lint_errors.txt`, `package-lock.json`).
+
+Remediation (root-cause only; no `any`/`@ts-ignore`/`eslint-disable`):
+1. Removed `@types/dompurify` stub; fixed all 158 type errors.
+2. Externalized `jsdom`/`isomorphic-dompurify` (`next.config.js serverExternalPackages`).
+3. Realigned 7 stale tests to the current `{ error }` response envelope / token usage.
+4. Removed stale artifacts; enforced pnpm as the single lockfile.
+
+**Verified AFTER remediation (2026-06-05):** lint:strict PASS, typecheck:strict
+PASS (0 errors), build PASS (78 pages), test --run PASS (1843 passed, 0 failed).
+
+Also note: the husky `pre-commit` hook is a no-op (`exit 0`) — local commit-time
+enforcement does not match the documented policy (`pre-push` still runs `ci:strict`).
+
+### Outstanding roadmap (beyond the P0 build foundation)
+- **P1 Truthful UX** — remove placeholder cost data (~$50k/resource in
+  `ProposalGenerationModal`/`ContextPanel`) and "coming soon" export stubs;
+  finish or hide them.
+- **P1 Security** — add ownership checks to project data routes missing them
+  (IDOR risk, e.g. `/api/projects/[projectId]/chips`); actually invoke the Zod
+  validators in `api-validators.ts` (currently defined but unused).
+- **P2 Design system** — consolidate the 5+ competing token sources, ban raw
+  hex via lint, finish dark mode (~948 hardcoded colors today).
+- **P3 De-duplication** — collapse the 7 OrgChart variants and architecture
+  v1/v3; split the 248KB/178KB monolith components.
+
 ## 1. Current Objective
 Execute `docs/MASTER_PLAN.md` to reach enterprise-grade production readiness with top-tier UI/UX quality while maintaining strict public-repo hygiene and proprietary protection.
 
 ## 2. Active Phase
-Current phase: CERTIFIED — All phases P0-P5 complete
+Current phase: P0 FOUNDATION REMEDIATED (2026-06-05) — gates verified green; see Section 0.
+
+NOTE: The prior "CERTIFIED — All phases P0–P5 complete" status was inaccurate
+(strict gates were red on a clean checkout). The P0 build/quality foundation has
+now been restored and verified; the P1–P3 roadmap in Section 0 remains open.
 
 ## 3. Program Scoreboard
 
@@ -77,7 +122,9 @@ Current phase: CERTIFIED — All phases P0-P5 complete
 | D-06 A11y test evidence archive | Completed | 2026-02-20 | docs/A11Y_EVIDENCE.md: 13 automated tests, landmark fixes, WCAG 2.2 AA coverage summary |
 
 ## 5. Baseline Facts to Preserve
-1. Strict gates pass in current working state: `pnpm lint:strict`, `pnpm typecheck:strict`, `pnpm test --run`, `pnpm build`.
+1. Strict gates verified green on 2026-06-05 after P0 remediation (Section 0):
+   `pnpm lint:strict`, `pnpm typecheck:strict`, `pnpm test --run`, `pnpm build`.
+   They were RED before that date; do not assume green without re-running.
 2. Middleware protects `/api/admin` with precise public-path matching and force-login remains production-disabled behind `CRON_SECRET_KEY`.
 3. Repo hygiene gates currently pass for canonical docs-only policy and env policy (`.env.example` only; no `.env.production*` tracked).
 4. Identifier hygiene is enforced: no tracked `Keystone`/`Jadestone` strings or filenames remain.
