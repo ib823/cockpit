@@ -287,18 +287,18 @@ function LoginContent() {
   };
 
   return (
-    <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       <div className="w-full max-w-md px-6">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-800 dark:ring-1 dark:ring-slate-700 rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
               {stage === "input" && "Sign in"}
               {stage === "creating" && "Creating Passkey"}
               {stage === "verifying" && "Verifying"}
               {stage === "success" && "Success!"}
             </h1>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               {stage === "input" && "Enter your work email to continue"}
               {stage === "creating" && "Follow your browser prompt..."}
               {stage === "verifying" && "Completing registration..."}
@@ -309,8 +309,8 @@ function LoginContent() {
           {/* Loading/Success States */}
           {(stage === "creating" || stage === "verifying") && (
             <div className="text-center py-8" role="status" aria-live="polite">
-              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 mb-4" aria-hidden="true"></div>
-              <p className="text-slate-600">
+              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 mb-4" aria-hidden="true"></div>
+              <p className="text-slate-600 dark:text-slate-400">
                 {stage === "creating" && "Waiting for passkey..."}
                 {stage === "verifying" && "Verifying credentials..."}
               </p>
@@ -319,9 +319,9 @@ function LoginContent() {
 
           {stage === "success" && (
             <div className="text-center py-8" role="status" aria-live="polite">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
                 <svg
-                  className="w-8 h-8 text-green-600"
+                  className="w-8 h-8 text-green-600 dark:text-green-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -335,8 +335,8 @@ function LoginContent() {
                   />
                 </svg>
               </div>
-              <p className="text-xl text-slate-900 font-semibold mb-2">{successMessage}</p>
-              <p className="text-sm text-slate-600">Please wait...</p>
+              <p className="text-xl text-slate-900 dark:text-slate-100 font-semibold mb-2">{successMessage}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Please wait...</p>
             </div>
           )}
 
@@ -345,7 +345,7 @@ function LoginContent() {
             <div className="space-y-6">
               {/* Error Message */}
               {err && (
-                <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm space-y-3">
+                <div role="alert" className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-300 text-sm space-y-3">
                   <p>{err}</p>
                   {err.includes("cancelled") && (
                     <button
@@ -363,13 +363,13 @@ function LoginContent() {
               )}
 
               <div>
-                <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-2">Work Email</label>
+                <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Work Email</label>
                 <input
                   id="login-email"
                   type="email"
                   aria-required="true"
                   autoComplete="email"
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
@@ -388,7 +388,7 @@ function LoginContent() {
 
               {status?.needsAction === "not_found" && (
                 <div className="space-y-4">
-                  <p className="text-sm text-slate-600 text-center">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
                     This email is not registered or approved for access.
                   </p>
                   <button
@@ -398,7 +398,7 @@ function LoginContent() {
                       setErr(null);
                     }}
                     disabled={busy}
-                    className="w-full py-3 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-3 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Try Different Email
                   </button>
@@ -408,8 +408,8 @@ function LoginContent() {
               {status?.needsAction === "login" && (
                 <div className="space-y-4">
                   <div className="text-center py-4">
-                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 mb-3"></div>
-                    <p className="text-sm text-slate-600">
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 mb-3"></div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
                       {successMessage || "Preparing your passkey..."}
                     </p>
                   </div>
@@ -420,7 +420,7 @@ function LoginContent() {
                       setSuccessMessage("");
                     }}
                     disabled={busy}
-                    className="w-full py-2 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="w-full py-2 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
                     Change Email
                   </button>
@@ -429,7 +429,7 @@ function LoginContent() {
 
               {status?.needsAction === "enter_invite" && status.inviteMethod === "link" && (
                 <div className="space-y-4">
-                  <p className="text-sm text-slate-600 text-center">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
                     Click the button below to receive a magic link via email.
                   </p>
                   <button
@@ -453,7 +453,7 @@ function LoginContent() {
                       setErr(null);
                     }}
                     disabled={busy}
-                    className="w-full py-2 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-2 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Change Email
                   </button>
@@ -463,13 +463,13 @@ function LoginContent() {
               {status?.needsAction === "enter_invite" && status.inviteMethod === "code" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       6-Digit Code
                     </label>
                     <input
                       inputMode="numeric"
                       maxLength={6}
-                      className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
+                      className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 dark:border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
                       placeholder="000000"
                       value={code}
                       onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
@@ -506,7 +506,7 @@ function LoginContent() {
                         setErr(null);
                       }}
                       disabled={busy}
-                      className="px-4 py-3 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Change
                     </button>
@@ -525,8 +525,8 @@ export default function LoginEmailFirst() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400"></div>
         </div>
       }
     >
