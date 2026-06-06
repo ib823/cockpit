@@ -32,6 +32,11 @@ const HOURS_PER_DAY = 8;
 const DEFAULT_INTERNAL_COST_PERCENT = 0.35; // 35% of standard rate
 const DEFAULT_REALIZATION_RATE = 0.43; // 43% discount factor
 
+/** Safe percentage: avoids NaN/Infinity when the denominator is zero. */
+function pct(numerator: number, denominator: number): number {
+  return denominator !== 0 ? (numerator / denominator) * 100 : 0;
+}
+
 // ============================================================================
 // RATE LOOKUP
 // ============================================================================
@@ -81,8 +86,81 @@ export async function lookupStandardRate(
 // ============================================================================
 
 /**
- * Calculate cost for internal resources (PartnerCo consultants)
- * Implements full 7-layer calculation model
+ * Pure 7-layer cost computation for a single internal resource.
+ *
+ * Extracted from the DB lookup so the math is unit-testable without a database.
+ * All monetary outputs are in the base currency (MYR): the local standard rate
+ * is converted via `forexToMYR` BEFORE any downstream calculation.
+ *
+ * NOTE: the rate is treated as hourly and multiplied by HOURS_PER_DAY (8) to get
+ * a day rate, matching the seeded rate cards. Confirm this hourly basis with Finance.
+ */
+export function computeInternalCost(params: {
+  standardRatePerHourLocal: number;
+  currency: string;
+  forexToMYR: number;
+  totalMandays: number;
+  realizationRate: number;
+  internalCostPercent: number;
+  opePerDay?: number;
+  onsiteDaysPercent?: number;
+  visibilityLevel: CostVisibilityLevel;
+}): CostCalculationResult {
+  // STEP 1 + 2: Convert local rate to MYR, then to a daily rate
+  const standardRatePerHour = params.standardRatePerHourLocal * params.forexToMYR;
+  const standardRatePerDay = standardRatePerHour * HOURS_PER_DAY;
+
+  // STEP 3: Gross Standard Rate (GSR)
+  const grossStandardRate = params.totalMandays * standardRatePerDay;
+
+  // STEP 4: Realization Rate (RR) Application
+  const realizationRate = params.realizationRate || DEFAULT_REALIZATION_RATE;
+  const commercialRatePerDay = standardRatePerDay * realizationRate;
+
+  // STEP 5: Net Standard Rate (NSR)
+  const netStandardRate = commercialRatePerDay * params.totalMandays;
+
+  // STEP 6: Internal Cost (CONFIDENTIAL - Finance Only)
+  const internalCostPercent =
+    params.internalCostPercent || DEFAULT_INTERNAL_COST_PERCENT;
+  const internalCostPerDay = standardRatePerDay * internalCostPercent;
+  const totalInternalCost = internalCostPerDay * params.totalMandays;
+
+  // STEP 7: Margin Calculation (CONFIDENTIAL - Finance Only), guarded vs zero NSR
+  const margin = netStandardRate - totalInternalCost;
+  const marginPercent = pct(margin, netStandardRate);
+
+  // STEP 8: OPE (Out of Pocket Expenses) - Optional
+  let onsiteDays: number | undefined;
+  let opeAmount: number | undefined;
+  if (params.onsiteDaysPercent !== undefined && params.opePerDay !== undefined) {
+    onsiteDays = params.totalMandays * (params.onsiteDaysPercent / 100);
+    opeAmount = onsiteDays * params.opePerDay;
+  }
+
+  return {
+    standardRatePerHour, // in MYR (base currency)
+    currency: params.currency, // original local currency, for reference
+    currencyConversionToMYR: params.forexToMYR,
+    standardRatePerDay,
+    grossStandardRate,
+    realizationRate,
+    commercialRatePerDay,
+    netStandardRate,
+    internalCostPercent,
+    internalCostPerDay,
+    totalInternalCost,
+    margin,
+    marginPercent,
+    onsiteDays,
+    opeAmount,
+    visibilityLevel: params.visibilityLevel,
+  };
+}
+
+/**
+ * Calculate cost for internal resources (PartnerCo consultants).
+ * Looks up the rate card, then runs the pure 7-layer model (forex-converted to MYR).
  */
 export async function calculateInternalResourceCost(
   input: CostCalculationInput
@@ -96,63 +174,19 @@ export async function calculateInternalResourceCost(
     );
   }
 
-  const { standardRatePerHour, currency, currencyConversionToMYR } = rateInfo;
-
-  // STEP 2: Daily Rate Conversion
-  const standardRatePerDay = standardRatePerHour * HOURS_PER_DAY;
-
-  // STEP 3: Gross Standard Rate (GSR)
-  const grossStandardRate = input.totalMandays * standardRatePerDay;
-
-  // STEP 4: Realization Rate (RR) Application
-  const realizationRate =
-    input.projectCostingConfig.realizationRatePercent.toNumber() ||
-    DEFAULT_REALIZATION_RATE;
-  const commercialRatePerDay = standardRatePerDay * realizationRate;
-
-  // STEP 5: Net Standard Rate (NSR)
-  const netStandardRate = commercialRatePerDay * input.totalMandays;
-
-  // STEP 6: Internal Cost (CONFIDENTIAL - Finance Only)
-  const internalCostPercent =
-    input.projectCostingConfig.internalCostPercent.toNumber() ||
-    DEFAULT_INTERNAL_COST_PERCENT;
-  const internalCostPerDay = standardRatePerDay * internalCostPercent;
-  const totalInternalCost = internalCostPerDay * input.totalMandays;
-
-  // STEP 7: Margin Calculation (CONFIDENTIAL - Finance Only)
-  const margin = netStandardRate - totalInternalCost;
-  const marginPercent = (margin / netStandardRate) * 100;
-
-  // STEP 8: OPE (Out of Pocket Expenses) - Optional
-  let onsiteDays: number | undefined;
-  let opeAmount: number | undefined;
-
-  if (input.onsiteDaysPercent !== undefined) {
-    onsiteDays = input.totalMandays * (input.onsiteDaysPercent / 100);
-    opeAmount =
-      onsiteDays *
-      input.projectCostingConfig.opeTotalDefaultPerDay.toNumber();
-  }
-
-  return {
-    standardRatePerHour,
-    currency,
-    currencyConversionToMYR,
-    standardRatePerDay,
-    grossStandardRate,
-    realizationRate,
-    commercialRatePerDay,
-    netStandardRate,
-    internalCostPercent,
-    internalCostPerDay,
-    totalInternalCost,
-    margin,
-    marginPercent,
-    onsiteDays,
-    opeAmount,
+  return computeInternalCost({
+    standardRatePerHourLocal: rateInfo.standardRatePerHour,
+    currency: rateInfo.currency,
+    forexToMYR: rateInfo.currencyConversionToMYR,
+    totalMandays: input.totalMandays,
+    realizationRate:
+      input.projectCostingConfig.realizationRatePercent?.toNumber() ?? DEFAULT_REALIZATION_RATE,
+    internalCostPercent:
+      input.projectCostingConfig.internalCostPercent?.toNumber() ?? DEFAULT_INTERNAL_COST_PERCENT,
+    opePerDay: input.projectCostingConfig.opeTotalDefaultPerDay?.toNumber(),
+    onsiteDaysPercent: input.onsiteDaysPercent,
     visibilityLevel: input.projectCostingConfig.costVisibilityLevel,
-  };
+  });
 }
 
 // ============================================================================
@@ -176,7 +210,7 @@ export function calculateSubcontractorCost(
   const totalCommercial = dailyCommercialRate * totalMandays;
   const totalCost = dailyCostRate * totalMandays;
   const margin = totalCommercial - totalCost;
-  const marginPercent = (margin / totalCommercial) * 100;
+  const marginPercent = pct(margin, totalCommercial);
 
   return {
     dailyCommercialRate,
@@ -246,6 +280,35 @@ export async function calculateProjectCostingSummary(
   let totalNSR = 0;
   let totalInternalCost = 0;
   let totalSubcontractorCost = 0;
+  const unratedResources: string[] = [];
+
+  // Breakdown accumulators (built inline — region/designation are available here)
+  const regionMap = new Map<
+    string,
+    { region: string; totalMandays: number; totalNSR: number; totalCost: number; margin: number }
+  >();
+  const designationMap = new Map<
+    string,
+    { designation: string; resourceIds: Set<string>; totalMandays: number; totalNSR: number }
+  >();
+
+  const addRegion = (region: string, mandays: number, nsr: number, cost: number) => {
+    const r = regionMap.get(region) ?? { region, totalMandays: 0, totalNSR: 0, totalCost: 0, margin: 0 };
+    r.totalMandays += mandays;
+    r.totalNSR += nsr;
+    r.totalCost += cost;
+    r.margin = r.totalNSR - r.totalCost;
+    regionMap.set(region, r);
+  };
+  const addDesignation = (designation: string, resourceId: string, mandays: number, nsr: number) => {
+    const d =
+      designationMap.get(designation) ??
+      { designation, resourceIds: new Set<string>(), totalMandays: 0, totalNSR: 0 };
+    d.resourceIds.add(resourceId);
+    d.totalMandays += mandays;
+    d.totalNSR += nsr;
+    designationMap.set(designation, d);
+  };
 
   for (const [resourceId, allocation] of Object.entries(resourceAllocations)) {
     const resource = project.weeklyAllocations.find(
@@ -264,10 +327,17 @@ export async function calculateProjectCostingSummary(
         });
         totalNSR += result.totalCommercial;
         totalSubcontractorCost += result.totalCost;
+        if (resource.regionCode) {
+          addRegion(resource.regionCode, allocation.totalMandays, result.totalCommercial, result.totalCost);
+        }
+        if (resource.designation) {
+          addDesignation(resource.designation, resource.id, allocation.totalMandays, result.totalCommercial);
+        }
       }
-    } else {
-      // Internal resource costing
-      if (resource.regionCode && resource.designation) {
+    } else if (resource.regionCode && resource.designation) {
+      // Internal resource costing. A single missing rate card must not abort the
+      // entire calculation — record the resource and continue.
+      try {
         const costResult = await calculateInternalResourceCost({
           resourceId: resource.id,
           region: resource.regionCode,
@@ -281,6 +351,10 @@ export async function calculateProjectCostingSummary(
         totalGSR += costResult.grossStandardRate;
         totalNSR += costResult.netStandardRate;
         totalInternalCost += costResult.totalInternalCost;
+        addRegion(resource.regionCode, allocation.totalMandays, costResult.netStandardRate, costResult.totalInternalCost);
+        addDesignation(resource.designation, resource.id, allocation.totalMandays, costResult.netStandardRate);
+      } catch {
+        unratedResources.push(`${resource.regionCode}/${resource.designation}`);
       }
     }
   }
@@ -291,29 +365,38 @@ export async function calculateProjectCostingSummary(
     0
   );
 
-  // Calculate gross margin (CONFIDENTIAL - Finance only)
+  // Calculate gross margin (CONFIDENTIAL - Finance only), guarded vs zero NSR
   const grossMargin =
     totalNSR - (totalInternalCost + totalSubcontractorCost + totalOPE);
-  const marginPercent = (grossMargin / totalNSR) * 100;
+  const marginPercent = pct(grossMargin, totalNSR);
 
-  // Breakdown by region
-  const byRegion = calculateCostBreakdownByRegion(
-    project.weeklyAllocations,
-    resourceCosts,
-    visibilityLevel
-  );
+  const realizationRate =
+    costingConfig.realizationRatePercent?.toNumber() || DEFAULT_REALIZATION_RATE;
 
-  // Breakdown by designation
-  const byDesignation = calculateCostBreakdownByDesignation(
-    project.weeklyAllocations,
-    resourceCosts
-  );
+  // Breakdown by region (cost/margin gated to FINANCE_ONLY)
+  const byRegion: CostBreakdownByRegion[] = Array.from(regionMap.values()).map((r) => ({
+    region: r.region,
+    totalMandays: r.totalMandays,
+    totalNSR: r.totalNSR,
+    totalCost: visibilityLevel === "FINANCE_ONLY" ? r.totalCost : 0,
+    margin: visibilityLevel === "FINANCE_ONLY" ? r.margin : 0,
+  }));
+
+  // Breakdown by designation (averageUtilization needs capacity context — left at 0)
+  const byDesignation: CostBreakdownByDesignation[] = Array.from(designationMap.values()).map((d) => ({
+    designation: d.designation,
+    count: d.resourceIds.size,
+    totalMandays: d.totalMandays,
+    totalNSR: d.totalNSR,
+    averageUtilization: 0,
+  }));
 
   return {
     projectId: project.id,
     versionNumber: versionNumber || project.version,
     totalGSR,
     totalNSR,
+    realizationRate,
     totalInternalCost:
       visibilityLevel === "FINANCE_ONLY" ? totalInternalCost : 0,
     totalSubcontractorCost:
@@ -323,6 +406,7 @@ export async function calculateProjectCostingSummary(
     marginPercent: visibilityLevel === "FINANCE_ONLY" ? marginPercent : 0,
     byRegion,
     byDesignation,
+    unratedResources,
     visibilityLevel,
   };
 }
@@ -357,31 +441,6 @@ function aggregateAllocationsByResource(
   }
 
   return aggregated;
-}
-
-/**
- * Calculate cost breakdown by region (with security filtering)
- */
-function calculateCostBreakdownByRegion(
-  _allocations: unknown[],
-  _costs: CostCalculationResult[],
-  _visibilityLevel: CostVisibilityLevel
-): CostBreakdownByRegion[] {
-  // Implementation would group by region
-  // Simplified for now
-  return [];
-}
-
-/**
- * Calculate cost breakdown by designation
- */
-function calculateCostBreakdownByDesignation(
-  _allocations: unknown[],
-  _costs: CostCalculationResult[]
-): CostBreakdownByDesignation[] {
-  // Implementation would group by designation
-  // Simplified for now
-  return [];
 }
 
 // ============================================================================

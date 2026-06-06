@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
           create: {
             projectId: validatedData.projectId,
             grossServiceRevenue: costingSummary.totalGSR,
-            realizationRate: 0.43, // Default from config
+            realizationRate: costingSummary.realizationRate,
             commercialRate: costingSummary.totalNSR,
             netServiceRevenue: costingSummary.totalNSR,
             internalCost: costingSummary.totalInternalCost,
@@ -200,6 +200,8 @@ export async function POST(request: NextRequest) {
             byDesignation: costingSummary.byDesignation,
           }
         : undefined,
+      // Resources with no rate card — costing is incomplete for these
+      unratedResources: costingSummary.unratedResources,
       saved: validatedData.saveToDatabase,
       calculatedAt: new Date().toISOString(),
     });
