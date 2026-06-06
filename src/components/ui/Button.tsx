@@ -110,24 +110,26 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
           // Variant styles
           {
-            // Primary - Blue background
+            // Primary - Blue background (fixed accent, legible in both themes)
             'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800':
               variant === 'primary',
 
-            // Secondary - White background with border
-            'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 active:bg-gray-100':
+            // Secondary - Surface bg + border. Base colors use semantic tokens
+            // (auto dark-aware); hover/active use Tailwind + `dark:` because
+            // state variants can't be applied to hand-written semantic classes.
+            'border border-default bg-primary text-primary hover:bg-gray-50 active:bg-gray-100 dark:hover:bg-gray-800 dark:active:bg-gray-700':
               variant === 'secondary',
 
-            // Tertiary - Transparent with blue text
-            'text-blue-600 hover:bg-blue-50 active:bg-blue-100':
+            // Tertiary - Transparent with accent text (semantic, dark-aware)
+            'text-blue hover:bg-blue-50 active:bg-blue-100 dark:hover:bg-blue-950/40 dark:active:bg-blue-900/40':
               variant === 'tertiary',
 
-            // Destructive - Red for dangerous actions
+            // Destructive - Red for dangerous actions (fixed accent)
             'bg-red-600 text-white hover:bg-red-700 active:bg-red-800':
               variant === 'destructive',
 
-            // Ghost - Minimal, subtle hover
-            'text-gray-700 hover:bg-gray-100 active:bg-gray-200':
+            // Ghost - Minimal, subtle hover (semantic text, dark-aware)
+            'text-secondary hover:bg-gray-100 active:bg-gray-200 dark:hover:bg-gray-800 dark:active:bg-gray-700':
               variant === 'ghost',
           },
 

@@ -73,17 +73,29 @@ function validateEnv(): Env {
     process.env.NEXT_PHASE === "phase-production-build" ||
     (process.env.VERCEL === "1" && process.env.CI === "1");
 
-  if (isBuildPhase && !process.env.DATABASE_URL) {
-    logger.warn("⚠️  Building without runtime env vars - using build-time placeholders");
-    logger.warn("   Environment variables will be validated at runtime");
+  if (isBuildPhase) {
+    // During `next build`, required runtime env vars may be injected only at
+    // runtime (Vercel) or be unavailable (CI). Never fail the BUILD on env —
+    // use whatever is valid and fall back to placeholders. Runtime validation
+    // (the strict path below, non-build phase) remains the real gate.
+    const parsed = envSchema.safeParse(process.env);
+    if (parsed.success) return parsed.data;
+    logger.warn(
+      "⚠️  Building without complete env vars - using build-time placeholders (validated at runtime)"
+    );
     return {
       NODE_ENV: "production",
-      DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder",
-      DATABASE_URL_UNPOOLED: "postgresql://placeholder:placeholder@localhost:5432/placeholder",
-      NEXTAUTH_SECRET: "placeholder-secret-for-build-only-min-32-chars",
-      NEXTAUTH_URL: "https://placeholder.vercel.app",
-      ENABLE_PASSKEYS: true,
-      ENABLE_MAGIC_LINKS: true,
+      DATABASE_URL:
+        process.env.DATABASE_URL ||
+        "postgresql://placeholder:placeholder@localhost:5432/placeholder",
+      DATABASE_URL_UNPOOLED:
+        process.env.DATABASE_URL_UNPOOLED ||
+        "postgresql://placeholder:placeholder@localhost:5432/placeholder",
+      NEXTAUTH_SECRET:
+        process.env.NEXTAUTH_SECRET || "placeholder-secret-for-build-only-min-32-chars",
+      NEXTAUTH_URL: process.env.NEXTAUTH_URL || "https://placeholder.vercel.app",
+      ENABLE_PASSKEYS: process.env.ENABLE_PASSKEYS !== "false",
+      ENABLE_MAGIC_LINKS: process.env.ENABLE_MAGIC_LINKS !== "false",
     } as Env;
   }
 

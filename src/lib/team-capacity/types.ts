@@ -77,6 +77,7 @@ export interface CostCalculationInput {
   projectCostingConfig: ProjectCostingConfig;
   subcontractorRate?: SubcontractorRate;
   onsiteDaysPercent?: number; // For OPE calculation
+  intercompanyMarkup?: number; // Multiplier on internal cost (1 = none)
 }
 
 export interface CostCalculationResult {
@@ -136,6 +137,7 @@ export interface ProjectCostingSummary {
   // Revenue
   totalGSR: number; // Sum of all resources' GSR
   totalNSR: number; // Sum of all resources' NSR (actual billable)
+  realizationRate: number; // RR actually used (from project config)
 
   // Costs (confidential - Finance only)
   totalInternalCost: number; // Sum of internal resources' costs
@@ -152,6 +154,9 @@ export interface ProjectCostingSummary {
 
   // Breakdown by designation
   byDesignation: CostBreakdownByDesignation[];
+
+  // Resources whose region/designation had no rate card (costing incomplete for these)
+  unratedResources?: string[];
 
   // Security
   visibilityLevel: CostVisibilityLevel;

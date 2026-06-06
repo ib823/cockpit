@@ -295,6 +295,38 @@
 .bg-secondary { background-color: var(--color-bg-secondary); }
 .bg-tertiary { background-color: var(--color-bg-tertiary); }
 
+/* Semantic text colors — dark-aware via CSS vars (no `dark:` variant needed).
+   These back the bare `text-blue`/`text-quaternary`/etc. class names that are
+   already used ~220× across the app but were never defined (rendered as no-ops). */
+.text-quaternary { color: var(--color-text-quaternary); }
+.text-blue { color: var(--color-blue); }
+.text-green { color: var(--color-green); }
+.text-orange { color: var(--color-orange); }
+.text-red { color: var(--color-red); }
+.text-purple { color: var(--color-purple); }
+
+/* Semantic solid fills */
+.bg-blue { background-color: var(--color-blue); }
+.bg-green { background-color: var(--color-green); }
+.bg-orange { background-color: var(--color-orange); }
+.bg-red { background-color: var(--color-red); }
+.bg-purple { background-color: var(--color-purple); }
+
+/* Translucent tint fills (alpha-based, legible in both light & dark) */
+.bg-blue-light { background-color: var(--color-blue-light); }
+.bg-green-light { background-color: var(--color-green-light); }
+.bg-orange-light { background-color: var(--color-orange-light); }
+.bg-red-light { background-color: var(--color-red-light); }
+.bg-purple-light { background-color: var(--color-purple-light); }
+
+/* Semantic border colors — pair with Tailwind's `border`/`border-2` width util */
+.border-default { border-color: var(--color-border-default); }
+.border-subtle { border-color: var(--color-border-subtle); }
+.border-strong { border-color: var(--color-border-strong); }
+
+/* Semantic default transition (timing + easing tokens) */
+.transition-default { transition: all var(--duration-default) var(--easing-default); }
+
 .rounded-sm { border-radius: var(--radius-sm); }
 .rounded-md { border-radius: var(--radius-md); }
 .rounded-lg { border-radius: var(--radius-lg); }
