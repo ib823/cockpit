@@ -77,6 +77,7 @@ export interface CostCalculationInput {
   projectCostingConfig: ProjectCostingConfig;
   subcontractorRate?: SubcontractorRate;
   onsiteDaysPercent?: number; // For OPE calculation
+  intercompanyMarkup?: number; // Multiplier on internal cost (1 = none)
 }
 
 export interface CostCalculationResult {

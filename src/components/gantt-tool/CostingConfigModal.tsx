@@ -31,6 +31,7 @@ interface CostingConfig {
   opeTransportPerDay: number;
   opeTotalDefaultPerDay: number;
   intercompanyMarkupPercent: number;
+  intercompanyHomeRegion: string | null;
   baseCurrency: string;
   costVisibilityLevel: "PUBLIC" | "PRESALES_AND_FINANCE" | "FINANCE_ONLY";
   createdAt: string;
@@ -284,6 +285,7 @@ export function CostingConfigModal({
     opeTransportPerDay: number;
     opeTotalDefaultPerDay: number;
     intercompanyMarkupPercent: number;
+    intercompanyHomeRegion: string;
     baseCurrency: string;
     costVisibilityLevel: "PUBLIC" | "PRESALES_AND_FINANCE" | "FINANCE_ONLY";
   }>({
@@ -294,6 +296,7 @@ export function CostingConfigModal({
     opeTransportPerDay: 100,
     opeTotalDefaultPerDay: 500,
     intercompanyMarkupPercent: 15,
+    intercompanyHomeRegion: "",
     baseCurrency: "MYR",
     costVisibilityLevel: "FINANCE_ONLY",
   });
@@ -324,6 +327,7 @@ export function CostingConfigModal({
         opeTransportPerDay: data.opeTransportPerDay,
         opeTotalDefaultPerDay: data.opeTotalDefaultPerDay,
         intercompanyMarkupPercent: Math.round((data.intercompanyMarkupPercent - 1) * 100),
+        intercompanyHomeRegion: data.intercompanyHomeRegion ?? "",
         baseCurrency: data.baseCurrency,
         costVisibilityLevel: data.costVisibilityLevel,
       });
@@ -363,6 +367,7 @@ export function CostingConfigModal({
         opeTransportPerDay: formData.opeTransportPerDay,
         opeTotalDefaultPerDay: formData.opeTotalDefaultPerDay,
         intercompanyMarkupPercent: 1 + formData.intercompanyMarkupPercent / 100,
+        intercompanyHomeRegion: formData.intercompanyHomeRegion || null,
         baseCurrency: formData.baseCurrency,
         costVisibilityLevel: formData.costVisibilityLevel,
       };
@@ -511,7 +516,23 @@ export function CostingConfigModal({
                       />
                       <span style={styles.inputSuffix}>%</span>
                     </div>
-                    <div style={styles.hint}>Markup for cross-region resources</div>
+                    <div style={styles.hint}>Applied to resources outside the home region</div>
+                  </div>
+
+                  <div style={styles.field}>
+                    <label style={styles.label}>Intercompany Home Region</label>
+                    <select
+                      style={styles.select}
+                      value={formData.intercompanyHomeRegion}
+                      onChange={(e) => handleChange("intercompanyHomeRegion", e.target.value)}
+                    >
+                      <option value="">None (no intercompany markup)</option>
+                      <option value="ABMY">ABMY — Malaysia</option>
+                      <option value="ABSG">ABSG — Singapore</option>
+                      <option value="ABVN">ABVN — Vietnam</option>
+                      <option value="ABTH">ABTH — Thailand</option>
+                    </select>
+                    <div style={styles.hint}>Markup applies to resources from other regions</div>
                   </div>
 
                   <div style={styles.field}>

@@ -115,6 +115,7 @@ export function computeInternalCost(params: {
   internalCostPercent: number;
   opePerDay?: number;
   onsiteDaysPercent?: number;
+  intercompanyMarkup?: number;
   visibilityLevel: CostVisibilityLevel;
 }): CostCalculationResult {
   // STEP 1 + 2: Convert local rate to MYR, then to a daily rate
@@ -135,7 +136,10 @@ export function computeInternalCost(params: {
   const internalCostPercent =
     params.internalCostPercent || DEFAULT_INTERNAL_COST_PERCENT;
   const internalCostPerDay = standardRatePerDay * internalCostPercent;
-  const totalInternalCost = internalCostPerDay * params.totalMandays;
+  // Intercompany markup increases the internal (transfer) cost for resources
+  // borrowed from another region's entity. Default 1 = no markup.
+  const intercompanyMarkup = params.intercompanyMarkup ?? 1;
+  const totalInternalCost = internalCostPerDay * params.totalMandays * intercompanyMarkup;
 
   // STEP 7: Margin Calculation (CONFIDENTIAL - Finance Only), guarded vs zero NSR
   const margin = netStandardRate - totalInternalCost;
@@ -196,6 +200,7 @@ export async function calculateInternalResourceCost(
       input.projectCostingConfig.internalCostPercent?.toNumber() ?? DEFAULT_INTERNAL_COST_PERCENT,
     opePerDay: input.projectCostingConfig.opeTotalDefaultPerDay?.toNumber(),
     onsiteDaysPercent: input.onsiteDaysPercent,
+    intercompanyMarkup: input.intercompanyMarkup,
     visibilityLevel: input.projectCostingConfig.costVisibilityLevel,
   });
 }
@@ -349,6 +354,11 @@ export async function calculateProjectCostingSummary(
       // Internal resource costing. A single missing rate card must not abort the
       // entire calculation — record the resource and continue.
       try {
+        // Intercompany markup applies when the resource's region differs from the
+        // project's configured home region (null home region = markup disabled).
+        const isIntercompany =
+          !!costingConfig.intercompanyHomeRegion &&
+          resource.regionCode !== costingConfig.intercompanyHomeRegion;
         const costResult = await calculateInternalResourceCost({
           resourceId: resource.id,
           region: resource.regionCode,
@@ -356,6 +366,9 @@ export async function calculateProjectCostingSummary(
           totalMandays: allocation.totalMandays,
           isSubcontractor: false,
           projectCostingConfig: costingConfig,
+          intercompanyMarkup: isIntercompany
+            ? costingConfig.intercompanyMarkupPercent.toNumber()
+            : 1,
         });
 
         resourceCosts.push(costResult);

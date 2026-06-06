@@ -91,6 +91,25 @@ describe("computeInternalCost (7-layer model)", () => {
     expect(r.realizationRate).toBe(0.43);
     expect(r.internalCostPercent).toBe(0.35);
   });
+
+  it("applies intercompany markup to internal cost (reducing margin)", () => {
+    const common = {
+      standardRatePerHourLocal: 1000,
+      currency: "MYR",
+      forexToMYR: 1,
+      totalMandays: 10,
+      realizationRate: 0.43,
+      internalCostPercent: 0.35,
+      visibilityLevel: "FINANCE_ONLY" as const,
+    };
+    const base = computeInternalCost(common);
+    const marked = computeInternalCost({ ...common, intercompanyMarkup: 1.15 });
+
+    // Revenue is unchanged; internal (transfer) cost is +15%; margin is lower.
+    expect(marked.netStandardRate).toBeCloseTo(base.netStandardRate, 6);
+    expect(marked.totalInternalCost).toBeCloseTo(base.totalInternalCost * 1.15, 6);
+    expect(marked.margin).toBeLessThan(base.margin);
+  });
 });
 
 describe("calculateSubcontractorCost", () => {

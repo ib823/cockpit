@@ -26,6 +26,7 @@ const CostingConfigSchema = z.object({
   opeTransportPerDay: z.number().min(0).optional(),
   opeTotalDefaultPerDay: z.number().min(0).optional(),
   intercompanyMarkupPercent: z.number().min(1).max(2).optional(), // 1.0 = no markup, 1.5 = 50% markup
+  intercompanyHomeRegion: z.string().nullable().optional(), // null/empty = markup disabled
   baseCurrency: z.string().length(3).optional(),
   costVisibilityLevel: z.enum(["PUBLIC", "PRESALES_AND_FINANCE", "FINANCE_ONLY"]).optional(),
 });
@@ -104,6 +105,7 @@ export async function GET(
       opeTransportPerDay: config.opeTransportPerDay.toNumber(),
       opeTotalDefaultPerDay: config.opeTotalDefaultPerDay.toNumber(),
       intercompanyMarkupPercent: config.intercompanyMarkupPercent.toNumber(),
+      intercompanyHomeRegion: config.intercompanyHomeRegion,
       baseCurrency: config.baseCurrency,
       costVisibilityLevel: config.costVisibilityLevel,
       createdAt: config.createdAt,
@@ -204,6 +206,9 @@ export async function PUT(
     if (data.intercompanyMarkupPercent !== undefined) {
       updateData.intercompanyMarkupPercent = new Decimal(data.intercompanyMarkupPercent);
     }
+    if (data.intercompanyHomeRegion !== undefined) {
+      updateData.intercompanyHomeRegion = data.intercompanyHomeRegion || null;
+    }
     if (data.baseCurrency !== undefined) {
       updateData.baseCurrency = data.baseCurrency;
     }
@@ -233,6 +238,7 @@ export async function PUT(
       opeTransportPerDay: config.opeTransportPerDay.toNumber(),
       opeTotalDefaultPerDay: config.opeTotalDefaultPerDay.toNumber(),
       intercompanyMarkupPercent: config.intercompanyMarkupPercent.toNumber(),
+      intercompanyHomeRegion: config.intercompanyHomeRegion,
       baseCurrency: config.baseCurrency,
       costVisibilityLevel: config.costVisibilityLevel,
       createdAt: config.createdAt,

@@ -1475,6 +1475,9 @@ model ProjectCostingConfig {
 
   // Intercompany Markup (when using cross-region resources)
   intercompanyMarkupPercent Decimal @default(1.1500) @db.Decimal(5, 4) // 15% markup
+  // Home region for intercompany markup. The markup applies to resources whose
+  // region differs from this. Null/empty = intercompany markup disabled.
+  intercompanyHomeRegion String?
 
   // Currency
   baseCurrency String @default("MYR")
