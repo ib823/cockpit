@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
-import { randomBytes } from "crypto";
 import { otpVerifyLimiter } from "@/lib/server-rate-limiter";
 import { hashOTP, timingSafeCompare } from "@/lib/crypto-utils";
+import { createSessionToken } from "@/lib/nextauth-helpers";
 import { logAuthEvent } from "@/lib/monitoring/auth-metrics";
 import { isIPBlocked, checkAndBlockIP } from "@/lib/security/ip-blocker";
 import { logger } from "@/lib/logger";
@@ -197,20 +197,12 @@ export async function POST(req: Request) {
       },
     });
 
-    // Create a secure session token for NextAuth
-    const sessionToken = randomBytes(32).toString("hex");
-    const sessionId = randomBytes(16).toString("hex");
-
-    // Create session in database
-    const sessionExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-    await prisma.sessions.create({
-      data: {
-        id: sessionId,
-        sessionToken,
-        userId: user.id,
-        expires: sessionExpiry,
-      },
-    });
+    // The app uses NextAuth's JWT session strategy, so authentication must
+    // produce a signed NextAuth JWT (verified by middleware via getToken),
+    // NOT a database session row. A DB session is invisible to the JWT layer,
+    // which is why the previous implementation returned ok:true but left the
+    // user logged out. Mint the JWT with the same helper finish-register uses.
+    const sessionToken = await createSessionToken(user.id, user.email, user.role, user.name);
 
     // Log successful OTP authentication
     await logAuthEvent(
@@ -236,12 +228,18 @@ export async function POST(req: Request) {
       },
     });
 
-    // Set session cookie
-    response.cookies.set("next-auth.session-token", sessionToken, {
+    // Use the __Secure- cookie prefix in production (HTTPS) as NextAuth
+    // requires; fall back to the unprefixed name in local development.
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieName = isProduction
+      ? "__Secure-next-auth.session-token"
+      : "next-auth.session-token";
+
+    response.cookies.set(cookieName, sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       sameSite: "lax",
-      expires: sessionExpiry,
+      maxAge: 30 * 24 * 60 * 60, // 30 days, matches the JWT maxAge
       path: "/",
     });
 
