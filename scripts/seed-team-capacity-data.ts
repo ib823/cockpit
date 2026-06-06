@@ -9,6 +9,7 @@
  */
 
 import { PrismaClient, WeekNumberingType, CostVisibilityLevel } from "@prisma/client";
+import { canonicalRateRows } from "../src/lib/team-capacity/rate-card-data";
 
 const prisma = new PrismaClient();
 
@@ -16,143 +17,10 @@ const prisma = new PrismaClient();
 // RATE CARD DATA (from YTL Cement RP.xlsx)
 // ============================================================================
 
-const RATE_CARDS = [
-  // ABMY (Malaysia) - MYR
-  {
-    regionCode: "ABMY",
-    designation: "Principal",
-    hourlyRate: 2000.0,
-    localCurrency: "MYR",
-    forexRate: 1.0,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABMY",
-    designation: "Director",
-    hourlyRate: 1600.0,
-    localCurrency: "MYR",
-    forexRate: 1.0,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABMY",
-    designation: "Manager",
-    hourlyRate: 1200.0,
-    localCurrency: "MYR",
-    forexRate: 1.0,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABMY",
-    designation: "Consultant",
-    hourlyRate: 800.0,
-    localCurrency: "MYR",
-    forexRate: 1.0,
-    baseCurrency: "MYR",
-  },
-
-  // ABSG (Singapore) - SGD
-  {
-    regionCode: "ABSG",
-    designation: "Principal",
-    hourlyRate: 650.0,
-    localCurrency: "SGD",
-    forexRate: 3.25,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABSG",
-    designation: "Director",
-    hourlyRate: 520.0,
-    localCurrency: "SGD",
-    forexRate: 3.25,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABSG",
-    designation: "Manager",
-    hourlyRate: 390.0,
-    localCurrency: "SGD",
-    forexRate: 3.25,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABSG",
-    designation: "Consultant",
-    hourlyRate: 260.0,
-    localCurrency: "SGD",
-    forexRate: 3.25,
-    baseCurrency: "MYR",
-  },
-
-  // ABVN (Vietnam) - VND
-  {
-    regionCode: "ABVN",
-    designation: "Principal",
-    hourlyRate: 12500000.0,
-    localCurrency: "VND",
-    forexRate: 0.0001605,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABVN",
-    designation: "Director",
-    hourlyRate: 10000000.0,
-    localCurrency: "VND",
-    forexRate: 0.0001605,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABVN",
-    designation: "Manager",
-    hourlyRate: 7500000.0,
-    localCurrency: "VND",
-    forexRate: 0.0001605,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABVN",
-    designation: "Consultant",
-    hourlyRate: 5000000.0,
-    localCurrency: "VND",
-    forexRate: 0.0001605,
-    baseCurrency: "MYR",
-  },
-
-  // ABTH (Thailand) - THB
-  {
-    regionCode: "ABTH",
-    designation: "Principal",
-    hourlyRate: 15000.0,
-    localCurrency: "THB",
-    forexRate: 0.13,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABTH",
-    designation: "Director",
-    hourlyRate: 12000.0,
-    localCurrency: "THB",
-    forexRate: 0.13,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABTH",
-    designation: "Manager",
-    hourlyRate: 9000.0,
-    localCurrency: "THB",
-    forexRate: 0.13,
-    baseCurrency: "MYR",
-  },
-  {
-    regionCode: "ABTH",
-    designation: "Consultant",
-    hourlyRate: 6000.0,
-    localCurrency: "THB",
-    forexRate: 0.13,
-    baseCurrency: "MYR",
-  },
-];
+// Rate cards come from the canonical baseline (single source of truth, shared
+// with the rates API and the client fallback). Adjust rates in the DB after
+// seeding, or update the baseline in src/lib/team-capacity/rate-card-data.ts.
+const RATE_CARDS = canonicalRateRows();
 
 // ============================================================================
 // DEFAULT COSTING CONFIG

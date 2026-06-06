@@ -23,6 +23,7 @@ import type {
   CostBreakdownByDesignation,
 } from "./types";
 import { prisma } from "@/lib/db";
+import { RATE_CARD_DATA } from "./rate-card-data";
 
 // ============================================================================
 // CONSTANTS
@@ -71,7 +72,17 @@ export async function lookupStandardRate(
   });
 
   if (!rateCard) {
-    return null;
+    // Fall back to the canonical baseline so costing still works against an
+    // unseeded / partially-seeded DB (and tolerates designation gaps).
+    const fallback = RATE_CARD_DATA[region]?.[designation];
+    if (!fallback) {
+      return null;
+    }
+    return {
+      standardRatePerHour: fallback.standardRatePerHour,
+      currency: fallback.currency,
+      currencyConversionToMYR: fallback.forexRate,
+    };
   }
 
   return {
