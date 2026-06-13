@@ -16,11 +16,14 @@ import { Redis } from "@upstash/redis";
 import { logger } from "@/lib/logger";
 
 // Initialize Redis client
+// Prefer Vercel-managed KV_* vars (current Upstash integration); fall back to legacy UPSTASH_*.
+const redisRestUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const redisRestToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 const redis =
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  redisRestUrl && redisRestToken
     ? new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        url: redisRestUrl,
+        token: redisRestToken,
       })
     : null;
 

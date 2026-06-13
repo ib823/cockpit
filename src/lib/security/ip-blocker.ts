@@ -12,8 +12,9 @@ import { logger } from "@/lib/logger";
 // Redis connection (with fallback)
 let redis: Redis | null = null;
 try {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Prefer Vercel-managed KV_* vars (current Upstash integration); fall back to legacy UPSTASH_*.
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   if (url && token && /^https:\/\//i.test(url)) {
     redis = new Redis({ url, token });
   }

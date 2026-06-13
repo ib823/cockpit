@@ -33,8 +33,9 @@ export const rpID = config.rpID;
 export const origin = config.origin;
 
 // Challenge store with automatic fallback to in-memory (dev-safe)
-const url = process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Prefer the Vercel-managed KV_* vars (current Upstash integration); fall back to legacy UPSTASH_* names.
+const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 let redis: Redis | null = null;
 try {
   if (url && token && /^https:\/\//i.test(url)) redis = new Redis({ url, token });
