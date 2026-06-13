@@ -4,26 +4,33 @@
  * Prevents XSS, DoS, and other malicious inputs
  */
 
-import DOMPurify from "isomorphic-dompurify";
-
 /**
- * Sanitize HTML/script tags from user input
+ * Sanitize HTML/script tags from user input.
+ *
+ * Pure-JS implementation (no DOM dependency) so it is safe to import from
+ * Node serverless routes. `isomorphic-dompurify` pulls in `jsdom`, which is
+ * ESM-only and listed in `serverExternalPackages`; importing it here made
+ * Next.js emit a runtime `require()` of an ES module, crashing every API
+ * route on this module's import path (ERR_REQUIRE_ESM → HTTP 500).
+ *
+ * These inputs (emails, names, chip values, RFP text) are stripped of all
+ * markup rather than allow-listed, so tag/protocol removal is equivalent to
+ * DOMPurify with `ALLOWED_TAGS: []` for our purposes.
  */
 export function sanitizeHtml(input: string): string {
   if (typeof input !== "string") return "";
 
-  // isomorphic-dompurify works both client-side and server-side
-  const sanitized = DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [], // Strip all HTML tags
-    ALLOWED_ATTR: [], // Strip all attributes
-    KEEP_CONTENT: true, // Keep text content
-  });
-
-  // Additional sanitization for protocol-based attacks
-  return sanitized
-    .replace(/javascript:/gi, "")
-    .replace(/vbscript:/gi, "")
-    .replace(/data:/gi, "");
+  return (
+    input
+      // Drop <script>/<style> elements together with their text content.
+      .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+      // Strip any remaining tags but keep their inner text.
+      .replace(/<[^>]*>/g, "")
+      // Neutralize protocol-based attacks.
+      .replace(/javascript:/gi, "")
+      .replace(/vbscript:/gi, "")
+      .replace(/data:/gi, "")
+  );
 }
 
 /**
