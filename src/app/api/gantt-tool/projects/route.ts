@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
 
     // Use transaction with retry for create + audit log + holidays
     const project = await withRetry(() =>
-      (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<ProjectWithBasicIncludes | null>) => Promise<ProjectWithBasicIncludes | null>)(async (tx) => {
+      (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<ProjectWithBasicIncludes | null>, opts?: { maxWait?: number; timeout?: number }) => Promise<ProjectWithBasicIncludes | null>)(async (tx) => {
         const newProject = await tx.ganttProject.create({
           data: {
             userId: session.user.id,
@@ -328,6 +328,13 @@ export async function POST(request: NextRequest) {
         });
 
         return projectWithHolidays;
+      }, {
+        // Default interactive-transaction limits (2s maxWait / 5s timeout) are too tight
+        // for the production pooled Neon connection (cross-region latency + cold-start
+        // connection setup), causing P2028 timeouts that withRetry amplified into a ~21s
+        // failure. Give the connection acquisition and the transaction room to complete.
+        maxWait: 10000,
+        timeout: 20000,
       })
     );
 
