@@ -112,7 +112,10 @@ export function getDefaultHolidaysForProject(
   const publicHolidays = getHardcodedHolidays(startDate, endDate, region);
 
   return publicHolidays.map(h => ({
-    id: `public-${h.date}-${region}`,
+    // Name must be part of the id: multiple holidays can share a date+region
+    // (e.g. Agong's Birthday and Hari Raya Aidiladha on 2025-06-07), so without
+    // the name the ids collide and the DB createMany fails with a P2002.
+    id: `public-${h.date}-${region}-${h.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`,
     name: h.name,
     date: h.date,
     region: region,

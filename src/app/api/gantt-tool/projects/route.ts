@@ -296,6 +296,7 @@ export async function POST(request: NextRequest) {
               region: h.region,
               type: h.type,
             })),
+            skipDuplicates: true,
           });
         }
 
