@@ -20,7 +20,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { withCache, CACHE_CONFIG, cache } from "@/lib/cache/redis-cache";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { logger } from "@/lib/logger";
 
 const prisma = new PrismaClient();
@@ -184,10 +184,8 @@ export async function GET(request: NextRequest) {
 /**
  * POST handler for cache invalidation (admin only)
  */
-export async function POST(request: NextRequest) {
+export const POST = withAdmin(async (request) => {
   try {
-    await requireAdmin();
-
     const { action } = await request.json();
 
     if (action === "invalidate") {
@@ -210,18 +208,6 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "unauthorized") {
-        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-      }
-      if (error.message === "forbidden") {
-        return NextResponse.json(
-          { success: false, error: "Forbidden - Admin access required" },
-          { status: 403 }
-        );
-      }
-    }
-
     logger.error("[L3 Catalog API] ❌ POST Error", { error: error });
 
     return NextResponse.json(
@@ -232,4 +218,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

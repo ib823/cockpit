@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { ServerRateLimiter } from "./lib/server-rate-limiter";
+import { isSessionRevoked } from "./lib/auth/revocation";
 
 // Redis-based rate limiting with in-memory fallback
 // Login endpoints: 20 requests per 5 minutes per user-agent
@@ -53,7 +54,7 @@ function getIdentifier(request: NextRequest): string {
 }
 
 // PUBLIC_PATHS: Exact matches or specific allowed prefixes
-const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/register-secure", "/design", "/api/favicon", "/api/health"]);
+const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/design", "/api/favicon", "/api/health"]);
 const PUBLIC_PREFIXES = ["/api/auth/"]; // NextAuth and login endpoints
 // SENSITIVE_PATHS: Require strict rate limiting
 const SENSITIVE_PATHS = ["/api/auth/begin-login", "/api/auth/magic-login", "/api/auth/verify-otp", "/api/auth/check-admin"];
@@ -137,6 +138,33 @@ export async function middleware(request: NextRequest) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
+    }
+
+    // Session revocation enforcement: a revoked session (single-session revoke
+    // or a "sign out everywhere" epoch bump) is rejected here even though the
+    // JWT is otherwise still valid. Fails open if Redis is unavailable.
+    if (
+      await isSessionRevoked({
+        sid: token.sid,
+        userId: token.userId,
+        epoch: token.epoch,
+      })
+    ) {
+      if (pathname.startsWith("/api/")) {
+        const res = NextResponse.json(
+          { ok: false, message: "Session revoked. Please sign in again." },
+          { status: 401 }
+        );
+        res.cookies.delete("next-auth.session-token");
+        res.cookies.delete("__Secure-next-auth.session-token");
+        return res;
+      }
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      const res = NextResponse.redirect(loginUrl);
+      res.cookies.delete("next-auth.session-token");
+      res.cookies.delete("__Secure-next-auth.session-token");
+      return res;
     }
 
     // Admin authorization (Both UI and API)

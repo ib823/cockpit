@@ -363,6 +363,7 @@ model users {
   totpSecret            String?
   totpEnabledAt         DateTime?
   maxConcurrentSessions Int                         @default(1)
+  sessionEpoch          Int                         @default(0)
   accountLockedAt       DateTime?
   accountLockedReason   String?
   failedLoginAttempts   Int                         @default(0)

@@ -5,9 +5,8 @@
  * POST /api/gantt-tool/projects - Create new project
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma, withRetry } from "@/lib/db";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
@@ -88,13 +87,8 @@ type BasicHoliday = ProjectWithBasicIncludes["holidays"][number];
 type BasicResource = ProjectWithBasicIncludes["resources"][number];
 
 // GET - List all projects for authenticated user (owned + shared)
-export async function GET(_request: NextRequest) {
+export const GET = withAuth(async (_request, auth) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     // Use withRetry wrapper for database queries
     // NOTE: This query loads full nested data for offline-first sync architecture
@@ -105,12 +99,12 @@ export async function GET(_request: NextRequest) {
           deletedAt: null,
           OR: [
             // Projects owned by the user
-            { userId: session.user.id },
+            { userId: auth.userId },
             // Projects shared with the user
             {
               collaborators: {
                 some: {
-                  userId: session.user.id,
+                  userId: auth.userId,
                 },
               },
             },
@@ -145,7 +139,7 @@ export async function GET(_request: NextRequest) {
           // Include collaboration info
           collaborators: {
             where: {
-              userId: session.user.id,
+              userId: auth.userId,
             },
             select: {
               role: true,
@@ -168,7 +162,7 @@ export async function GET(_request: NextRequest) {
 
     // Serialize dates to strings for frontend
     const serializedProjects = projects.map((project: ProjectWithFullIncludes) => {
-      const isOwner = project.userId === session.user.id;
+      const isOwner = project.userId === auth.userId;
       const collaboratorInfo = project.collaborators[0]; // Will have at most 1 entry due to where clause
 
       return {
@@ -220,17 +214,11 @@ export async function GET(_request: NextRequest) {
     logger.error("[API] Failed to fetch gantt projects", { error: error });
     return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
   }
-}
+});
 
 // POST - Create new project
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, auth) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const validatedData = CreateProjectSchema.parse(body);
 
@@ -238,7 +226,7 @@ export async function POST(request: NextRequest) {
     const existingProject = await withRetry(() =>
       prisma.ganttProject.findFirst({
         where: {
-          userId: session.user.id,
+          userId: auth.userId,
           name: {
             equals: validatedData.name,
             mode: "insensitive",
@@ -269,7 +257,7 @@ export async function POST(request: NextRequest) {
       (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<ProjectWithBasicIncludes | null>, opts?: { maxWait?: number; timeout?: number }) => Promise<ProjectWithBasicIncludes | null>)(async (tx) => {
         const newProject = await tx.ganttProject.create({
           data: {
-            userId: session.user.id,
+            userId: auth.userId,
             name: validatedData.name,
             description: validatedData.description,
             startDate: new Date(validatedData.startDate),
@@ -315,7 +303,7 @@ export async function POST(request: NextRequest) {
         await tx.audit_logs.create({
           data: {
             id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            userId: session.user.id,
+            userId: auth.userId,
             action: "CREATE",
             entity: "gantt_project",
             entityId: newProject.id,
@@ -380,4 +368,4 @@ export async function POST(request: NextRequest) {
     logger.error("[API] Failed to create gantt project", { error: error });
     return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
   }
-}
+});

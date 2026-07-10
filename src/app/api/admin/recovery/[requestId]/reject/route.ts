@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { NextResponse } from "next/server";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
-import { badRequest, unauthorized, forbidden, notFound, serverError } from "@/lib/api-response";
+import { badRequest, notFound, serverError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -15,7 +15,8 @@ export const runtime = "nodejs";
  *
  * Rejects a user's account recovery request
  */
-export async function POST(req: NextRequest, { params }: { params: Promise<{ requestId: string }> }) {
+export const POST = withAdmin<{ params: Promise<{ requestId: string }> }>(
+  async (req, auth, { params }) => {
   try {
     const { requestId } = await params;
 
@@ -28,10 +29,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
     const { rejectionReason, notes } = body as { rejectionReason?: string; notes?: string };
 
     // ============================================
-    // 1. Verify Admin via Session
+    // 1. Resolve the acting admin (auth enforced by withAdmin)
     // ============================================
-    const session = await requireAdmin();
-    const adminEmail = session.user.email!;
+    const adminEmail = auth.email;
 
     const admin = await prisma.users.findUnique({
       where: { email: adminEmail },
@@ -173,15 +173,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
       message: "Recovery request rejected successfully",
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      if (error.message === "unauthorized") {
-        return unauthorized();
-      }
-      if (error.message === "forbidden") {
-        return forbidden("Admin access required");
-      }
-    }
     logger.error("[RecoveryReject] Error", { error: error });
     return serverError("Failed to reject recovery request");
   }
-}
+});

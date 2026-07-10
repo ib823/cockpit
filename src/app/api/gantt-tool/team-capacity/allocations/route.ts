@@ -15,9 +15,8 @@
  * Performance: Batch operations with composite index (projectId, resourceId, weekStartDate)
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma, withRetry } from "@/lib/db";
 import { z } from "zod";
 import { hasAnyProjectRole } from "@/lib/gantt-tool/access-control";
@@ -66,14 +65,8 @@ const DeleteAllocationsRequestSchema = z.object({
 // POST - Create/Update Weekly Allocations
 // ============================================================================
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, auth) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // Parse request body
     const body = await request.json();
     const validatedData = CreateAllocationsRequestSchema.parse(body);
@@ -81,7 +74,7 @@ export async function POST(request: NextRequest) {
     // Check project access (EDITOR or OWNER required)
     const hasAccess = await hasAnyProjectRole(
       validatedData.projectId,
-      session.user.id,
+      auth.userId,
       ["EDITOR", "OWNER"]
     );
 
@@ -160,7 +153,7 @@ export async function POST(request: NextRequest) {
           mandays: allocation.mandays,
           projectVersionId: validatedData.versionId || null,
           isManualOverride: true,
-          createdBy: session.user.id,
+          createdBy: auth.userId,
         },
         update: {
           weekNumberingType: weekNumberingType,
@@ -171,7 +164,7 @@ export async function POST(request: NextRequest) {
           projectVersionId: validatedData.versionId || null,
           isManualOverride: true,
           updatedAt: new Date(),
-          updatedBy: session.user.id,
+          updatedBy: auth.userId,
         },
       });
     });
@@ -242,19 +235,14 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // ============================================================================
 // GET - Retrieve Weekly Allocations
 // ============================================================================
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request, auth) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
@@ -275,7 +263,7 @@ export async function GET(request: NextRequest) {
     // Check project access (VIEWER, EDITOR, or OWNER can read)
     const hasAccess = await hasAnyProjectRole(
       projectId,
-      session.user.id,
+      auth.userId,
       ["VIEWER", "EDITOR", "OWNER"]
     );
 
@@ -394,19 +382,14 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // ============================================================================
 // DELETE - Remove Weekly Allocations
 // ============================================================================
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuth(async (request, auth) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     // Parse request body
     const body = await request.json();
@@ -415,7 +398,7 @@ export async function DELETE(request: NextRequest) {
     // Check project access (EDITOR or OWNER required)
     const hasAccess = await hasAnyProjectRole(
       validatedData.projectId,
-      session.user.id,
+      auth.userId,
       ["EDITOR", "OWNER"]
     );
 
@@ -475,4 +458,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

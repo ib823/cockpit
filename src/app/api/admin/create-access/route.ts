@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/db";
 import { randomUUID, randomInt } from "crypto";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { sendAccessCode } from "@/lib/email";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { sanitizeHtml } from "@/lib/input-sanitizer";
-import { badRequest, forbidden, serverError } from "@/lib/api-response";
+import { badRequest, serverError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 export const runtime = "nodejs";
 
@@ -15,11 +15,8 @@ function generateCode(): string {
   return randomInt(100000, 1000000).toString();
 }
 
-export async function POST(req: Request) {
+export const POST = withAdmin(async (req, auth) => {
   try {
-    // Require admin authentication
-    const session = await requireAdmin();
-
     let body: unknown;
     try {
       body = await req.json();
@@ -68,14 +65,14 @@ export async function POST(req: Request) {
       update: {
         tokenHash,
         tokenExpiresAt,
-        approvedByUserId: session.user.id,
+        approvedByUserId: auth.userId,
         usedAt: null,
       },
       create: {
         email,
         tokenHash,
         tokenExpiresAt,
-        approvedByUserId: session.user.id,
+        approvedByUserId: auth.userId,
       },
     });
 
@@ -92,10 +89,7 @@ export async function POST(req: Request) {
       { headers: { "Content-Type": "application/json" } }
     );
   } catch (e: unknown) {
-    if (e instanceof Error && e.message === "forbidden") {
-      return forbidden("Admin access required");
-    }
     logger.error("create-access error", { error: e });
     return serverError();
   }
-}
+});

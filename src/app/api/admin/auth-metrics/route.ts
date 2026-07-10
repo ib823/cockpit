@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import {
   getAuthMetricsSummary,
   getAuthSuccessRate,
@@ -17,12 +17,8 @@ export const runtime = "nodejs";
  * Returns authentication metrics and success rates.
  * Requires ADMIN role.
  */
-export async function GET(req: Request) {
+export const GET = withAdmin(async (req) => {
   try {
-    // Check admin authorization
-    await requireAdmin();
-
-    // Get query parameters
     const { searchParams } = new URL(req.url);
     const action = searchParams.get("action") || "summary";
 
@@ -59,11 +55,7 @@ export async function GET(req: Request) {
         const rate = await getAuthSuccessRate(startDate, endDate, method ?? undefined);
         return NextResponse.json({
           ok: true,
-          data: {
-            period,
-            method: method || "all",
-            ...rate,
-          },
+          data: { period, method: method || "all", ...rate },
         });
       }
 
@@ -74,38 +66,20 @@ export async function GET(req: Request) {
         const failures = await getRecentFailedAttempts(minutes, limit);
         return NextResponse.json({
           ok: true,
-          data: {
-            minutes,
-            count: failures.length,
-            failures,
-          },
+          data: { minutes, count: failures.length, failures },
         });
       }
 
       case "alerts": {
         const activity = await checkForSuspiciousActivity();
-        return NextResponse.json({
-          ok: true,
-          data: activity,
-        });
+        return NextResponse.json({ ok: true, data: activity });
       }
 
       default:
         return NextResponse.json({ ok: false, message: "Invalid action" }, { status: 400 });
     }
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "unauthorized") {
-        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-      }
-      if (error.message === "forbidden") {
-        return NextResponse.json(
-          { ok: false, message: "Forbidden - Admin access required" },
-          { status: 403 }
-        );
-      }
-    }
-    logger.error("[AUTH METRICS API] Error", { error: error });
+    logger.error("[AUTH METRICS API] Error", { error });
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }
-}
+});

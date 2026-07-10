@@ -288,7 +288,7 @@ export default function EmailApprovalsPage() {
                   </button>
                 </div>
                 <p className="text-xs text-green-700 mt-3">
-                  Code expires in 7 days. User must visit /register-secure to use it.
+                  Code expires in 7 days. User must visit /register to use it.
                 </p>
               </div>
             ) : (

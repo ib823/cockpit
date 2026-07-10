@@ -12,9 +12,8 @@
  * - Deletion checks for assignments and direct reports
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/with-auth';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import {
@@ -84,20 +83,12 @@ async function getResourceWithOwnershipCheck(
 }
 
 // GET - Get single resource
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth<{ params: Promise<{ id: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await params;
 
-    const resource = await getResourceWithOwnershipCheck(id, session.user.id);
+    const resource = await getResourceWithOwnershipCheck(id, auth.userId);
 
     if (!resource) {
       return NextResponse.json(
@@ -118,26 +109,18 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
 
 // PATCH - Update resource
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PATCH = withAuth<{ params: Promise<{ id: string }> }>(
+  async (request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await params;
 
     // Get existing resource with ownership check
     const existingResource = await getResourceWithOwnershipCheck(
       id,
-      session.user.id
+      auth.userId
     );
 
     if (!existingResource) {
@@ -238,23 +221,15 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
 
 // DELETE - Soft delete resource
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = withAuth<{ params: Promise<{ id: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await params;
 
-    const resource = await getResourceWithOwnershipCheck(id, session.user.id);
+    const resource = await getResourceWithOwnershipCheck(id, auth.userId);
 
     if (!resource) {
       return NextResponse.json(
@@ -320,4 +295,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+});

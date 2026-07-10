@@ -43,7 +43,8 @@ describe("Auth Guard Regression", () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data.ok).toBe(false);
+    // withAuth returns { error: "Unauthorized" } for unauthenticated requests.
+    expect(data.error).toBeDefined();
   });
 
   test("GET /api/projects/[projectId]/chips rejects unauthenticated requests", async () => {
@@ -84,7 +85,9 @@ describe("Auth Guard Regression", () => {
     const req = new NextRequest("http://localhost:3000/api/revalidate-admin");
     const res = await GET(req);
 
-    expect(res.status).toBe(403);
+    // withAdmin returns 401 for unauthenticated (vs 403 for authenticated
+    // non-admin), which is the correct semantic and matches the other guards.
+    expect(res.status).toBe(401);
   });
 });
 

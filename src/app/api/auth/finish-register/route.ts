@@ -2,7 +2,7 @@ import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "../../../../lib/db";
-import { createSessionToken } from "@/lib/nextauth-helpers";
+import { establishSession } from "@/lib/auth/session";
 import { challenges, verifyRegistrationResponse, rpID } from "../../../../lib/webauthn";
 import type { RegistrationResponseJSON } from "@simplewebauthn/server";
 import { badRequest, conflict, serverError } from "@/lib/api-response";
@@ -102,27 +102,16 @@ export async function POST(req: Request) {
     await challenges.del(`reg:${email}`);
 
     // Fixed: V-014 - Preserve all roles (USER, MANAGER, ADMIN) in sessions
-    // Create session token and set it in response cookie
-    const sessionToken = await createSessionToken(user.id, user.email, user.role, user.name);
-
     const jsonResponse = NextResponse.json({
       ok: true,
       user: { name: user.name, role: user.role },
     });
 
-    // Set session cookie in response headers
-    // Use __Secure prefix in production (HTTPS) as required by NextAuth
-    const isProduction = process.env.NODE_ENV === "production";
-    const cookieName = isProduction
-      ? "__Secure-next-auth.session-token"
-      : "next-auth.session-token";
-
-    jsonResponse.cookies.set(cookieName, sessionToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60, // 30 days
+    await establishSession(jsonResponse, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
     });
 
     return jsonResponse;

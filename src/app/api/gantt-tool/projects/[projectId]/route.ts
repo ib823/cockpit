@@ -6,9 +6,8 @@
  * DELETE /api/gantt-tool/projects/[projectId] - Delete project (soft delete)
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
@@ -116,17 +115,9 @@ async function checkProjectWriteAccess(projectId: string, userId: string) {
 }
 
 // GET - Get single project
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const GET = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
     // Check if we should load minimal data (for list previews)
@@ -134,7 +125,7 @@ export async function GET(
     const minimal = searchParams.get("minimal") === "true";
 
     // Check if user has read access to this project
-    const hasReadAccess = await checkProjectReadAccess(projectId, session.user.id);
+    const hasReadAccess = await checkProjectReadAccess(projectId, auth.userId);
     if (!hasReadAccess) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
@@ -146,11 +137,11 @@ export async function GET(
             id: projectId,
             deletedAt: null,
             OR: [
-              { userId: session.user.id },
+              { userId: auth.userId },
               {
                 collaborators: {
                   some: {
-                    userId: session.user.id,
+                    userId: auth.userId,
                   },
                 },
               },
@@ -197,11 +188,11 @@ export async function GET(
             id: projectId,
             deletedAt: null,
             OR: [
-              { userId: session.user.id },
+              { userId: auth.userId },
               {
                 collaborators: {
                   some: {
-                    userId: session.user.id,
+                    userId: auth.userId,
                   },
                 },
               },
@@ -355,27 +346,19 @@ export async function GET(
     logger.error("[API] Failed to fetch gantt project", { error: error });
     return NextResponse.json({ error: "Failed to fetch project" }, { status: 500 });
   }
-}
+});
 
 // PATCH - Update project (full state replacement)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (request, auth, { params }) => {
   const startTime = Date.now();
   const isDev = process.env.NODE_ENV === "development";
 
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
     // Check write access (owner or EDITOR/OWNER collaborator)
-    const hasWriteAccess = await checkProjectWriteAccess(projectId, session.user.id);
+    const hasWriteAccess = await checkProjectWriteAccess(projectId, auth.userId);
     if (!hasWriteAccess) {
       return NextResponse.json(
         { error: "Insufficient permissions. EDITOR or OWNER role required." },
@@ -468,7 +451,7 @@ export async function PATCH(
     if (validatedData.name) {
       const existingProject = await prisma.ganttProject.findFirst({
         where: {
-          userId: session.user.id,
+          userId: auth.userId,
           name: {
             equals: validatedData.name,
             mode: "insensitive",
@@ -559,7 +542,7 @@ export async function PATCH(
 
         // Increment version and track last modifier
         version: { increment: 1 },
-        lastModifiedBy: session.user.id,
+        lastModifiedBy: auth.userId,
         lastModifiedAt: new Date(),
       };
 
@@ -767,7 +750,7 @@ export async function PATCH(
       await prisma.audit_logs.create({
         data: {
           id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          userId: session.user.id,
+          userId: auth.userId,
           action: "UPDATE",
           entity: "gantt_project",
           entityId: projectId,
@@ -886,31 +869,23 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
 
 // DELETE - Soft delete project
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const DELETE = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
     // Check if user is ADMIN (can delete any project)
     const user = await prisma.users.findUnique({
-      where: { id: session.user.id },
+      where: { id: auth.userId },
       select: { role: true },
     });
     const isAdmin = user?.role === "ADMIN";
 
     // Check ownership - only owner or ADMIN can delete
-    const hasOwnership = await checkProjectOwnership(projectId, session.user.id);
+    const hasOwnership = await checkProjectOwnership(projectId, auth.userId);
     if (!isAdmin && !hasOwnership) {
       return NextResponse.json(
         { error: "Only the project owner or admin can delete the project" },
@@ -941,7 +916,7 @@ export async function DELETE(
     await prisma.audit_logs.create({
       data: {
         id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
+        userId: auth.userId,
         action: "DELETE",
         entity: "gantt_project",
         entityId: projectId,
@@ -953,4 +928,4 @@ export async function DELETE(
     logger.error("[API] Failed to delete gantt project", { error: error });
     return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
   }
-}
+});

@@ -1,36 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig as authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withUser } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
 // GET /api/account/profile - Get user profile
-export async function GET() {
+export const GET = withUser(async (_req, user) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        image: true,
-        createdAt: true,
-        lastLoginAt: true,
-        lastSeenAt: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Update lastSeenAt
     await prisma.users.update({
       where: { id: user.id },
@@ -50,25 +25,11 @@ export async function GET() {
     logger.error("Profile fetch error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // PATCH /api/account/profile - Update user profile
-export async function PATCH(req: NextRequest) {
+export const PATCH = withUser(async (req, user) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     const body = await req.json();
     const { name, image } = body;
 
@@ -142,4 +103,4 @@ export async function PATCH(req: NextRequest) {
     logger.error("Profile update error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { getToken } from "next-auth/jwt";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
-import { authConfig as authOptions } from "@/lib/auth";
 import { parseUserAgent } from "@/lib/security/device-fingerprint";
 import { logger } from "@/lib/logger";
+import { markSessionsRevoked } from "@/lib/auth/revocation";
 
 export const runtime = "nodejs";
 
@@ -19,29 +19,13 @@ export const runtime = "nodejs";
 // ============================================
 // GET - List Active Sessions
 // ============================================
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req, auth) => {
   try {
-    // Authenticate user via NextAuth session
-    const session = await getServerSession(authOptions);
+    const userId = auth.userId;
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get user from database
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
-    }
-
-    const userId = user.id;
-
-    // Get current session token from JWT
+    // Identify the caller's current session by its `sid` (embedded in the JWT).
     const token = await getToken({ req });
-    const currentSessionToken = (token?.sessionToken as string) || "";
+    const currentSid = (token?.sid as string) || "";
 
     const sessions = await prisma.sessions.findMany({
       where: {
@@ -66,7 +50,7 @@ export async function GET(req: NextRequest) {
         location,
         lastActivity: session.lastActivity.toISOString(),
         createdAt: session.createdAt?.toISOString() || session.lastActivity.toISOString(),
-        isCurrent: session.sessionToken === currentSessionToken,
+        isCurrent: session.id === currentSid,
       };
     });
 
@@ -79,48 +63,41 @@ export async function GET(req: NextRequest) {
     logger.error("[Sessions] GET error", { error: error });
     return NextResponse.json({ ok: false, message: "Failed to fetch sessions" }, { status: 500 });
   }
-}
+});
 
 // ============================================
 // DELETE - Revoke All Sessions (Except Current)
 // ============================================
-export async function DELETE(req: NextRequest) {
+export const DELETE = withAuth(async (req, auth) => {
   try {
-    // Authenticate user via NextAuth session
-    const session = await getServerSession(authOptions);
+    const userId = auth.userId;
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get user from database
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
-    }
-
-    const userId = user.id;
-
-    // Get current session token from JWT
+    // Identify the caller's current session by its `sid` (embedded in the JWT).
     const token = await getToken({ req });
-    const currentSessionToken = (token?.sessionToken as string) || "";
+    const currentSid = (token?.sid as string) || "";
 
-    // Revoke all sessions except the current one
-    const result = await prisma.sessions.updateMany({
+    // Collect every other active session so we can both revoke them in the DB
+    // and enforce it at the guard via Redis.
+    const toRevoke = await prisma.sessions.findMany({
       where: {
         userId,
-        sessionToken: { not: currentSessionToken },
+        id: { not: currentSid },
         expires: { gt: new Date() },
         revokedAt: null,
       },
+      select: { id: true },
+    });
+    const revokeIds = toRevoke.map((s) => s.id);
+
+    const result = await prisma.sessions.updateMany({
+      where: { id: { in: revokeIds } },
       data: {
         revokedAt: new Date(),
         revokedReason: "user_action",
       },
     });
+
+    await markSessionsRevoked(revokeIds);
 
     // Log audit event
     await prisma.auditEvent.create({
@@ -145,4 +122,4 @@ export async function DELETE(req: NextRequest) {
     logger.error("[Sessions] DELETE error", { error: error });
     return NextResponse.json({ ok: false, message: "Failed to revoke sessions" }, { status: 500 });
   }
-}
+});

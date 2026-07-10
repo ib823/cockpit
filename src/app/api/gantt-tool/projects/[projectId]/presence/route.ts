@@ -5,9 +5,8 @@
  * GET  /api/gantt-tool/projects/[projectId]/presence - Get active users
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
@@ -18,17 +17,9 @@ const UpdatePresenceSchema = z.object({
 });
 
 // POST - Update presence (heartbeat from client every 30s)
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const POST = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
     const body = await request.json();
     const validatedData = UpdatePresenceSchema.parse(body);
@@ -39,11 +30,11 @@ export async function POST(
         id: projectId,
         deletedAt: null,
         OR: [
-          { userId: session.user.id },
+          { userId: auth.userId },
           {
             collaborators: {
               some: {
-                userId: session.user.id,
+                userId: auth.userId,
               },
             },
           },
@@ -60,7 +51,7 @@ export async function POST(
       where: {
         projectId_userId: {
           projectId,
-          userId: session.user.id,
+          userId: auth.userId,
         },
       },
       update: {
@@ -70,7 +61,7 @@ export async function POST(
       },
       create: {
         projectId,
-        userId: session.user.id,
+        userId: auth.userId,
         isEditing: validatedData.isEditing ?? false,
         currentFocus: validatedData.currentFocus,
       },
@@ -88,20 +79,12 @@ export async function POST(
     logger.error("[API] Failed to update presence", { error: error });
     return NextResponse.json({ error: "Failed to update presence" }, { status: 500 });
   }
-}
+});
 
 // GET - Get all active users in this project
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const GET = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
     // Check if user has access to this project
@@ -110,11 +93,11 @@ export async function GET(
         id: projectId,
         deletedAt: null,
         OR: [
-          { userId: session.user.id },
+          { userId: auth.userId },
           {
             collaborators: {
               some: {
-                userId: session.user.id,
+                userId: auth.userId,
               },
             },
           },
@@ -163,7 +146,7 @@ export async function GET(
       activeSessions: activeSessions.map((s) => ({
         ...s,
         lastSeenAt: s.lastSeenAt.toISOString(),
-        isSelf: s.userId === session.user.id,
+        isSelf: s.userId === auth.userId,
       })),
       totalActive: activeSessions.length,
     });
@@ -171,26 +154,18 @@ export async function GET(
     logger.error("[API] Failed to get active sessions", { error: error });
     return NextResponse.json({ error: "Failed to get active sessions" }, { status: 500 });
   }
-}
+});
 
 // DELETE - Remove presence (user left the project)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const DELETE = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
     await prisma.ganttProjectActiveSession.deleteMany({
       where: {
         projectId,
-        userId: session.user.id,
+        userId: auth.userId,
       },
     });
 
@@ -199,4 +174,4 @@ export async function DELETE(
     logger.error("[API] Failed to remove presence", { error: error });
     return NextResponse.json({ error: "Failed to remove presence" }, { status: 500 });
   }
-}
+});

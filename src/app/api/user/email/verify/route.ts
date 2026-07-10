@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
-import { badRequest, unauthorized, forbidden, notFound, conflict, serverError } from "@/lib/api-response";
+import { withUser } from "@/lib/auth/with-auth";
+import { badRequest, unauthorized, forbidden, conflict, serverError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -16,7 +15,7 @@ export const runtime = "nodejs";
  *
  * Completes the email change after user enters verification code
  */
-export async function POST(req: Request) {
+export const POST = withUser(async (req, user) => {
   try {
     let body: unknown;
     try {
@@ -26,17 +25,12 @@ export async function POST(req: Request) {
     }
     const { userId: requestUserId, verificationCode } = body as { userId?: string; verificationCode?: string };
 
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id || !session.user.email) {
-      return unauthorized();
-    }
-
-    if (requestUserId && String(requestUserId) !== session.user.id) {
+    if (requestUserId && String(requestUserId) !== user.id) {
       return forbidden();
     }
 
     const normalizedVerificationCode = String(verificationCode ?? "");
-    const userId = session.user.id;
+    const userId = user.id;
 
     // ============================================
     // 1. Validate Input
@@ -50,18 +44,7 @@ export async function POST(req: Request) {
     }
 
     // ============================================
-    // 2. Get User
-    // ============================================
-    const user = await prisma.users.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      return notFound("User not found");
-    }
-
-    // ============================================
-    // 3. Validate Pending Email Change
+    // 2. Validate Pending Email Change (user loaded by withUser)
     // ============================================
     if (!user.pendingEmail || !user.pendingEmailToken || !user.pendingEmailExpiresAt) {
       return badRequest("No pending email change found");
@@ -185,4 +168,4 @@ export async function POST(req: Request) {
     logger.error("[EmailVerify] Error", { error: error });
     return serverError("Failed to verify email change");
   }
-}
+});

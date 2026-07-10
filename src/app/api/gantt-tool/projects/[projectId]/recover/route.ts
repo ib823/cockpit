@@ -7,9 +7,8 @@
  * Only updates the specified fields, preserving all other data.
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
@@ -48,20 +47,12 @@ async function checkProjectAccess(projectId: string, userId: string) {
   return project !== null;
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
-    const hasAccess = await checkProjectAccess(projectId, session.user.id);
+    const hasAccess = await checkProjectAccess(projectId, auth.userId);
     if (!hasAccess) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -129,4 +120,4 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});

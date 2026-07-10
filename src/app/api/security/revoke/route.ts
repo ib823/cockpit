@@ -6,6 +6,7 @@ import { sendSecurityEmail } from "@/lib/email";
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { setUserEpoch } from "@/lib/auth/revocation";
 
 export const runtime = "nodejs";
 
@@ -233,7 +234,7 @@ export async function GET(req: NextRequest) {
     const passkeyCount = user.Authenticator.length;
     const backupCodesCount = user.recoveryCodes.length;
 
-    await prisma.$transaction([
+    const txResults = await prisma.$transaction([
       // 4a. Mark security action as used
       prisma.securityAction.update({
         where: { token },
@@ -268,6 +269,7 @@ export async function GET(req: NextRequest) {
           accountLockedAt: new Date(),
           accountLockedReason: "security_breach_user_initiated",
           passwordExpiresAt: new Date(), // Force password change immediately
+          sessionEpoch: { increment: 1 }, // Invalidate every existing JWT
         },
       }),
 
@@ -289,6 +291,10 @@ export async function GET(req: NextRequest) {
         },
       }),
     ]);
+
+    // Bump the session epoch in Redis so every existing JWT for this user is
+    // rejected by the guard ("sign out everywhere").
+    await setUserEpoch(user.id, txResults[3].sessionEpoch);
 
     // ============================================
     // 5. Send Confirmation Email

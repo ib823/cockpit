@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { NextResponse } from "next/server";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
 import { SignJWT } from "jose";
-import { badRequest, unauthorized, forbidden, notFound, serverError } from "@/lib/api-response";
+import { badRequest, notFound, serverError } from "@/lib/api-response";
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
@@ -18,7 +18,8 @@ export const runtime = "nodejs";
  *
  * Approves a user's account recovery request after identity verification
  */
-export async function POST(req: NextRequest, { params }: { params: Promise<{ requestId: string }> }) {
+export const POST = withAdmin<{ params: Promise<{ requestId: string }> }>(
+  async (req, auth, { params }) => {
   try {
     const { requestId } = await params;
 
@@ -31,10 +32,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
     const { notes } = body as { notes?: string };
 
     // ============================================
-    // 1. Verify Admin via Session
+    // 1. Resolve the acting admin (auth enforced by withAdmin)
     // ============================================
-    const session = await requireAdmin();
-    const adminEmail = session.user.email!;
+    const adminEmail = auth.email;
 
     const admin = await prisma.users.findUnique({
       where: { email: adminEmail },
@@ -248,15 +248,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ req
       recoveryToken, // For testing - in production, only send via email
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      if (error.message === "unauthorized") {
-        return unauthorized();
-      }
-      if (error.message === "forbidden") {
-        return forbidden("Admin access required");
-      }
-    }
     logger.error("[RecoveryApprove] Error", { error: error });
     return serverError("Failed to approve recovery request");
   }
-}
+});

@@ -1,38 +1,21 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/with-auth";
 import { PrismaClient } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export const GET = withAuth(async (_req, auth) => {
   const startTime = performance.now(); // Performance monitoring
 
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get user ID from session
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Performance: Track query start time
     const queryStartTime = performance.now();
 
     // Count timeline projects (Gantt) created by user
     const timelineProjects = await prisma.ganttProject.count({
       where: {
-        userId: user.id,
+        userId: auth.userId,
         deletedAt: null, // Exclude soft-deleted projects
       },
     });
@@ -44,7 +27,7 @@ export async function GET() {
     // Count total unique resources across all projects
     const projectsWithResources = await prisma.ganttProject.findMany({
       where: {
-        userId: user.id,
+        userId: auth.userId,
         deletedAt: null,
       },
       select: {
@@ -63,7 +46,7 @@ export async function GET() {
       .create({
         data: {
           id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          userId: user.id,
+          userId: auth.userId,
           type: "DASHBOARD_STATS_VIEW",
           meta: {
             timelineProjects,
@@ -83,7 +66,7 @@ export async function GET() {
     // Performance: Log slow queries (>1000ms)
     if (totalDuration > 1000) {
       logger.warn(
-        `[Dashboard Stats] Slow query detected: ${Math.round(totalDuration)}ms for user ${user.id}`
+        `[Dashboard Stats] Slow query detected: ${Math.round(totalDuration)}ms for user ${auth.userId}`
       );
     }
 
@@ -103,4 +86,4 @@ export async function GET() {
   } finally {
     await prisma.$disconnect();
   }
-}
+});

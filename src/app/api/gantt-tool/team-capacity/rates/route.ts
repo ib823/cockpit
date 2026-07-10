@@ -8,21 +8,15 @@
  *   always receives a complete map (and works against an unseeded DB).
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { RATE_CARD_DATA, toRateInfo, type RateInfo } from "@/lib/team-capacity/rate-card-data";
 
 export const maxDuration = 10;
 
-export async function GET(_request: NextRequest) {
-  const session = await getServerSession(authConfig);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export const GET = withAuth(async () => {
   const rates: Record<string, RateInfo> = {};
 
   // 1) DB rate cards (authoritative). Most-recent effective rate wins.
@@ -58,4 +52,4 @@ export async function GET(_request: NextRequest) {
   }
 
   return NextResponse.json({ rates });
-}
+});

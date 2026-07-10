@@ -4,9 +4,8 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
 import { SignJWT } from "jose";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
-import { badRequest, unauthorized, forbidden, notFound, conflict, serverError } from "@/lib/api-response";
+import { withUser } from "@/lib/auth/with-auth";
+import { badRequest, unauthorized, forbidden, conflict, serverError } from "@/lib/api-response";
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
@@ -24,7 +23,7 @@ export const runtime = "nodejs";
  * 3. Send notification to OLD email with revoke link
  * 4. Store pending change (24-hour window)
  */
-export async function POST(req: Request) {
+export const POST = withUser(async (req, user) => {
   try {
     let body: unknown;
     try {
@@ -34,12 +33,7 @@ export async function POST(req: Request) {
     }
     const { userId: requestUserId, newEmail, password } = body as { userId?: string; newEmail?: string; password?: string };
 
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id || !session.user.email) {
-      return unauthorized();
-    }
-
-    if (requestUserId && String(requestUserId) !== session.user.id) {
+    if (requestUserId && String(requestUserId) !== user.id) {
       return forbidden();
     }
 
@@ -60,16 +54,8 @@ export async function POST(req: Request) {
     }
 
     // ============================================
-    // 2. Get User & Verify Password
+    // 2. Verify Password (user loaded by withUser)
     // ============================================
-    const user = await prisma.users.findUnique({
-      where: { id: session.user.id },
-    });
-
-    if (!user) {
-      return notFound("User not found");
-    }
-
     // Verify password (security requirement)
     const { verifyPassword } = await import("@/lib/security/password");
     const passwordValid = await verifyPassword(password, user.passwordHash || "");
@@ -265,4 +251,4 @@ export async function POST(req: Request) {
     logger.error("[EmailChange] Request error", { error: error });
     return serverError("Failed to process email change request");
   }
-}
+});
