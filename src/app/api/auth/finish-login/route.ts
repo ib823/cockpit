@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
-import { createSessionToken } from "@/lib/nextauth-helpers";
+import { establishSession } from "@/lib/auth/session";
 import { randomUUID } from "crypto";
 import { challenges, verifyAuthenticationResponse, rpID } from "../../../../lib/webauthn";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
@@ -226,32 +226,19 @@ export async function POST(req: Request) {
 
     // Challenge already deleted earlier to prevent duplicate processing
     // Fixed: V-014 - Preserve MANAGER role in sessions (don't downgrade to USER)
-    // Create session token and set it in response cookie
-    const sessionToken = await createSessionToken(
-      user.id,
-      user.email,
-      transactionResult.role,
-      user.name
-    );
-
     const jsonResponse = NextResponse.json({
       ok: true,
       user: { name: user.name, role: user.role },
     });
 
-    // Set session cookie in response headers
-    // Use __Secure prefix in production (HTTPS) as required by NextAuth
-    const isProduction = process.env.NODE_ENV === "production";
-    const cookieName = isProduction
-      ? "__Secure-next-auth.session-token"
-      : "next-auth.session-token";
-
-    jsonResponse.cookies.set(cookieName, sessionToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60, // 30 days
+    await establishSession(jsonResponse, {
+      userId: user.id,
+      email: user.email,
+      role: transactionResult.role,
+      name: user.name,
+      ipAddress,
+      userAgent,
+      maxConcurrentSessions: user.maxConcurrentSessions,
     });
 
     return jsonResponse;

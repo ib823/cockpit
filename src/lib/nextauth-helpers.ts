@@ -1,49 +1,10 @@
 import { cookies } from "next/headers";
-import { encode } from "next-auth/jwt";
 import { getServerSession } from "next-auth";
 import { authConfig } from "./auth";
-import { NextResponse } from "next/server";
 
-export async function createSessionToken(
-  userId: string,
-  email: string,
-  role: "USER" | "MANAGER" | "ADMIN",
-  name?: string | null
-): Promise<string> {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) throw new Error("NEXTAUTH_SECRET is required");
-
-  const token = await encode({
-    token: {
-      userId,
-      email,
-      role,
-      sub: userId,
-      name: name || email.split("@")[0],
-    },
-    secret,
-    maxAge: 30 * 24 * 60 * 60, // 30 days to match NextAuth config
-  });
-
-  return token;
-}
-
-export async function createAuthSession(
-  userId: string,
-  email: string,
-  role: "USER" | "MANAGER" | "ADMIN" | string,
-  name?: string | null
-) {
-  const token = await createSessionToken(userId, email, role as "USER" | "MANAGER" | "ADMIN", name);
-  const cookieStore = await cookies();
-  cookieStore.set("next-auth.session-token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 30 * 24 * 60 * 60, // 30 days to match JWT token expiry
-  });
-}
+// NOTE: session *creation* lives in `src/lib/auth/session.ts`
+// (`establishSession`) — the single source of truth every login flow uses.
+// This module only reads sessions and clears cookies.
 
 export async function requireAdmin() {
   const session = await getServerSession(authConfig);

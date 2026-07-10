@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { otpVerifyLimiter } from "@/lib/server-rate-limiter";
 import { hashOTP, timingSafeCompare } from "@/lib/crypto-utils";
-import { createSessionToken } from "@/lib/nextauth-helpers";
+import { establishSession } from "@/lib/auth/session";
 import { logAuthEvent } from "@/lib/monitoring/auth-metrics";
 import { isIPBlocked, checkAndBlockIP } from "@/lib/security/ip-blocker";
 import { logger } from "@/lib/logger";
@@ -202,8 +202,6 @@ export async function POST(req: Request) {
     // NOT a database session row. A DB session is invisible to the JWT layer,
     // which is why the previous implementation returned ok:true but left the
     // user logged out. Mint the JWT with the same helper finish-register uses.
-    const sessionToken = await createSessionToken(user.id, user.email, user.role, user.name);
-
     // Log successful OTP authentication
     await logAuthEvent(
       "otp_success",
@@ -228,19 +226,14 @@ export async function POST(req: Request) {
       },
     });
 
-    // Use the __Secure- cookie prefix in production (HTTPS) as NextAuth
-    // requires; fall back to the unprefixed name in local development.
-    const isProduction = process.env.NODE_ENV === "production";
-    const cookieName = isProduction
-      ? "__Secure-next-auth.session-token"
-      : "next-auth.session-token";
-
-    response.cookies.set(cookieName, sessionToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60, // 30 days, matches the JWT maxAge
-      path: "/",
+    await establishSession(response, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      ipAddress,
+      userAgent,
+      maxConcurrentSessions: user.maxConcurrentSessions,
     });
 
     return response;

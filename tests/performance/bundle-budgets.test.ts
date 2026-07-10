@@ -41,8 +41,6 @@ const PAGE_BUDGETS: Record<string, number> = {
   "/settings": 5,
   "/settings/security": 10,
   "/register": 8,
-  "/register-secure": 10,
-  "/login-secure": 8,
 };
 
 // First Load JS budget (shared + page JS combined)

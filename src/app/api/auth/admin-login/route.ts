@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { createSessionToken } from "@/lib/nextauth-helpers";
+import { establishSession } from "@/lib/auth/session";
 import { compare } from "bcryptjs";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
@@ -84,20 +84,18 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    // Map MANAGER to USER for session purposes
-    const sessionRole = user.role === "ADMIN" ? "ADMIN" : "USER";
-    //await createAuthSession(user.id, user.email, sessionRole);
-    const token = await createSessionToken(user.id, user.email, sessionRole);
+    // Only ADMIN accounts reach this point (verified above).
+    const response = NextResponse.json({ ok: true });
 
-    return NextResponse.json(
-      { ok: true },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Set-Cookie": `next-auth.session-token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
-        },
-      }
-    );
+    await establishSession(response, {
+      userId: user.id,
+      email: user.email,
+      role: "ADMIN",
+      name: user.name,
+      maxConcurrentSessions: user.maxConcurrentSessions,
+    });
+
+    return response;
   } catch (e) {
     logger.error("admin-login error", { error: e });
     return NextResponse.json(

@@ -9,7 +9,7 @@
 
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/db";
-import { randomUUID } from "crypto";
+import { establishSession } from "@/lib/auth/session";
 import { NextResponse, NextRequest } from "next/server";
 import { logger } from "@/lib/logger";
 
@@ -44,21 +44,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Admin user not found" }, { status: 404 });
     }
 
-    // Create session token
-    const sessionToken = randomUUID();
-    const sessionId = randomUUID();
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-    // Create session in database
-    await prisma.sessions.create({
-      data: {
-        id: sessionId,
-        sessionToken,
-        userId: user.id,
-        expires: expiresAt,
-      },
-    });
-
     // Update last login
     await prisma.users.update({
       where: { id: user.id },
@@ -68,19 +53,18 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Set session cookie and redirect to admin
+    // Mint a real NextAuth session (the previous implementation set a random
+    // UUID that the middleware guard could not decode) and redirect.
     const host = request.headers.get("host") || "localhost:3000";
     const protocol = request.headers.get("x-forwarded-proto") || "http";
-    const response = NextResponse.redirect(new URL("/admin", `${protocol}://${host}`));
+    const response = NextResponse.redirect(new URL("/dashboard", `${protocol}://${host}`));
 
-    response.cookies.set({
-      name: "next-auth.session-token",
-      value: sessionToken,
-      httpOnly: true,
-      secure: protocol === "https",
-      sameSite: "lax",
-      path: "/",
-      expires: expiresAt,
+    await establishSession(response, {
+      userId: user.id,
+      email: user.email,
+      role: "ADMIN",
+      name: user.name,
+      userAgent: request.headers.get("user-agent"),
     });
 
     return response;
