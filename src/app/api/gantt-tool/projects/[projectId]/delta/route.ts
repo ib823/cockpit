@@ -22,6 +22,7 @@ import type {
   GanttHoliday,
 } from "@/types/gantt-tool";
 import { logger } from "@/lib/logger";
+import { checkProjectAccess } from "@/lib/gantt-tool/access-control";
 
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 30; // seconds - increased for large projects with many resource assignments
@@ -78,19 +79,6 @@ const DeltaSaveSchema = z.object({
     .optional(),
 });
 
-// Helper to check project ownership
-async function checkProjectOwnership(projectId: string, userId: string) {
-  const project = await prisma.ganttProject.findFirst({
-    where: {
-      id: projectId,
-      userId: userId,
-      deletedAt: null,
-    },
-  });
-
-  return project !== null;
-}
-
 // PATCH - Update project with delta (incremental changes only)
 export async function PATCH(
   request: NextRequest,
@@ -108,9 +96,9 @@ export async function PATCH(
 
     const { projectId } = await params;
 
-    // Check ownership
-    const hasAccess = await checkProjectOwnership(projectId, session.user.id);
-    if (!hasAccess) {
+    // Require write access — owner or EDITOR collaborator (VIEWERs are blocked).
+    const access = await checkProjectAccess(projectId, session.user.id);
+    if (!access.canWrite) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -268,63 +256,72 @@ export async function PATCH(
             skipDuplicates: true, // Skip if phase already exists
           });
 
-          // Create tasks for new phases
-          for (const phase of delta.phases.created as unknown as GanttPhase[]) {
-            if (phase.tasks && phase.tasks.length > 0) {
-              await tx.ganttTask.createMany({
-                data: phase.tasks.map((task, index: number) => ({
-                  id: task.id,
-                  phaseId: phase.id,
-                  name: task.name,
-                  description: task.description,
-                  startDate: new Date(task.startDate),
-                  endDate: new Date(task.endDate),
-                  progress: task.progress || 0,
-                  assignee: task.assignee,
-                  order: task.order !== undefined ? task.order : index,
-                  dependencies: task.dependencies || [],
-                })),
-                skipDuplicates: true, // Skip if task already exists
-              });
+          // Batch-create all tasks, task assignments, and phase assignments
+          // across the newly created phases — one query each instead of
+          // per-phase/per-task round-trips inside the transaction.
+          const createdPhases = delta.phases.created as unknown as GanttPhase[];
 
-              // Create task resource assignments
-              for (const task of phase.tasks) {
-                if (task.resourceAssignments && task.resourceAssignments.length > 0) {
-                  await tx.ganttTaskResourceAssignment.createMany({
-                    data: task.resourceAssignments.map((ra) => ({
-                      id: ra.id,
-                      taskId: task.id,
-                      resourceId: ra.resourceId,
-                      assignmentNotes: ra.assignmentNotes || '',
-                      allocationPercentage: ra.allocationPercentage || 100,
-                      assignedAt: new Date(ra.assignedAt || Date.now()),
-                    })),
-                    skipDuplicates: true, // Skip if assignment already exists
-                  });
-                }
-              }
-            }
+          const newTasks = createdPhases.flatMap((phase) =>
+            (phase.tasks ?? []).map((task, index: number) => ({
+              id: task.id,
+              phaseId: phase.id,
+              name: task.name,
+              description: task.description,
+              startDate: new Date(task.startDate),
+              endDate: new Date(task.endDate),
+              progress: task.progress || 0,
+              assignee: task.assignee,
+              order: task.order !== undefined ? task.order : index,
+              dependencies: task.dependencies || [],
+            }))
+          );
+          if (newTasks.length > 0) {
+            await tx.ganttTask.createMany({ data: newTasks, skipDuplicates: true });
+          }
 
-            // Create phase resource assignments
-            if (phase.phaseResourceAssignments && phase.phaseResourceAssignments.length > 0) {
-              await tx.ganttPhaseResourceAssignment.createMany({
-                data: phase.phaseResourceAssignments.map((pra) => ({
-                  id: pra.id,
-                  phaseId: phase.id,
-                  resourceId: pra.resourceId,
-                  assignmentNotes: pra.assignmentNotes,
-                  allocationPercentage: pra.allocationPercentage,
-                  assignedAt: new Date(pra.assignedAt || Date.now()),
-                })),
-                skipDuplicates: true, // Skip if assignment already exists
-              });
-            }
+          const newTaskAssignments = createdPhases.flatMap((phase) =>
+            (phase.tasks ?? []).flatMap((task) =>
+              (task.resourceAssignments ?? []).map((ra) => ({
+                id: ra.id,
+                taskId: task.id,
+                resourceId: ra.resourceId,
+                assignmentNotes: ra.assignmentNotes || "",
+                allocationPercentage: ra.allocationPercentage || 100,
+                assignedAt: new Date(ra.assignedAt || Date.now()),
+              }))
+            )
+          );
+          if (newTaskAssignments.length > 0) {
+            await tx.ganttTaskResourceAssignment.createMany({
+              data: newTaskAssignments,
+              skipDuplicates: true,
+            });
+          }
+
+          const newPhaseAssignments = createdPhases.flatMap((phase) =>
+            (phase.phaseResourceAssignments ?? []).map((pra) => ({
+              id: pra.id,
+              phaseId: phase.id,
+              resourceId: pra.resourceId,
+              assignmentNotes: pra.assignmentNotes,
+              allocationPercentage: pra.allocationPercentage,
+              assignedAt: new Date(pra.assignedAt || Date.now()),
+            }))
+          );
+          if (newPhaseAssignments.length > 0) {
+            await tx.ganttPhaseResourceAssignment.createMany({
+              data: newPhaseAssignments,
+              skipDuplicates: true,
+            });
           }
         }
 
         // Update phases
         if (delta.phases.updated && delta.phases.updated.length > 0) {
-          for (const phase of delta.phases.updated as unknown as GanttPhase[]) {
+          const updatedPhases = delta.phases.updated as unknown as GanttPhase[];
+
+          // Phase rows carry distinct data, so update them individually.
+          for (const phase of updatedPhases) {
             await tx.ganttPhase.update({
               where: { id: phase.id },
               data: {
@@ -338,72 +335,79 @@ export async function PATCH(
                 dependencies: phase.dependencies || [],
               },
             });
+          }
 
-            // For updated phases, we also need to sync tasks
-            if (phase.tasks) {
-              // Delete existing tasks for this phase
-              await tx.ganttTask.deleteMany({
-                where: { phaseId: phase.id },
-              });
+          // Re-sync tasks for phases that provided a `tasks` array. Deleting a
+          // task cascades to its resource assignments, so we delete-then-recreate
+          // in batched set-based queries instead of per-phase/per-task loops.
+          const phasesWithTasks = updatedPhases.filter((p) => p.tasks !== undefined);
+          if (phasesWithTasks.length > 0) {
+            await tx.ganttTask.deleteMany({
+              where: { phaseId: { in: phasesWithTasks.map((p) => p.id) } },
+            });
 
-              // Recreate tasks
-              if (phase.tasks.length > 0) {
-                await tx.ganttTask.createMany({
-                  data: phase.tasks.map((task, index: number) => ({
-                    id: task.id,
-                    phaseId: phase.id,
-                    name: task.name,
-                    description: task.description,
-                    startDate: new Date(task.startDate),
-                    endDate: new Date(task.endDate),
-                    progress: task.progress || 0,
-                    assignee: task.assignee,
-                    order: task.order !== undefined ? task.order : index,
-                    dependencies: task.dependencies || [],
-                  })),
-                  skipDuplicates: true, // Skip if task already exists
-                });
-
-                // Recreate task resource assignments
-                for (const task of phase.tasks) {
-                  if (task.resourceAssignments && task.resourceAssignments.length > 0) {
-                    await tx.ganttTaskResourceAssignment.createMany({
-                      data: task.resourceAssignments.map((ra) => ({
-                        id: ra.id,
-                        taskId: task.id,
-                        resourceId: ra.resourceId,
-                        assignmentNotes: ra.assignmentNotes || '',
-                        allocationPercentage: ra.allocationPercentage || 100,
-                        assignedAt: new Date(ra.assignedAt || Date.now()),
-                      })),
-                      skipDuplicates: true, // Skip if assignment already exists
-                    });
-                  }
-                }
-              }
+            const tasksToCreate = phasesWithTasks.flatMap((phase) =>
+              (phase.tasks ?? []).map((task, index: number) => ({
+                id: task.id,
+                phaseId: phase.id,
+                name: task.name,
+                description: task.description,
+                startDate: new Date(task.startDate),
+                endDate: new Date(task.endDate),
+                progress: task.progress || 0,
+                assignee: task.assignee,
+                order: task.order !== undefined ? task.order : index,
+                dependencies: task.dependencies || [],
+              }))
+            );
+            if (tasksToCreate.length > 0) {
+              await tx.ganttTask.createMany({ data: tasksToCreate, skipDuplicates: true });
             }
 
-            // Sync phase resource assignments
-            if (phase.phaseResourceAssignments) {
-              // Delete existing
-              await tx.ganttPhaseResourceAssignment.deleteMany({
-                where: { phaseId: phase.id },
+            const taskAssignmentsToCreate = phasesWithTasks.flatMap((phase) =>
+              (phase.tasks ?? []).flatMap((task) =>
+                (task.resourceAssignments ?? []).map((ra) => ({
+                  id: ra.id,
+                  taskId: task.id,
+                  resourceId: ra.resourceId,
+                  assignmentNotes: ra.assignmentNotes || "",
+                  allocationPercentage: ra.allocationPercentage || 100,
+                  assignedAt: new Date(ra.assignedAt || Date.now()),
+                }))
+              )
+            );
+            if (taskAssignmentsToCreate.length > 0) {
+              await tx.ganttTaskResourceAssignment.createMany({
+                data: taskAssignmentsToCreate,
+                skipDuplicates: true,
               });
+            }
+          }
 
-              // Recreate
-              if (phase.phaseResourceAssignments.length > 0) {
-                await tx.ganttPhaseResourceAssignment.createMany({
-                  data: phase.phaseResourceAssignments.map((pra) => ({
-                    id: pra.id,
-                    phaseId: phase.id,
-                    resourceId: pra.resourceId,
-                    assignmentNotes: pra.assignmentNotes,
-                    allocationPercentage: pra.allocationPercentage,
-                    assignedAt: new Date(pra.assignedAt || Date.now()),
-                  })),
-                  skipDuplicates: true, // Skip if assignment already exists
-                });
-              }
+          // Re-sync phase resource assignments for phases that provided them.
+          const phasesWithPRA = updatedPhases.filter(
+            (p) => p.phaseResourceAssignments !== undefined
+          );
+          if (phasesWithPRA.length > 0) {
+            await tx.ganttPhaseResourceAssignment.deleteMany({
+              where: { phaseId: { in: phasesWithPRA.map((p) => p.id) } },
+            });
+
+            const phaseAssignmentsToCreate = phasesWithPRA.flatMap((phase) =>
+              (phase.phaseResourceAssignments ?? []).map((pra) => ({
+                id: pra.id,
+                phaseId: phase.id,
+                resourceId: pra.resourceId,
+                assignmentNotes: pra.assignmentNotes,
+                allocationPercentage: pra.allocationPercentage,
+                assignedAt: new Date(pra.assignedAt || Date.now()),
+              }))
+            );
+            if (phaseAssignmentsToCreate.length > 0) {
+              await tx.ganttPhaseResourceAssignment.createMany({
+                data: phaseAssignmentsToCreate,
+                skipDuplicates: true,
+              });
             }
           }
         }
