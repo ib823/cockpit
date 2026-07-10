@@ -21,9 +21,8 @@
  * Performance: Optimized with rate lookup caching and batch queries
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma, withRetry } from "@/lib/db";
 import { z } from "zod";
 import { hasAnyProjectRole } from "@/lib/gantt-tool/access-control";
@@ -54,21 +53,15 @@ const CalculateCostingRequestSchema = z.object({
 // POST - Calculate Project Costing
 // ============================================================================
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, auth) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // Parse request body
     const body = await request.json();
     const validatedData = CalculateCostingRequestSchema.parse(body);
 
     // Determine user role first (needed for access check)
     const user = await prisma.users.findUnique({
-      where: { id: session.user.id },
+      where: { id: auth.userId },
       select: { role: true },
     });
 
@@ -76,7 +69,7 @@ export async function POST(request: NextRequest) {
     const isAdmin = user?.role === "ADMIN";
     const hasProjectOwnership = await hasAnyProjectRole(
       validatedData.projectId,
-      session.user.id,
+      auth.userId,
       ["OWNER"]
     );
 
@@ -109,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     // Log access for audit purposes
     logger.warn(
-      `[Costing] User ${session.user.id} (role: ${user?.role}) accessing project ${validatedData.projectId} with visibility: ${userVisibilityLevel}`
+      `[Costing] User ${auth.userId} (role: ${user?.role}) accessing project ${validatedData.projectId} with visibility: ${userVisibilityLevel}`
     );
 
     // Calculate project costing summary
@@ -142,7 +135,7 @@ export async function POST(request: NextRequest) {
             grossMargin: costingSummary.grossMargin,
             marginPercentage: costingSummary.marginPercent,
             baseCurrency: "MYR",
-            calculatedBy: session.user.id,
+            calculatedBy: auth.userId,
             version: costingSummary.versionNumber,
           },
           update: {
@@ -158,7 +151,7 @@ export async function POST(request: NextRequest) {
               costingSummary.totalOPE,
             grossMargin: costingSummary.grossMargin,
             marginPercentage: costingSummary.marginPercent,
-            calculatedBy: session.user.id,
+            calculatedBy: auth.userId,
             calculatedAt: new Date(),
             version: costingSummary.versionNumber,
           },
@@ -226,20 +219,14 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // ============================================================================
 // GET - Retrieve Saved Costing Data
 // ============================================================================
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request, auth) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("projectId");
@@ -254,13 +241,13 @@ export async function GET(request: NextRequest) {
 
     // Determine user role first (needed for access check)
     const user = await prisma.users.findUnique({
-      where: { id: session.user.id },
+      where: { id: auth.userId },
       select: { role: true },
     });
 
     // Check project access (OWNER required, but ADMIN bypasses)
     const isAdmin = user?.role === "ADMIN";
-    const hasProjectOwnership = await hasAnyProjectRole(projectId, session.user.id, [
+    const hasProjectOwnership = await hasAnyProjectRole(projectId, auth.userId, [
       "OWNER",
     ]);
 
@@ -286,7 +273,7 @@ export async function GET(request: NextRequest) {
     }
 
     logger.warn(
-      `[Costing] GET User ${session.user.id} (role: ${user?.role}) accessing project ${projectId} with visibility: ${userVisibilityLevel}`
+      `[Costing] GET User ${auth.userId} (role: ${user?.role}) accessing project ${projectId} with visibility: ${userVisibilityLevel}`
     );
 
     // Fetch costing data
@@ -355,4 +342,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

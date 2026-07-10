@@ -14,9 +14,8 @@
  * Performance: Uses optimized composite index (resourceId, weekStartDate)
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma, withRetry } from "@/lib/db";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
@@ -64,14 +63,8 @@ interface ConflictResult {
 // POST - Detect Conflicts
 // ============================================================================
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, auth) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // Parse request body
     const body = await request.json();
     const validatedData = ConflictDetectionRequestSchema.parse(body);
@@ -80,7 +73,7 @@ export async function POST(request: NextRequest) {
     const userOwnedProjects = await withRetry(() =>
       prisma.ganttProject.findMany({
         where: {
-          userId: session.user.id,
+          userId: auth.userId,
           deletedAt: null,
         },
         select: {
@@ -93,7 +86,7 @@ export async function POST(request: NextRequest) {
     const collaboratedProjects = await withRetry(() =>
       prisma.ganttProjectCollaborator.findMany({
         where: {
-          userId: session.user.id,
+          userId: auth.userId,
         },
         select: {
           projectId: true,
@@ -314,20 +307,14 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // ============================================================================
 // GET - Get Resource Utilization Summary
 // ============================================================================
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request, auth) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const resourceId = searchParams.get("resourceId");
@@ -343,7 +330,7 @@ export async function GET(request: NextRequest) {
     const userOwnedProjects = await withRetry(() =>
       prisma.ganttProject.findMany({
         where: {
-          userId: session.user.id,
+          userId: auth.userId,
           deletedAt: null,
         },
         select: {
@@ -355,7 +342,7 @@ export async function GET(request: NextRequest) {
     const collaboratedProjects = await withRetry(() =>
       prisma.ganttProjectCollaborator.findMany({
         where: {
-          userId: session.user.id,
+          userId: auth.userId,
         },
         select: {
           projectId: true,
@@ -474,4 +461,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
