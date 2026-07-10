@@ -10,9 +10,8 @@
  * - Missing assignments
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/with-auth';
 import { prisma } from '@/lib/db';
 import {
   validateResourceHierarchy,
@@ -35,14 +34,8 @@ async function checkProjectOwnership(projectId: string, userId: string) {
 }
 
 // GET - Get validation report
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request, auth) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
 
@@ -54,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check project ownership
-    const hasAccess = await checkProjectOwnership(projectId, session.user.id);
+    const hasAccess = await checkProjectOwnership(projectId, auth.userId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -149,7 +142,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * Generate recommendations based on validation report
