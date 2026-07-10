@@ -3,6 +3,7 @@ import { encode } from "next-auth/jwt";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { setUserEpoch } from "./revocation";
 
 export type SessionRole = "USER" | "MANAGER" | "ADMIN";
 
@@ -105,6 +106,14 @@ export async function establishSession(
     },
   });
 
+  // Read the user's session epoch so the JWT can be invalidated en masse by a
+  // "sign out everywhere" (which bumps this value). Defaults to 0.
+  const dbUser = await prisma.users.findUnique({
+    where: { id: params.userId },
+    select: { sessionEpoch: true },
+  });
+  const epoch = dbUser?.sessionEpoch ?? 0;
+
   // 3. Mint the NextAuth JWT (verified by middleware via `getToken`).
   const sessionToken = await encode({
     token: {
@@ -114,6 +123,7 @@ export async function establishSession(
       sub: params.userId,
       name: params.name || params.email.split("@")[0],
       sid,
+      epoch,
     },
     secret,
     maxAge: SESSION_MAX_AGE_SECONDS,
@@ -127,6 +137,9 @@ export async function establishSession(
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
+
+  // Keep the Redis epoch cache warm and consistent with the minted token.
+  await setUserEpoch(params.userId, epoch);
 
   return { sessionToken, sid };
 }

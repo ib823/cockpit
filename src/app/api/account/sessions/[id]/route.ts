@@ -4,6 +4,7 @@ import { authConfig as authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getToken } from "next-auth/jwt";
 import { logger } from "@/lib/logger";
+import { markSessionRevoked } from "@/lib/auth/revocation";
 
 // DELETE /api/account/sessions/:id - Revoke a session
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -23,9 +24,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get current session token
+    // Identify the caller's current session by its `sid` (embedded in the JWT).
     const token = await getToken({ req });
-    const currentSessionToken = token?.sessionToken as string | undefined;
+    const currentSid = token?.sid as string | undefined;
 
     // Find the session to revoke
     const sessionToRevoke = await prisma.sessions.findUnique({
@@ -42,17 +43,21 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     }
 
     // Prevent revoking current session
-    if (sessionToRevoke.sessionToken === currentSessionToken) {
+    if (sessionToRevoke.id === currentSid) {
       return NextResponse.json(
         { error: "Cannot revoke current session. Please logout instead." },
         { status: 400 }
       );
     }
 
-    // Delete the session
+    // Delete the session and enforce revocation at the guard.
     await prisma.sessions.delete({
       where: { id },
     });
+    await markSessionRevoked(
+      id,
+      Math.ceil((sessionToRevoke.expires.getTime() - Date.now()) / 1000)
+    );
 
     // Audit log the revocation
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";

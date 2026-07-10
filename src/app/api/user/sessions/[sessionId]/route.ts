@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { authConfig as authOptions } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { markSessionRevoked } from "@/lib/auth/revocation";
 
 export const runtime = "nodejs";
 
@@ -76,6 +77,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ s
         },
       }),
     ]);
+
+    // Enforce at the guard: reject this session's JWT on the next request.
+    await markSessionRevoked(
+      sessionId,
+      Math.ceil((targetSession.expires.getTime() - Date.now()) / 1000)
+    );
 
     return NextResponse.json({
       ok: true,

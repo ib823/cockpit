@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { authConfig as authOptions } from "@/lib/auth";
 import { parseUserAgent } from "@/lib/security/device-fingerprint";
 import { logger } from "@/lib/logger";
+import { markSessionsRevoked } from "@/lib/auth/revocation";
 
 export const runtime = "nodejs";
 
@@ -104,23 +105,32 @@ export async function DELETE(req: NextRequest) {
 
     const userId = user.id;
 
-    // Get current session token from JWT
+    // Identify the caller's current session by its `sid` (embedded in the JWT).
     const token = await getToken({ req });
-    const currentSessionToken = (token?.sessionToken as string) || "";
+    const currentSid = (token?.sid as string) || "";
 
-    // Revoke all sessions except the current one
-    const result = await prisma.sessions.updateMany({
+    // Collect every other active session so we can both revoke them in the DB
+    // and enforce it at the guard via Redis.
+    const toRevoke = await prisma.sessions.findMany({
       where: {
         userId,
-        sessionToken: { not: currentSessionToken },
+        id: { not: currentSid },
         expires: { gt: new Date() },
         revokedAt: null,
       },
+      select: { id: true },
+    });
+    const revokeIds = toRevoke.map((s) => s.id);
+
+    const result = await prisma.sessions.updateMany({
+      where: { id: { in: revokeIds } },
       data: {
         revokedAt: new Date(),
         revokedReason: "user_action",
       },
     });
+
+    await markSessionsRevoked(revokeIds);
 
     // Log audit event
     await prisma.auditEvent.create({

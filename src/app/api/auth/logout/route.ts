@@ -1,5 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { destroyAuthSession } from "@/lib/nextauth-helpers";
+import { markSessionRevoked } from "@/lib/auth/revocation";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -9,8 +11,13 @@ export const runtime = "nodejs";
  * SECURITY: Proper logout with server-side session revocation
  * Supports both passkey and magic link sessions
  */
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
+    // Revoke this session at the guard so its JWT cannot be replayed.
+    const token = await getToken({ req });
+    const sid = token?.sid as string | undefined;
+    if (sid) await markSessionRevoked(sid);
+
     // SECURITY: Destroy NextAuth session
     await destroyAuthSession();
 
