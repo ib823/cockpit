@@ -40,10 +40,12 @@ function hasZodValidation(filepath: string): boolean {
   );
 }
 
-/** Check if a route file has POST/PATCH/PUT/DELETE methods (mutation) */
+/** Check if a route file has POST/PATCH/PUT/DELETE methods (mutation).
+ * Matches both `export async function POST` and the wrapped form
+ * `export const POST = withAuth(...)` used by the shared auth guards. */
 function hasMutationMethod(filepath: string): boolean {
   const content = readFileSync(filepath, "utf-8");
-  return /export\s+async\s+function\s+(POST|PATCH|PUT|DELETE)\b/.test(content);
+  return /export\s+(?:async\s+function|const)\s+(POST|PATCH|PUT|DELETE)\b/.test(content);
 }
 
 describe("Validation Coverage Audit", () => {
