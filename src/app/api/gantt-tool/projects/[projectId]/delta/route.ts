@@ -7,9 +7,8 @@
  * This is 10-100x faster than full state replacement for typical edits.
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import type {
@@ -80,24 +79,16 @@ const DeltaSaveSchema = z.object({
 });
 
 // PATCH - Update project with delta (incremental changes only)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (request, auth, { params }) => {
   const startTime = Date.now();
   const isDev = process.env.NODE_ENV === "development";
 
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
     // Require write access — owner or EDITOR collaborator (VIEWERs are blocked).
-    const access = await checkProjectAccess(projectId, session.user.id);
+    const access = await checkProjectAccess(projectId, auth.userId);
     if (!access.canWrite) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -116,7 +107,7 @@ export async function PATCH(
     if (delta.projectUpdates?.name) {
       const existingProject = await prisma.ganttProject.findFirst({
         where: {
-          userId: session.user.id,
+          userId: auth.userId,
           name: {
             equals: delta.projectUpdates.name,
             mode: "insensitive",
@@ -510,7 +501,7 @@ export async function PATCH(
       await prisma.audit_logs.create({
         data: {
           id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          userId: session.user.id,
+          userId: auth.userId,
           action: "UPDATE",
           entity: "gantt_project",
           entityId: projectId,
@@ -615,4 +606,4 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
