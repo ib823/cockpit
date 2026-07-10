@@ -13,8 +13,12 @@ export interface AuthContext {
   role: SessionRole;
 }
 
-/** App Router's second handler argument (dynamic routes carry `params`). */
-export type RouteContext = { params?: Promise<Record<string, string>> };
+/**
+ * App Router's second handler argument. Next's build-time route validator
+ * requires `params` to be a (non-optional) Promise, so we model it that way;
+ * static routes simply receive a `Promise<{}>` they can ignore.
+ */
+export type RouteContext = { params: Promise<Record<string, string>> };
 
 type AuthedHandler<C extends RouteContext> = (
   req: NextRequest,
