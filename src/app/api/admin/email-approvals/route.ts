@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { NextResponse } from "next/server";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { randomInt } from "crypto";
 import { sendSecurityEmail } from "@/lib/email";
-import { badRequest, unauthorized, forbidden, conflict, serverError } from "@/lib/api-response";
+import { badRequest, conflict, serverError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export const runtime = "nodejs";
  * GET /api/admin/email-approvals - List all approvals
  */
 
-export async function POST(req: NextRequest) {
+export const POST = withAdmin(async (req, auth) => {
   try {
     let body: unknown;
     try {
@@ -27,10 +27,9 @@ export async function POST(req: NextRequest) {
     const { email } = body as { email?: string };
 
     // ============================================
-    // 1. Validate Admin via Session
+    // 1. Resolve the acting admin (auth enforced by withAdmin)
     // ============================================
-    const session = await requireAdmin();
-    const adminId = session.user.id;
+    const adminId = auth.userId;
 
     // ============================================
     // 2. Validate Email
@@ -176,29 +175,13 @@ export async function POST(req: NextRequest) {
       codeSent,
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      if (error.message === "unauthorized") {
-        return unauthorized();
-      }
-      if (error.message === "forbidden") {
-        return forbidden("Admin access required");
-      }
-    }
     logger.error("[EmailApprovals] POST error", { error: error });
     return serverError("Failed to create email approval");
   }
-}
+});
 
-export async function GET(req: NextRequest) {
+export const GET = withAdmin(async (req) => {
   try {
-    // ============================================
-    // 1. Verify Admin via Session
-    // ============================================
-    await requireAdmin();
-
-    // ============================================
-    // 2. Fetch Approvals with Optional Filtering
-    // ============================================
     const url = new URL(req.url);
     const status = url.searchParams.get("status"); // 'active', 'used', 'expired', 'all'
 
@@ -239,15 +222,7 @@ export async function GET(req: NextRequest) {
       total: formattedApprovals.length,
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      if (error.message === "unauthorized") {
-        return unauthorized();
-      }
-      if (error.message === "forbidden") {
-        return forbidden("Admin access required");
-      }
-    }
     logger.error("[EmailApprovals] GET error", { error: error });
     return serverError("Failed to fetch email approvals");
   }
-}
+});

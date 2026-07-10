@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/db";
 import { randomUUID, randomBytes, randomInt } from "crypto";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { sendAccessCode } from "@/lib/email";
-import { badRequest, forbidden, conflict, serverError } from "@/lib/api-response";
+import { badRequest, conflict, serverError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 export const runtime = "nodejs";
 
@@ -18,10 +18,8 @@ function generateMagicToken(): string {
   return randomBytes(32).toString("hex"); // 64 character secure token
 }
 
-export async function POST(req: Request) {
+export const POST = withAdmin(async (req, auth) => {
   try {
-    const session = await requireAdmin();
-
     let body: unknown;
     try {
       body = await req.json();
@@ -64,14 +62,14 @@ export async function POST(req: Request) {
       update: {
         tokenHash,
         tokenExpiresAt,
-        approvedByUserId: session.user.id,
+        approvedByUserId: auth.userId,
         usedAt: null,
       },
       create: {
         email,
         tokenHash,
         tokenExpiresAt,
-        approvedByUserId: session.user.id,
+        approvedByUserId: auth.userId,
       },
     });
 
@@ -122,9 +120,6 @@ export async function POST(req: Request) {
       { headers: { "Content-Type": "application/json" } }
     );
   } catch (e: unknown) {
-    if (e instanceof Error && e.message === "forbidden") {
-      return forbidden("Admin access required");
-    }
     logger.error("approve-email error", { error: e });
 
     if (e instanceof Error && e.message?.includes("Unique constraint")) {
@@ -133,4 +128,4 @@ export async function POST(req: Request) {
 
     return serverError();
   }
-}
+});

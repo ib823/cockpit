@@ -1,5 +1,5 @@
 import { prisma } from "../../../../lib/db";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { hash } from "bcryptjs";
 import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -11,8 +11,7 @@ function six() {
   return randomInt(100000, 1000000).toString();
 }
 
-export async function GET() {
-  await requireAdmin();
+export const GET = withAdmin(async () => {
   const users = await prisma.users.findMany({
     include: { Authenticator: true },
     orderBy: { createdAt: "desc" },
@@ -56,10 +55,9 @@ export async function GET() {
   );
 
   return NextResponse.json({ rows });
-}
+});
 
-export async function POST(req: Request) {
-  const admin = await requireAdmin();
+export const POST = withAdmin(async (req, auth) => {
   const { email } = await req.json();
 
   const code = six();
@@ -74,13 +72,13 @@ export async function POST(req: Request) {
       tokenHash,
       tokenExpiresAt: new Date(Date.now() + EXPIRY_MS),
       usedAt: null,
-      approvedByUserId: admin.user.id as string,
+      approvedByUserId: auth.userId,
     },
     create: {
       email,
       tokenHash,
       tokenExpiresAt: new Date(Date.now() + EXPIRY_MS),
-      approvedByUserId: admin.user.id as string,
+      approvedByUserId: auth.userId,
     },
   });
 
@@ -99,17 +97,16 @@ export async function POST(req: Request) {
   await prisma.auditEvent.create({
     data: {
       id: randomUUID(),
-      userId: admin.user.id as string,
+      userId: auth.userId,
       type: "admin.approve",
       meta: { email },
     },
   });
 
   return NextResponse.json({ ok: true, code });
-}
+});
 
-export async function PATCH(req: Request) {
-  await requireAdmin();
+export const PATCH = withAdmin(async (req) => {
   const { email, action } = (await req.json()) as {
     email: string;
     action: "toggle-exception" | "disable" | "reapprove";
@@ -147,4 +144,4 @@ export async function PATCH(req: Request) {
   }
 
   return NextResponse.json({ ok: false }, { status: 400 });
-}
+});
