@@ -1,31 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig as authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withUser } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { getToken } from "next-auth/jwt";
 import { logger } from "@/lib/logger";
 
-
 // GET /api/account/sessions - List all active sessions
-export async function GET(req: NextRequest) {
+export const GET = withUser(async (req, user) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Get current session token
+    // Identify the caller's current session by its `sid` (embedded in the JWT).
     const token = await getToken({ req });
-    const currentSessionToken = token?.sessionToken as string | undefined;
+    const currentSid = token?.sid as string | undefined;
 
     // Fetch all sessions for the user
     const sessions = await prisma.sessions.findMany({
@@ -57,7 +41,7 @@ export async function GET(req: NextRequest) {
         deviceInfo,
         ipAddress: s.ipAddress,
         lastActivity: s.lastActivity.toISOString(),
-        current: s.sessionToken === currentSessionToken,
+        current: s.id === currentSid,
       };
     });
 
@@ -66,4 +50,4 @@ export async function GET(req: NextRequest) {
     logger.error("Sessions fetch error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

@@ -3,24 +3,17 @@
  * Manage what-if scenarios
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/with-auth";
 import { logger } from "@/lib/logger";
 
 /**
  * GET /api/dashboard/scenarios
  * Retrieve scenarios for a project
  */
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("projectId");
 
@@ -28,21 +21,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "projectId required" }, { status: 400 });
     }
 
-    // Get user ID
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Fetch scenarios
     const scenarios = await prisma.dashboardScenario.findMany({
       where: {
         projectId,
-        userId: user.id,
+        userId: auth.userId,
       },
       orderBy: {
         isBaseline: "desc", // Baseline first
@@ -54,20 +37,14 @@ export async function GET(request: NextRequest) {
     logger.error("Error fetching scenarios", { error: error });
     return NextResponse.json({ error: "Failed to fetch scenarios" }, { status: 500 });
   }
-}
+});
 
 /**
  * POST /api/dashboard/scenarios
  * Create a new scenario
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const {
       projectId,
@@ -87,21 +64,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Get user ID
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // If setting as baseline, unset other baselines
     if (isBaseline) {
       await prisma.dashboardScenario.updateMany({
         where: {
-          userId: user.id,
+          userId: auth.userId,
           projectId,
           isBaseline: true,
         },
@@ -115,7 +82,7 @@ export async function POST(request: NextRequest) {
     const scenario = await prisma.dashboardScenario.create({
       data: {
         projectId,
-        userId: user.id,
+        userId: auth.userId,
         name,
         description,
         projectData,
@@ -133,20 +100,14 @@ export async function POST(request: NextRequest) {
     logger.error("Error creating scenario", { error: error });
     return NextResponse.json({ error: "Failed to create scenario" }, { status: 500 });
   }
-}
+});
 
 /**
  * DELETE /api/dashboard/scenarios/[id]
  * Delete a scenario
  */
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuth(async (request, auth) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -154,21 +115,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Scenario ID required" }, { status: 400 });
     }
 
-    // Get user ID
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Delete scenario (only if user owns it)
     const deleted = await prisma.dashboardScenario.deleteMany({
       where: {
         id,
-        userId: user.id,
+        userId: auth.userId,
       },
     });
 
@@ -181,4 +132,4 @@ export async function DELETE(request: NextRequest) {
     logger.error("Error deleting scenario", { error: error });
     return NextResponse.json({ error: "Failed to delete scenario" }, { status: 500 });
   }
-}
+});

@@ -1,26 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig as authOptions } from "@/lib/auth";
+import { withUser } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
 // GET /api/account/passkeys - List all passkeys
-export async function GET() {
+export const GET = withUser(async (_req, user) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Fetch all passkeys (authenticators) for the user
     const passkeys = await prisma.authenticator.findMany({
       where: { userId: user.id },
@@ -48,4 +33,4 @@ export async function GET() {
     logger.error("Passkeys fetch error", { error: error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
