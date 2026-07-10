@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { withCsrfProtection } from "@/lib/api-route-wrapper";
@@ -7,10 +8,8 @@ import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export const GET = withAdmin(async () => {
   try {
-    await requireAdmin();
-
     const users = await prisma.users.findMany({
       where: {
         role: { not: "ADMIN" },
@@ -63,20 +62,15 @@ export async function GET() {
       { headers: { "Content-Type": "application/json" } }
     );
   } catch (e: unknown) {
-    if (e instanceof Error && e.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
-    }
     logger.error("users error", { error: e });
     return NextResponse.json(
       { error: "Internal error" },
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
-}
+});
 
+// POST remains wrapped in CSRF protection; requireAdmin is enforced inside.
 // Fixed: V-009 - CSRF protection on user creation
 export const POST = withCsrfProtection(async (req: Request) => {
   try {

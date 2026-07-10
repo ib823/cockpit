@@ -1,34 +1,29 @@
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    await requireAdmin();
-    const { id } = await params;
+export const POST = withAdmin<{ params: Promise<{ id: string }> }>(
+  async (_req, _auth, { params }) => {
+    try {
+      const { id } = await params;
 
-    await prisma.users.update({
-      where: { id },
-      data: {
-        accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    });
+      await prisma.users.update({
+        where: { id },
+        data: {
+          accessExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      });
 
-    return NextResponse.json({ ok: true }, { headers: { "Content-Type": "application/json" } });
-  } catch (e: unknown) {
-    if (e instanceof Error && e.message === "forbidden") {
+      return NextResponse.json({ ok: true }, { headers: { "Content-Type": "application/json" } });
+    } catch (e: unknown) {
+      logger.error("extend access error", { error: e });
       return NextResponse.json(
-        { error: "Admin access required" },
-        { status: 403, headers: { "Content-Type": "application/json" } }
+        { error: "Failed to extend access" },
+        { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
-    logger.error("extend access error", { error: e });
-    return NextResponse.json(
-      { error: "Failed to extend access" },
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
   }
-}
+);
