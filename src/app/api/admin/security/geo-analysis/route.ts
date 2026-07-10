@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { getRecentFailedAttempts } from "@/lib/monitoring/auth-metrics";
 import { getFailureGeoDistribution } from "@/lib/security/geolocation";
 import { logger } from "@/lib/logger";
@@ -13,22 +13,14 @@ export const dynamic = "force-dynamic";
  * Returns geographic analysis of failed authentication attempts
  * Requires ADMIN role
  */
-export async function GET(req: Request) {
+export const GET = withAdmin(async (req) => {
   try {
-    // Check admin authorization
-    await requireAdmin();
-
-    // Get query parameters
     const { searchParams } = new URL(req.url);
     const minutes = parseInt(searchParams.get("minutes") || "60", 10);
 
-    // Get recent failures
     const failures = await getRecentFailedAttempts(minutes, 500);
-
-    // Get geographic distribution
     const distribution = await getFailureGeoDistribution(failures);
 
-    // Calculate statistics
     const totalCountries = distribution.length;
     const highRiskCountries = distribution.filter((d) => d.risk === "high").length;
     const totalIPs = new Set(failures.map((f) => f.ipAddress).filter(Boolean)).size;
@@ -47,18 +39,7 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "unauthorized") {
-        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-      }
-      if (error.message === "forbidden") {
-        return NextResponse.json(
-          { ok: false, message: "Forbidden - Admin access required" },
-          { status: 403 }
-        );
-      }
-    }
-    logger.error("[GEO ANALYSIS API] Error", { error: error });
+    logger.error("[GEO ANALYSIS API] Error", { error });
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }
-}
+});

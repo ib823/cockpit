@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/nextauth-helpers";
+import { withAdmin } from "@/lib/auth/with-auth";
 import { unblockIP } from "@/lib/security/ip-blocker";
 import { logger } from "@/lib/logger";
 
@@ -11,11 +11,8 @@ export const runtime = "nodejs";
  * Unblocks an IP address
  * Requires ADMIN role
  */
-export async function POST(req: Request) {
+export const POST = withAdmin(async (req) => {
   try {
-    // Check admin authorization
-    await requireAdmin();
-
     const { ip } = await req.json();
 
     if (!ip) {
@@ -24,23 +21,9 @@ export async function POST(req: Request) {
 
     await unblockIP(ip);
 
-    return NextResponse.json({
-      ok: true,
-      message: `IP ${ip} has been unblocked`,
-    });
+    return NextResponse.json({ ok: true, message: `IP ${ip} has been unblocked` });
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "unauthorized") {
-        return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-      }
-      if (error.message === "forbidden") {
-        return NextResponse.json(
-          { ok: false, message: "Forbidden - Admin access required" },
-          { status: 403 }
-        );
-      }
-    }
-    logger.error("[UNBLOCK IP API] Error", { error: error });
+    logger.error("[UNBLOCK IP API] Error", { error });
     return NextResponse.json({ ok: false, message: "Internal server error" }, { status: 500 });
   }
-}
+});
