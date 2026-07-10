@@ -43,7 +43,8 @@ describe("Auth Guard Regression", () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data.ok).toBe(false);
+    // withAuth returns { error: "Unauthorized" } for unauthenticated requests.
+    expect(data.error).toBeDefined();
   });
 
   test("GET /api/projects/[projectId]/chips rejects unauthenticated requests", async () => {

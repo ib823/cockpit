@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
-import { authConfig as authOptions } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { markSessionRevoked } from "@/lib/auth/revocation";
 
@@ -13,27 +12,11 @@ export const runtime = "nodejs";
  *
  * DELETE /api/user/sessions/:sessionId - Revoke specific session
  */
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {
+export const DELETE = withAuth<{ params: Promise<{ sessionId: string }> }>(
+  async (_req, auth, { params }) => {
   try {
     const { sessionId } = await params;
-
-    // Authenticate user via NextAuth session
-    const authSession = await getServerSession(authOptions);
-
-    if (!authSession?.user?.email) {
-      return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get user from database
-    const user = await prisma.users.findUnique({
-      where: { email: authSession.user.email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ ok: false, message: "User not found" }, { status: 404 });
-    }
-
-    const userId = user.id;
+    const userId = auth.userId;
 
     // Find the target session to revoke
     const targetSession = await prisma.sessions.findUnique({
@@ -92,4 +75,4 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ s
     logger.error("[Session] DELETE error", { error: error });
     return NextResponse.json({ ok: false, message: "Failed to revoke session" }, { status: 500 });
   }
-}
+});
