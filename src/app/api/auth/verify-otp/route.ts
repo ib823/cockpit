@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { otpVerifyLimiter } from "@/lib/server-rate-limiter";
 import { hashOTP, timingSafeCompare } from "@/lib/crypto-utils";
 import { establishSession } from "@/lib/auth/session";
+import { recordLoginAndAlert } from "@/lib/auth/login-security";
 import { logAuthEvent } from "@/lib/monitoring/auth-metrics";
 import { isIPBlocked, checkAndBlockIP } from "@/lib/security/ip-blocker";
 import { logger } from "@/lib/logger";
@@ -235,6 +236,9 @@ export async function POST(req: Request) {
       userAgent,
       maxConcurrentSessions: user.maxConcurrentSessions,
     });
+
+    // Record the login and alert on new device / new country (best-effort).
+    await recordLoginAndAlert({ userId: user.id, email: user.email, method: "otp" });
 
     return response;
   } catch (error) {

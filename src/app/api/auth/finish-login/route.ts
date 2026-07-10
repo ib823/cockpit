@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/db";
 import { establishSession } from "@/lib/auth/session";
+import { recordLoginAndAlert } from "@/lib/auth/login-security";
 import { randomUUID } from "crypto";
 import { challenges, verifyAuthenticationResponse, rpID } from "../../../../lib/webauthn";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
@@ -240,6 +241,9 @@ export async function POST(req: Request) {
       userAgent,
       maxConcurrentSessions: user.maxConcurrentSessions,
     });
+
+    // Record the login and alert on new device / new country (best-effort).
+    await recordLoginAndAlert({ userId: user.id, email: user.email, method: "passkey" });
 
     return jsonResponse;
   } catch (e) {
