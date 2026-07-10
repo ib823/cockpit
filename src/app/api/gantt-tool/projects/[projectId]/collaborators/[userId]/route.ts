@@ -5,9 +5,8 @@
  * PATCH  /api/gantt-tool/projects/[projectId]/collaborators/[userId] - Update collaborator role
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
@@ -17,17 +16,9 @@ const UpdateCollaboratorSchema = z.object({
 });
 
 // DELETE - Remove a collaborator from a project
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string; userId: string }> }
-) {
+export const DELETE = withAuth<{ params: Promise<{ projectId: string; userId: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId, userId } = await params;
 
     // Check if user is the owner or has OWNER permission
@@ -36,11 +27,11 @@ export async function DELETE(
         id: projectId,
         deletedAt: null,
         OR: [
-          { userId: session.user.id },
+          { userId: auth.userId },
           {
             collaborators: {
               some: {
-                userId: session.user.id,
+                userId: auth.userId,
                 role: "OWNER",
               },
             },
@@ -80,7 +71,7 @@ export async function DELETE(
     await prisma.audit_logs.create({
       data: {
         id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
+        userId: auth.userId,
         action: "DELETE",
         entity: "gantt_project_collaborator",
         entityId: `${projectId}_${userId}`,
@@ -96,20 +87,12 @@ export async function DELETE(
     logger.error("[API] Failed to remove collaborator", { error: error });
     return NextResponse.json({ error: "Failed to remove collaborator" }, { status: 500 });
   }
-}
+});
 
 // PATCH - Update collaborator role
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string; userId: string }> }
-) {
+export const PATCH = withAuth<{ params: Promise<{ projectId: string; userId: string }> }>(
+  async (request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId, userId } = await params;
     const body = await request.json();
     const validatedData = UpdateCollaboratorSchema.parse(body);
@@ -120,11 +103,11 @@ export async function PATCH(
         id: projectId,
         deletedAt: null,
         OR: [
-          { userId: session.user.id },
+          { userId: auth.userId },
           {
             collaborators: {
               some: {
-                userId: session.user.id,
+                userId: auth.userId,
                 role: "OWNER",
               },
             },
@@ -159,7 +142,7 @@ export async function PATCH(
     await prisma.audit_logs.create({
       data: {
         id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
+        userId: auth.userId,
         action: "UPDATE",
         entity: "gantt_project_collaborator",
         entityId: `${projectId}_${userId}`,
@@ -183,4 +166,4 @@ export async function PATCH(
     logger.error("[API] Failed to update collaborator", { error: error });
     return NextResponse.json({ error: "Failed to update collaborator" }, { status: 500 });
   }
-}
+});

@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
@@ -78,17 +77,9 @@ export async function GET(
 }
 
 // POST - Accept invite and add user as collaborator
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
-) {
+export const POST = withAuth<{ params: Promise<{ token: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { token } = await params;
 
     // Find the invite
@@ -114,12 +105,12 @@ export async function POST(
     }
 
     // Verify email matches (case-insensitive)
-    if (!session.user.email || session.user.email.toLowerCase() !== invite.email.toLowerCase()) {
+    if (!auth.email || auth.email.toLowerCase() !== invite.email.toLowerCase()) {
       return NextResponse.json(
         {
           error: "This invite was sent to a different email address",
           invitedEmail: invite.email,
-          currentEmail: session.user.email,
+          currentEmail: auth.email,
         },
         { status: 403 }
       );
@@ -130,7 +121,7 @@ export async function POST(
       where: {
         projectId_userId: {
           projectId: invite.projectId,
-          userId: session.user.id,
+          userId: auth.userId,
         },
       },
     });
@@ -149,7 +140,7 @@ export async function POST(
         where: { id: invite.id },
         data: {
           acceptedAt: new Date(),
-          acceptedBy: session.user.id,
+          acceptedBy: auth.userId,
         },
       });
 
@@ -157,7 +148,7 @@ export async function POST(
       const collaborator = await tx.ganttProjectCollaborator.create({
         data: {
           projectId: invite.projectId,
-          userId: session.user.id,
+          userId: auth.userId,
           role: invite.role,
           invitedBy: invite.createdBy,
           acceptedAt: new Date(),
@@ -168,7 +159,7 @@ export async function POST(
       await tx.audit_logs.create({
         data: {
           id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          userId: session.user.id,
+          userId: auth.userId,
           action: "CREATE",
           entity: "gantt_project_collaborator",
           entityId: collaborator.id,
@@ -196,4 +187,4 @@ export async function POST(
     logger.error("[API] Failed to accept invite", { error: error });
     return NextResponse.json({ error: "Failed to accept invite" }, { status: 500 });
   }
-}
+});
