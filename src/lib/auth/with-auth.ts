@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import type { users } from "@prisma/client";
 
 export type SessionRole = "USER" | "MANAGER" | "ADMIN";
 
@@ -57,4 +59,29 @@ export function withAuth<C extends RouteContext = RouteContext>(
 /** Convenience wrapper for admin-only routes. */
 export function withAdmin<C extends RouteContext = RouteContext>(handler: AuthedHandler<C>) {
   return withAuth(handler, { role: "ADMIN" });
+}
+
+type UserHandler<C extends RouteContext> = (
+  req: NextRequest,
+  user: users,
+  ctx: C
+) => Promise<Response> | Response;
+
+/**
+ * Like {@link withAuth}, but also loads the full `users` row (by id) once and
+ * passes it to the handler. Removes the ubiquitous
+ * `getServerSession` + `prisma.users.findUnique({ where: { email } })` pair.
+ * Returns 401 if the row no longer exists (e.g. deleted account).
+ */
+export function withUser<C extends RouteContext = RouteContext>(
+  handler: UserHandler<C>,
+  opts?: { role?: SessionRole }
+) {
+  return withAuth<C>(async (req, auth, ctx) => {
+    const user = await prisma.users.findUnique({ where: { id: auth.userId } });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return handler(req, user, ctx);
+  }, opts);
 }
