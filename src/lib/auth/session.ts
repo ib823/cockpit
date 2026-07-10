@@ -108,11 +108,21 @@ export async function establishSession(
 
   // Read the user's session epoch so the JWT can be invalidated en masse by a
   // "sign out everywhere" (which bumps this value). Defaults to 0.
-  const dbUser = await prisma.users.findUnique({
-    where: { id: params.userId },
-    select: { sessionEpoch: true },
-  });
-  const epoch = dbUser?.sessionEpoch ?? 0;
+  //
+  // Tolerate a not-yet-migrated `sessionEpoch` column: if a deploy lands before
+  // `prisma db push`, this read would otherwise throw and break every login.
+  // Degrade gracefully instead (epoch 0 → revocation-by-epoch inert until the
+  // column exists; per-session revocation via Redis still works).
+  let epoch = 0;
+  try {
+    const dbUser = await prisma.users.findUnique({
+      where: { id: params.userId },
+      select: { sessionEpoch: true },
+    });
+    epoch = dbUser?.sessionEpoch ?? 0;
+  } catch (e) {
+    logger.warn("[session] sessionEpoch read failed; defaulting to 0", { error: e });
+  }
 
   // 3. Mint the NextAuth JWT (verified by middleware via `getToken`).
   const sessionToken = await encode({
