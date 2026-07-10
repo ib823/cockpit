@@ -9,9 +9,8 @@
  * This manages INPUT parameters (RR%, OPE defaults) not calculated values.
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { z } from "zod";
@@ -35,16 +34,9 @@ const CostingConfigSchema = z.object({
  * GET /api/gantt-tool/projects/[projectId]/costing-config
  * Retrieve costing configuration for a project
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const GET = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
     // Verify user has access to project
@@ -52,8 +44,8 @@ export async function GET(
       where: {
         id: projectId,
         OR: [
-          { userId: session.user.id },
-          { collaborators: { some: { userId: session.user.id } } },
+          { userId: auth.userId },
+          { collaborators: { some: { userId: auth.userId } } },
         ],
       },
       select: { id: true, userId: true },
@@ -65,11 +57,11 @@ export async function GET(
 
     // Check if user has finance access (owner or admin)
     const user = await prisma.users.findUnique({
-      where: { id: session.user.id },
+      where: { id: auth.userId },
       select: { role: true },
     });
 
-    const isOwner = project.userId === session.user.id;
+    const isOwner = project.userId === auth.userId;
     const isAdmin = user?.role === "ADMIN";
 
     if (!isOwner && !isAdmin) {
@@ -89,7 +81,7 @@ export async function GET(
       config = await prisma.projectCostingConfig.create({
         data: {
           projectId,
-          createdBy: session.user.id,
+          createdBy: auth.userId,
         },
       });
     }
@@ -118,22 +110,15 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * PUT /api/gantt-tool/projects/[projectId]/costing-config
  * Update costing configuration for a project
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const PUT = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (request, auth, { params }) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
     const body = await request.json();
 
@@ -151,8 +136,8 @@ export async function PUT(
       where: {
         id: projectId,
         OR: [
-          { userId: session.user.id },
-          { collaborators: { some: { userId: session.user.id } } },
+          { userId: auth.userId },
+          { collaborators: { some: { userId: auth.userId } } },
         ],
       },
       select: { id: true, userId: true },
@@ -164,11 +149,11 @@ export async function PUT(
 
     // Check if user has finance access (owner or admin)
     const user = await prisma.users.findUnique({
-      where: { id: session.user.id },
+      where: { id: auth.userId },
       select: { role: true },
     });
 
-    const isOwner = project.userId === session.user.id;
+    const isOwner = project.userId === auth.userId;
     const isAdmin = user?.role === "ADMIN";
 
     if (!isOwner && !isAdmin) {
@@ -182,7 +167,7 @@ export async function PUT(
 
     // Build update object (only include fields that were provided)
     const updateData: Record<string, unknown> = {
-      updatedBy: session.user.id,
+      updatedBy: auth.userId,
     };
 
     if (data.realizationRatePercent !== undefined) {
@@ -222,7 +207,7 @@ export async function PUT(
       create: {
         projectId,
         ...updateData,
-        createdBy: session.user.id,
+        createdBy: auth.userId,
       },
       update: updateData,
     });
@@ -251,4 +236,4 @@ export async function PUT(
       { status: 500 }
     );
   }
-}
+});

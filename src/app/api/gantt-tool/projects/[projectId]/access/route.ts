@@ -7,30 +7,21 @@
  * Used by the client to conditionally render UI elements based on permissions.
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { checkProjectAccess } from "@/lib/gantt-tool/access-control";
 import { logger } from "@/lib/logger";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const GET = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { projectId } = await params;
 
     if (!projectId) {
       return NextResponse.json({ error: "Project ID required" }, { status: 400 });
     }
 
-    const access = await checkProjectAccess(projectId, session.user.id);
+    const access = await checkProjectAccess(projectId, auth.userId);
 
     if (!access.hasAccess) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
@@ -38,7 +29,7 @@ export async function GET(
 
     return NextResponse.json({
       projectId,
-      userId: session.user.id,
+      userId: auth.userId,
       role: access.role,
       permissions: {
         read: access.canRead,
@@ -55,4 +46,4 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});

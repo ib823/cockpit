@@ -14,9 +14,8 @@
  * Route: POST /api/gantt-tool/projects/[projectId]/context
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
@@ -52,21 +51,10 @@ interface ContextUpdateRequest {
   skills?: string[];
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const POST = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (request, auth, { params }) => {
   try {
-    // 1. SECURITY: Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.id;
+    const userId = auth.userId;
     const { projectId } = await params;
 
     // 2. SECURITY: Authorization check
@@ -191,24 +179,13 @@ export async function POST(
       { status: 500 }
     );
   }
-}
+});
 
 // GET endpoint to retrieve context
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+export const GET = withAuth<{ params: Promise<{ projectId: string }> }>(
+  async (_request, auth, { params }) => {
   try {
-    // 1. SECURITY: Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.id;
+    const userId = auth.userId;
     const { projectId } = await params;
 
     // 2. SECURITY: Check user has access to project (owner or collaborator)
@@ -251,4 +228,4 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
