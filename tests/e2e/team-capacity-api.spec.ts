@@ -6,17 +6,31 @@
  * - /api/gantt-tool/team-capacity/costing
  * - /api/gantt-tool/team-capacity/conflicts
  *
- * Prerequisites:
+ * Prerequisites (all three must hold, or every test here fails):
  * - Database seeded with rate cards (run scripts/seed-team-capacity-data.ts)
  * - At least one test project with resources
  * - Valid authentication session
  *
- * Run with: npm test -- team-capacity-api.test.ts
+ * Run with: pnpm test:e2e tests/e2e/team-capacity-api.spec.ts
+ *
+ * NOTE ON LOCATION: this file previously lived at
+ * src/__tests__/integration/team-capacity-api.spec.ts, where it was executed by
+ * NEITHER runner — Vitest excludes `**\/*.spec.ts` (Playwright's extension) and
+ * Playwright only scans `tests/e2e`. Its 21 tests silently never ran while still
+ * counting toward the repo's apparent coverage. Moved here so the E2E runner can
+ * actually discover it.
+ *
+ * It is gated on RUN_DB_E2E because it needs a seeded database and a real
+ * session, which CI does not currently provision. This is an explicit,
+ * documented skip rather than an invisible orphan — set RUN_DB_E2E=1 against a
+ * seeded environment to run it.
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "@playwright/test";
 
-describe("Team Capacity API Integration Tests", () => {
+const describeMaybe = process.env.RUN_DB_E2E ? describe : describe.skip;
+
+describeMaybe("Team Capacity API Integration Tests", () => {
   let testProjectId: string;
   let testResourceId: string;
   let _authCookie: string;
