@@ -57,7 +57,10 @@ pg_dump "$DATABASE_URL" --schema-only --file=schema-$(date +%Y%m%d).sql
 2. Select snapshot closest to desired recovery point
 3. Restore to new database instance (avoid overwriting active)
 4. Update `DATABASE_URL` to point to restored instance
-5. Run `pnpm prisma migrate deploy` to verify schema alignment
+5. Verify schema alignment with `pnpm prisma migrate status`. A snapshot
+   restore already contains the tables, so do NOT run `migrate deploy` against
+   it — if the restore predates migrations, baseline it first with
+   `pnpm prisma migrate resolve --applied 0_init`.
 6. Verify: `curl /api/health` returns healthy
 7. Switch traffic: update Vercel env var to restored DB
 8. Redeploy
@@ -71,8 +74,11 @@ createdb cockpit_restored
 # Restore from dump
 pg_restore --dbname=cockpit_restored backup-YYYYMMDD.dump
 
-# Verify schema
-DATABASE_URL="postgresql://...cockpit_restored" pnpm prisma migrate deploy
+# Verify schema. pg_restore has already created the tables, so baseline the
+# migration history rather than applying it (migrate deploy would fail on the
+# first table that already exists), then confirm there is no drift.
+DATABASE_URL="postgresql://...cockpit_restored" pnpm prisma migrate resolve --applied 0_init
+DATABASE_URL="postgresql://...cockpit_restored" pnpm prisma migrate status
 
 # Verify data integrity
 DATABASE_URL="postgresql://...cockpit_restored" pnpm prisma db execute \
@@ -126,7 +132,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 1. Create test environment with clean database
 2. Restore from backup to test environment
-3. Run `pnpm prisma migrate deploy` against restored DB
+3. Baseline and verify: `pnpm prisma migrate resolve --applied 0_init` (the
+   restore already has the tables), then `pnpm prisma migrate status`
 4. Run full test suite against restored environment
 5. Verify user data integrity (row counts, sample records)
 6. Document results and any issues found
