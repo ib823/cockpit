@@ -156,6 +156,50 @@ to unlock the page while the outer was still open. Pinned by
 tests/a11y/base-modal-dialog-semantics.test.tsx (10 tests, verified to fail
 against the previous component).
 
+### Eighth batch — make the fake quality gates real (same date)
+
+Two CI gates could not fail. Both now can.
+
+**Bundle budgets.** `tests/performance/bundle-budgets.test.ts` declared
+`manifestPath`/`appPathsPath`, never read either, and asserted hardcoded
+constants against themselves (`expect(FIRST_LOAD_BUDGET_KB).toBeGreaterThan(100)`).
+No bundle size, however large, could fail it — so the "performance budget check"
+step in CI proved nothing. It now sums the real chunk bytes per route from
+`.next/app-build-manifest.json`.
+
+Turning it on produced a finding that contradicts this ledger. Measured
+2026-08-06:
+
+| Route | Route JS | First load | Documented target |
+|---|---|---|---|
+| /login | 23.6kB | 366.6kB | 30kB |
+| /dashboard | 98.4kB | 441.3kB | 30kB |
+| **/gantt-tool** | **642.9kB** | **985.9kB** | 100kB |
+| /admin | 260.3kB | 603.2kB | 30kB |
+| /admin/users | 569.7kB | 912.6kB | 30kB |
+
+Shared baseline alone is **343kB across 4 chunks**, so no route can reach the
+300kB first-load ceiling the docs quote regardless of page code — consistent with
+the audit finding that antd loads on every route via `providers.tsx`.
+
+**The E-02 entry above ("654kB→55.4kB page JS, 91.5% reduction") is not
+reproducible by this measurement.** /gantt-tool measures 642.9kB — essentially
+the quoted pre-optimization figure. Either the code-splitting is not taking
+effect or the 55.4kB figure measured something narrower than what the route
+actually loads. Treat E-02 as unverified until someone reconciles it.
+
+Budgets are therefore set as REGRESSION FLOORS from measured reality (~10%
+headroom), with the aspirational numbers kept separately as `PAGE_TARGETS` and
+deliberately NOT asserted — an unmet assertion either sits red forever or gets
+quietly neutered, which is exactly how this file came to prove nothing.
+
+**Coverage thresholds** were all `0`, so coverage could fall to nothing with CI
+green. Set to just below measured (statements 9, branches 74, functions 59,
+lines 9 against actual 10.1 / 77.59 / 62.66 / 10.1). Note statements/lines sit so
+far below branches/functions because a large share of `src/` is unreachable from
+any route and reports 0% — deleting that dead code raises the figure without
+writing a single test.
+
 ### Remaining known issues (audited, NOT fixed)
 
 Ranked, with the reason each was deferred rather than attempted here:

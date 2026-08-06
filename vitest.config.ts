@@ -25,18 +25,26 @@ export default defineConfig({
       "**/*.spec.ts", // Playwright uses .spec.ts, Vitest uses .test.ts
     ],
     // Coverage configuration (B-05: regression floor thresholds)
-    // Set to 0 (non-blocking) deliberately: actual coverage is ~11% statements/lines
-    // while the gate previously demanded 50%, which kept CI permanently red. Coverage
-    // is still REPORTED (text + json-summary) every run; raise these as real coverage
-    // improves so they act as a true regression floor rather than an unmet aspiration.
+    //
+    // Floors are set just below MEASURED coverage (2026-08-06: statements 10.1%,
+    // branches 77.59%, functions 62.66%, lines 10.1%) so they act as a real
+    // regression floor. They were previously all 0, which meant coverage could
+    // fall to nothing with CI still green — the gate could not fail.
+    //
+    // Raise these as coverage improves; never lower them to make a build pass.
+    //
+    // Why statements/lines sit so far below branches/functions: a large share of
+    // src/ is unreachable from any route (dead components, abandoned features),
+    // and every one of those files reports 0%. Deleting that code raises the
+    // statement figure without writing a single new test.
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary"],
       thresholds: {
-        statements: 0,
-        branches: 0,
-        functions: 0,
-        lines: 0,
+        statements: 9,
+        branches: 74,
+        functions: 59,
+        lines: 9,
       },
     },
   },
