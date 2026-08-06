@@ -113,6 +113,49 @@ Also closed, with the same gates re-run green:
   every `[BackgroundSync]` error — the save path's own failure reporting. Only
   third-party noise is filtered now.
 
+### Fifth batch — dead weight, unrunnable E2E, env hygiene (same date)
+
+- Removed 13 dependencies with zero imports (chart.js, react-chartjs-2,
+  @react-pdf/renderer, vis-timeline, vis-data, react-hotkeys-hook,
+  @radix-ui/react-slider, comlink, lodash + @types/lodash,
+  @auth/prisma-adapter, @prisma/adapter-neon, @neondatabase/serverless).
+- **E2E was unrunnable, not merely unrun**: playwright.config.ts waited on port
+  3000 while `pnpm dev` binds 3002, so the server never became ready and all 185
+  tests died on the 120s timeout. Port is now one constant used by both
+  `webServer.url` and `baseURL`.
+- Deleted specs targeting routes/modules that no longer exist
+  (plan-mode-responsive → /project/plan, estimator-flow → /estimator,
+  dashboard → /dashboard-demo, run-responsive-tests.sh, test-suites.ts).
+- `team-capacity-api.spec.ts` moved out of `src/__tests__/integration/`, where
+  it was run by NEITHER runner (Vitest excludes `*.spec.ts`; Playwright only
+  scans `tests/e2e`) — 21 tests that silently never ran. Now an explicit
+  RUN_DB_E2E-gated skip.
+- `.env.example` covered 39 of 51 vars actually read. Added the rest, several of
+  which are security controls that fail silently when unset (IP_ALLOWLIST,
+  IP_BLOCKLIST, TRUST_PROXY, CAPTCHA, SECURITY_ALERT_WEBHOOK, Redis).
+
+### Sixth batch — migration baseline (same date)
+
+Root cause of "no migration history": `.gitignore` excluded `/prisma/migrations`,
+so any migration ever generated was untracked. Stopped ignoring it, added
+`0_init` (65 CREATE TABLE = one per model, 170 indexes), and documented the two
+application paths — a NEW database takes `migrate deploy`, an EXISTING one must
+be baselined with `migrate resolve --applied 0_init`. Corrected all four restore
+runbook steps accordingly, since a restored dump already contains the tables.
+NOT yet executed against a real Postgres; see prisma/migrations/README.md.
+
+### Seventh batch — BaseModal dialog semantics (same date)
+
+`BaseModal` backs 28 dialogs and shipped with no `role="dialog"`, no
+`aria-modal`, no `aria-labelledby`, and `initialFocus: false` — which told
+focus-trap not to move focus into the dialog at all, leaving keyboard users on
+the obscured trigger (WCAG 2.4.3). A11Y_EVIDENCE.md listed all of this as
+complete; it was not, and that file now carries the correction. Also made the
+body scroll lock ref-counted: modals stack here, and closing an inner one used
+to unlock the page while the outer was still open. Pinned by
+tests/a11y/base-modal-dialog-semantics.test.tsx (10 tests, verified to fail
+against the previous component).
+
 ### Remaining known issues (audited, NOT fixed)
 
 Ranked, with the reason each was deferred rather than attempted here:
