@@ -26,6 +26,75 @@ import { checkProjectAccess } from "@/lib/gantt-tool/access-control";
 // Increase function timeout for save operations (max 10s on Hobby, 60s on Pro)
 export const maxDuration = 30; // seconds - increased for large projects with many resource assignments
 
+/**
+ * Raised when a delta references an entity that does not belong to the target
+ * project. Surfaced to the caller as 403 rather than 404 so that the endpoint
+ * does not confirm whether the foreign id exists.
+ */
+class DeltaOwnershipError extends Error {
+  constructor(entity: string) {
+    super(`Delta references ${entity} outside the target project`);
+    this.name = "DeltaOwnershipError";
+  }
+}
+
+/**
+ * Verifies every client-supplied entity id in the delta actually belongs to
+ * `projectId` before any write runs.
+ *
+ * Write access is checked against the project, but the per-entity ids arrive
+ * from the client. Without this guard a caller with write access to their own
+ * project can name another project's phase/resource/milestone/holiday id and
+ * have the update — or the phase task re-sync — applied there.
+ *
+ * Fails closed: a single foreign id aborts the whole transaction.
+ */
+async function assertDeltaOwnership(
+  tx: typeof prisma,
+  projectId: string,
+  delta: {
+    resources?: { updated?: unknown[] };
+    phases?: { updated?: unknown[] };
+    milestones?: { updated?: unknown[] };
+    holidays?: { updated?: unknown[] };
+  }
+): Promise<void> {
+  const ids = (rows: unknown[] | undefined): string[] =>
+    (rows ?? []).map((r) => (r as { id?: unknown }).id).filter((id): id is string => typeof id === "string");
+
+  const checks: Array<{ entity: string; ids: string[]; count: (ids: string[]) => Promise<number> }> = [
+    {
+      entity: "resource",
+      ids: ids(delta.resources?.updated),
+      count: (list) => tx.ganttResource.count({ where: { id: { in: list }, projectId } }),
+    },
+    {
+      entity: "phase",
+      ids: ids(delta.phases?.updated),
+      count: (list) => tx.ganttPhase.count({ where: { id: { in: list }, projectId } }),
+    },
+    {
+      entity: "milestone",
+      ids: ids(delta.milestones?.updated),
+      count: (list) => tx.ganttMilestone.count({ where: { id: { in: list }, projectId } }),
+    },
+    {
+      entity: "holiday",
+      ids: ids(delta.holidays?.updated),
+      count: (list) => tx.ganttHoliday.count({ where: { id: { in: list }, projectId } }),
+    },
+  ];
+
+  for (const check of checks) {
+    const unique = Array.from(new Set(check.ids));
+    if (unique.length === 0) continue;
+    const owned = await check.count(unique);
+    if (owned !== unique.length) {
+      throw new DeltaOwnershipError(check.entity);
+    }
+  }
+}
+
 // Validation schema for delta updates
 const DeltaSaveSchema = z.object({
   projectUpdates: z
@@ -133,6 +202,11 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
     const txStartTime = Date.now();
 
     const updatedProject: { id: string; updatedAt: Date } | null = await (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<{ id: string; updatedAt: Date } | null>) => Promise<{ id: string; updatedAt: Date } | null>)(async (tx) => {
+      // 0. Authorize every client-supplied entity id against this project
+      // before any write runs. Route-level access only proves the caller may
+      // write to `projectId`, not that the ids in the delta live there.
+      await assertDeltaOwnership(tx, projectId, delta);
+
       // 1. Update project-level fields if any changed
       let project: { id: string; updatedAt: Date } | null;
       if (delta.projectUpdates && Object.keys(delta.projectUpdates).length > 0) {
@@ -194,8 +268,8 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
         // Update resources
         if (delta.resources.updated && delta.resources.updated.length > 0) {
           for (const r of delta.resources.updated as unknown as Resource[]) {
-            await tx.ganttResource.update({
-              where: { id: r.id },
+            await tx.ganttResource.updateMany({
+              where: { id: r.id, projectId },
               data: {
                 name: r.name,
                 category: r.category,
@@ -313,8 +387,8 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
 
           // Phase rows carry distinct data, so update them individually.
           for (const phase of updatedPhases) {
-            await tx.ganttPhase.update({
-              where: { id: phase.id },
+            await tx.ganttPhase.updateMany({
+              where: { id: phase.id, projectId },
               data: {
                 name: phase.name,
                 description: phase.description,
@@ -334,7 +408,10 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
           const phasesWithTasks = updatedPhases.filter((p) => p.tasks !== undefined);
           if (phasesWithTasks.length > 0) {
             await tx.ganttTask.deleteMany({
-              where: { phaseId: { in: phasesWithTasks.map((p) => p.id) } },
+              where: {
+                phaseId: { in: phasesWithTasks.map((p) => p.id) },
+                phase: { projectId },
+              },
             });
 
             const tasksToCreate = phasesWithTasks.flatMap((phase) =>
@@ -381,7 +458,10 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
           );
           if (phasesWithPRA.length > 0) {
             await tx.ganttPhaseResourceAssignment.deleteMany({
-              where: { phaseId: { in: phasesWithPRA.map((p) => p.id) } },
+              where: {
+                phaseId: { in: phasesWithPRA.map((p) => p.id) },
+                phase: { projectId },
+              },
             });
 
             const phaseAssignmentsToCreate = phasesWithPRA.flatMap((phase) =>
@@ -432,8 +512,8 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
 
         if (delta.milestones.updated && delta.milestones.updated.length > 0) {
           for (const m of delta.milestones.updated as unknown as GanttMilestone[]) {
-            await tx.ganttMilestone.update({
-              where: { id: m.id },
+            await tx.ganttMilestone.updateMany({
+              where: { id: m.id, projectId },
               data: {
                 name: m.name,
                 description: m.description,
@@ -473,8 +553,8 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
 
         if (delta.holidays.updated && delta.holidays.updated.length > 0) {
           for (const h of delta.holidays.updated as unknown as GanttHoliday[]) {
-            await tx.ganttHoliday.update({
-              where: { id: h.id },
+            await tx.ganttHoliday.updateMany({
+              where: { id: h.id, projectId },
               data: {
                 name: h.name,
                 date: new Date(h.date),
@@ -529,6 +609,15 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
     );
   } catch (error) {
     const _duration = Date.now() - startTime;
+
+    if (error instanceof DeltaOwnershipError) {
+      logger.warn("[API Delta] Cross-project entity reference rejected", {
+        userId: auth.userId,
+        projectId: (await params).projectId,
+        reason: error.message,
+      });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     if (error instanceof z.ZodError) {
       if (process.env.NODE_ENV === "development") {

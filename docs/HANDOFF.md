@@ -2,7 +2,63 @@
 
 Status: Active  
 Version: 1.0.0  
-Last Updated (UTC): 2026-02-20
+Last Updated (UTC): 2026-08-06
+
+## -1. Security Remediation — Critical Auth Bypass & Cross-Project IDOR (2026-08-06)
+
+A full-codebase audit found two exploitable vulnerabilities in code that the
+Section 8 release certification had marked green. Both are now closed with
+regression tests that were verified to FAIL against the pre-fix code.
+
+**V-1 (CRITICAL) — unauthenticated account takeover via passkey registration.**
+`POST /api/auth/begin-register` accepted a client-supplied `magicLink: true`
+flag and, when set, skipped access-code validation entirely — checking only
+that an `EmailApproval` row existed for the address. `finish-register`
+validated only the WebAuthn challenge. Two unauthenticated requests therefore
+attached an attacker's passkey to any approved account (including ADMIN) and
+returned a live session. The route was also not gated by `ENABLE_MAGIC_LINKS`
+and is CSRF-exempt via `PUBLIC_PREFIXES`.
+
+Fix: registration now requires a *registration grant* — a random, single-purpose,
+email-bound, 10-minute token that only `/api/auth/verify-magic-link` can mint,
+and only after verifying and consuming a real emailed magic link
+(`src/lib/auth/registration-grant.ts`). Grants live in `magic_tokens` using its
+existing `type` discriminator, so no new secret material is required — notably
+not the optional `JWT_SECRET_KEY`. The magic-link branch is now also gated by
+`ENABLE_MAGIC_LINKS`. Defense in depth: `finish-register` refuses to enrol a
+first passkey on an account that already has one (additional passkeys go
+through the session-guarded `/api/auth/passkey/register/*` pair).
+
+**V-2 (HIGH) — cross-project IDOR in the delta-save endpoint.**
+`PATCH /api/gantt-tool/projects/[projectId]/delta` verified write access
+against `projectId` but applied per-entity mutations using client-supplied ids
+with no project scoping. A user with write access to their own project could
+name another tenant's phase/resource/milestone/holiday id and have the write
+land there; naming a foreign phase id also triggered
+`ganttTask.deleteMany({ where: { phaseId: { in: [...] } } })`, destroying every
+task under it plus its resource assignments.
+
+Fix: `assertDeltaOwnership()` authorizes every referenced id against the target
+project inside the transaction before any write runs, failing the whole request
+closed with 403. All four `update` calls became `updateMany` scoped by
+`projectId`, and both `deleteMany` calls gained a `phase: { projectId }`
+relation filter, as defense in depth.
+
+Evidence: `pnpm lint:strict` PASS, `pnpm typecheck:strict` PASS,
+`pnpm test --run` PASS (1734 passed / 195 skipped), `pnpm build` PASS.
+New tests: `tests/security/registration-grant.test.ts` (8),
+`tests/security/delta-cross-project-idor.test.ts` (6). Verified 13/14 fail
+against the pre-fix code.
+
+Residual risk (audited, NOT yet fixed — see audit backlog): `'unsafe-inline'` in
+the production `script-src` CSP; magic-link URLs built from the `Host` header;
+`/api/security/revoke` is a destructive GET reachable by link prefetchers; no
+per-account rate limit on `admin-login`/`begin-register`; `ErrorBoundary` and
+the Sentry stub are unmounted/unimported so production errors are unreported;
+`vercel.json` schedules `/api/cron/revoke`, which does not exist;
+`prisma/migrations/` does not exist while four runbooks call `prisma migrate deploy`.
+
+## 0. Gate-Status Correction & P0 Remediation (2026-06-05)
 
 This file is the takeover ledger for any AI LLM CLI.
 

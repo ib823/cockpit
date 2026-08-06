@@ -8,6 +8,7 @@ import { badRequest, unauthorized, forbidden, serverError } from "@/lib/api-resp
 type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb" | "hybrid";
 import { sanitizeHtml } from "@/lib/input-sanitizer";
 import { logger } from "@/lib/logger";
+import { isValidRegistrationGrant } from "@/lib/auth/registration-grant";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,9 @@ export async function POST(req: Request) {
       .trim()
       .toLowerCase();
     const code = body.code as string | undefined;
+    // SECURITY: `magicLink` is client-controlled and proves nothing on its own.
+    // It only selects the branch; the branch itself demands a server-issued
+    // grant (see below). Never gate an authorization decision on this flag.
     const magicLink = body.magicLink === true;
 
     // Validate email format and length
@@ -60,7 +64,20 @@ export async function POST(req: Request) {
         return unauthorized("The provided code is incorrect.");
       }
     } else {
-      // Magic link flow - still need to verify user has approval
+      // Magic-link flow. Requires a registration grant that only
+      // /api/auth/verify-magic-link can issue, and only after it has verified
+      // and consumed a real emailed magic link. Without this the endpoint would
+      // hand a registration challenge to anyone who names an approved email.
+      if (process.env.ENABLE_MAGIC_LINKS !== "true") {
+        return forbidden("Magic link registration is disabled.");
+      }
+
+      const grantIsValid = await isValidRegistrationGrant(body.registrationGrant, email);
+      if (!grantIsValid) {
+        logger.warn("Registration attempted without a valid magic-link grant", { email });
+        return forbidden("Magic link verification required.");
+      }
+
       const approval = await prisma.emailApproval.findUnique({ where: { email } });
       if (!approval) {
         return forbidden("This email has not been approved for access.");
