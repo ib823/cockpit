@@ -19,6 +19,15 @@ type Status = {
   needsAction: "login" | "enter_invite" | "not_found";
 };
 
+/** Response used when the address cannot be looked up at all. */
+const UNKNOWN_EMAIL_STATUS: Status = {
+  registered: false,
+  hasPasskey: false,
+  invited: false,
+  inviteMethod: null,
+  needsAction: "not_found",
+};
+
 export async function GET(req: Request) {
   // SECURITY FIX: DEFECT-20251027-009
   // Add rate limiting to prevent email enumeration attacks
@@ -58,7 +67,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "email required" }, { status: 400 });
   }
 
-  // Best-effort Prisma loading without repo-specific path assumptions
+  // Resolve the shared Prisma client. Previously this fell back to
+  // `new PrismaClient()` per request, which on serverless opens a fresh pool
+  // for every call against a `connection_limit=5` pooler; the fallback is gone
+  // and a missing client now takes the conservative-defaults path below.
   let prisma: PrismaClient | null = null;
   try {
     const mod = await import("@/lib/db").catch(() => null);
@@ -68,24 +80,12 @@ export async function GET(req: Request) {
       prisma = (mod as { default: PrismaClient }).default;
     }
     if (!prisma) {
-      const { PrismaClient } = await import("@prisma/client");
-      prisma = new PrismaClient();
+      return NextResponse.json(UNKNOWN_EMAIL_STATUS);
     }
   } catch {
-    try {
-      const { PrismaClient } = await import("@prisma/client");
-      prisma = new PrismaClient();
-    } catch {
-      // If Prisma truly missing, return conservative defaults
-      const fallback: Status = {
-        registered: false,
-        hasPasskey: false,
-        invited: false,
-        inviteMethod: null,
-        needsAction: "not_found",
-      };
-      return NextResponse.json(fallback);
-    }
+    // Client unavailable — answer conservatively rather than leaking that the
+    // lookup failed for this address specifically.
+    return NextResponse.json(UNKNOWN_EMAIL_STATUS);
   }
 
   // Registered?

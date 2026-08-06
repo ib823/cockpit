@@ -9,11 +9,10 @@
  */
 
 import { NextResponse, NextRequest } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db";
 import { withCache, CACHE_CONFIG, CacheKeys } from "@/lib/cache/redis-cache";
 import { logger } from "@/lib/logger";
 
-const prisma = new PrismaClient();
 
 /**
  * GET handler for LOBs (with Redis caching)

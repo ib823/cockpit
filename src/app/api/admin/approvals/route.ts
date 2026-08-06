@@ -19,21 +19,31 @@ export const GET = withAdmin(async () => {
   const approvals = await prisma.emailApproval.findMany();
   const byEmail = new Map(approvals.map((a) => [a.email, a]));
 
-  const rows = await Promise.all(
-    users.map(async (u) => {
+  // Aggregate both event types for every user in two queries rather than two
+  // per user. This endpoint previously issued 2N+2 queries, so its cost grew
+  // linearly with the user table on every admin page load.
+  const eventAggregates = await prisma.auditEvent.groupBy({
+    by: ["userId", "type"],
+    _count: { _all: true },
+    _max: { createdAt: true },
+    where: {
+      userId: { in: users.map((u) => u.id) },
+      type: { in: ["login", "timeline.generate"] },
+    },
+  });
+
+  const aggregateByUserAndType = new Map(
+    eventAggregates.map((a) => [`${a.userId}:${a.type}`, a])
+  );
+  const emptyAggregate = { _count: { _all: 0 }, _max: { createdAt: null } };
+
+  const rows = users.map((u) => {
       const appr = byEmail.get(u.email);
       const expired = !u.exception && u.accessExpiresAt <= new Date();
 
-      const loginAgg = await prisma.auditEvent.aggregate({
-        _count: { _all: true },
-        _max: { createdAt: true },
-        where: { userId: u.id, type: "login" },
-      });
-      const timelineAgg = await prisma.auditEvent.aggregate({
-        _count: { _all: true },
-        _max: { createdAt: true },
-        where: { userId: u.id, type: "timeline.generate" },
-      });
+      const loginAgg = aggregateByUserAndType.get(`${u.id}:login`) ?? emptyAggregate;
+      const timelineAgg =
+        aggregateByUserAndType.get(`${u.id}:timeline.generate`) ?? emptyAggregate;
 
       let status: "pending" | "approved" | "enrolled" | "expired" = "pending";
       if (u.Authenticator.length > 0 && !expired) status = "enrolled";
@@ -51,8 +61,7 @@ export const GET = withAdmin(async () => {
         timelineRuns: timelineAgg._count._all,
         lastTimelineAt: timelineAgg._max.createdAt,
       };
-    })
-  );
+  });
 
   return NextResponse.json({ rows });
 });

@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
-
-const prisma = new PrismaClient();
 
 export const GET = withAuth(async (_req, auth) => {
   const startTime = performance.now(); // Performance monitoring
@@ -24,20 +22,23 @@ export const GET = withAuth(async (_req, auth) => {
     // TODO: Replace with actual architecture diagram count when implemented
     const architectureDiagrams = 0;
 
-    // Count total unique resources across all projects
+    // Count resources across all of this user's projects. Counted in the
+    // database rather than by loading every GanttResource row and taking
+    // `.length`, which is what this did before.
     const projectsWithResources = await prisma.ganttProject.findMany({
       where: {
         userId: auth.userId,
         deletedAt: null,
       },
       select: {
-        resources: true,
+        _count: { select: { resources: true } },
       },
     });
 
-    // Calculate total unique resources
-    const allResources = projectsWithResources.flatMap((project) => project.resources || []);
-    const totalResources = allResources.length;
+    const totalResources = projectsWithResources.reduce(
+      (sum, project) => sum + project._count.resources,
+      0
+    );
 
     const queryDuration = performance.now() - queryStartTime;
 
@@ -83,7 +84,9 @@ export const GET = withAuth(async (_req, auth) => {
   } catch (error) {
     logger.error("[Dashboard Stats] Error", { error: error });
     return NextResponse.json({ error: "Failed to fetch statistics" }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
+  // NOTE: no $disconnect here. This route used to tear down the pool in a
+  // `finally` on every request, which on serverless meant a cold connection per
+  // invocation against a `connection_limit=5` pooler. The shared client in
+  // @/lib/db owns its lifecycle.
 });

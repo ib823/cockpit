@@ -636,6 +636,7 @@ model GanttProject {
   versionedAllocations ResourceWeeklyAllocation[] @relation("VersionedAllocations") // NEW: Allocations linked to this version
 
   @@index([userId])
+  @@index([userId, deletedAt, updatedAt]) // project list: own, not deleted, newest first
   @@index([createdAt])
   @@index([updatedAt])
   @@index([deletedAt])
@@ -679,6 +680,7 @@ model GanttPhase {
   tasks                    GanttTask[]
 
   @@index([projectId])
+  @@index([projectId, order]) // phases are always read for a project ordered by `order`
   @@index([order])
 }
 
@@ -704,6 +706,7 @@ model GanttTask {
   resourceAssignments GanttTaskResourceAssignment[]
 
   @@index([phaseId])
+  @@index([phaseId, order]) // tasks are always read for a phase ordered by `order`
   @@index([order])
   @@index([parentTaskId])
   @@index([level])
@@ -721,6 +724,7 @@ model GanttMilestone {
   project     GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([projectId, date]) // milestones are always read for a project ordered by date
   @@index([date])
 }
 
@@ -735,6 +739,7 @@ model GanttHoliday {
   project   GanttProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([projectId, date]) // holidays are always read for a project ordered by date
   @@index([date])
 }
 
@@ -792,6 +797,7 @@ model GanttResource {
   subcontractorRates SubcontractorRate[] // NEW: Subcontractor-specific rates (if isSubcontractor = true)
 
   @@index([projectId])
+  @@index([projectId, isActive, deletedAt]) // active, non-deleted resources for a project
   @@index([category])
   @@index([designation]) // NEW: Index for rate lookups
   @@index([regionCode]) // NEW: Index for multi-region queries
@@ -1478,7 +1484,7 @@ model ProjectCostingConfig {
   intercompanyMarkupPercent Decimal @default(1.1500) @db.Decimal(5, 4) // 15% markup
   // Home region for intercompany markup. The markup applies to resources whose
   // region differs from this. Null/empty = intercompany markup disabled.
-  intercompanyHomeRegion String?
+  intercompanyHomeRegion    String?
 
   // Currency
   baseCurrency String @default("MYR")
