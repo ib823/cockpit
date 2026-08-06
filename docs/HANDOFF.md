@@ -75,16 +75,82 @@ Also closed, with the same gates re-run green:
   recoverable from the codebase; if a revocation sweep is wanted, it needs to be
   specified and written.
 
-Residual risk (audited, NOT yet fixed): `'unsafe-inline'` in the production
-`script-src` CSP (requires nonce-ing the two static bootstrap scripts in
-`layout.tsx`); `/api/security/revoke` is a destructive GET that email
-prefetchers and URL scanners can trigger to lock an account; `ErrorBoundary`
-and the Sentry stub remain unmounted/unimported so errors are logged but not
-reported anywhere; `prisma/migrations/` does not exist while four runbooks call
-`prisma migrate deploy`; `delta.tasks` is accepted by the schema and silently
-discarded, so a task edit still rewrites its whole phase subtree; background
-sync still re-fetches the full project every 5s to compute a delta. See the
-audit backlog for the full ranked list.
+### Third batch — data layer (same date)
+
+- **Connection-pool churn.** `dashboard/stats`, `lobs` and `l3-catalog` each
+  built their own module-scope `PrismaClient`, and `auth/email-status` built one
+  per request in a fallback path; on serverless each is a separate pool against
+  a `connection_limit=5` pooler. All now use the shared client.
+  `dashboard/stats` also called `$disconnect()` in a `finally` on every request,
+  tearing the pool down per invocation — removed.
+- **Over-fetch.** `dashboard/stats` loaded every `GanttResource` row across all
+  of a user's projects only to take `.length`; now counted with `_count`.
+- **N+1.** `admin/approvals` issued 2N+2 queries (two `aggregate` calls per
+  user) — replaced with one `groupBy`. `resources/validate` issued 2N `count`
+  calls — replaced with two `groupBy` calls.
+- **Indexes.** Added composites matching real access patterns:
+  `GanttTask([phaseId, order])`, `GanttPhase([projectId, order])`,
+  `GanttMilestone([projectId, date])`, `GanttHoliday([projectId, date])`,
+  `GanttResource([projectId, isActive, deletedAt])`,
+  `GanttProject([userId, deletedAt, updatedAt])`.
+
+### Fourth batch — safe methods, reachability, error visibility (same date)
+
+- **V-7 destructive GET.** `/api/security/revoke` performed the full account
+  lockdown on a bare GET. GET is now side-effect free and renders a confirmation
+  form (token HTML-escaped, `no-store`, `noindex`); POST performs the action.
+- **V-6 unreachable token endpoints.** `/api/security/revoke`,
+  `/api/user/email/revoke`, `/api/user/recovery/request` and
+  `/api/cron/password-expiry-warnings` were behind the middleware session gate
+  despite carrying their own authentication, so the lockdown link redirected the
+  locked-out user to `/login` and the cron job could never run. Added to
+  `PUBLIC_PATHS`; still authenticated in-route. Cron auth now prefers
+  `Authorization: Bearer` and compares in constant time.
+- **ErrorBoundary mounted.** It was implemented with 22 passing tests and
+  wrapped nothing; a throw inside an already-mounted client component blanked
+  the page (`error.tsx` does not cover that case).
+- **Console suppression narrowed.** The filter in `providers.tsx` was swallowing
+  every `[BackgroundSync]` error — the save path's own failure reporting. Only
+  third-party noise is filtered now.
+
+### Remaining known issues (audited, NOT fixed)
+
+Ranked, with the reason each was deferred rather than attempted here:
+
+1. **`delta.tasks` is accepted by `DeltaSaveSchema` and silently discarded** —
+   there is no `if (delta.tasks)` branch in the transaction. Task edits persist
+   only via the phase path, which **deletes and recreates every task in the
+   phase**, cascading `GanttTaskResourceAssignment` rows. Editing one task name
+   rewrites its whole phase subtree. Fixing this correctly means true task-level
+   diffing on both client serialisers and the server, and it is the single
+   riskiest edit in the save path — it needs DB-backed integration tests, which
+   this environment cannot run (no live Postgres). Do not attempt it blind.
+2. **Background sync re-fetches the full project every 5s** to compute a delta
+   baseline (`background-sync.ts:307`), a full-document read for a partial
+   write, started as a module import side-effect that cannot be stopped.
+3. **No optimistic locking on the delta route** — `GanttProject.version` exists
+   and the legacy full-PATCH route uses it, but delta never reads or increments
+   it, so concurrent edits are last-writer-wins.
+4. **`'unsafe-inline'` in the production `script-src` CSP** — requires nonce-ing
+   the two static bootstrap scripts in `layout.tsx`; needs browser verification
+   before shipping, since getting it wrong breaks every page.
+5. **No error tracking backend.** Errors now reach the logger and an
+   ErrorBoundary, but `src/lib/monitoring/sentry.ts` is still an unimported
+   stub, so nothing is reported off-box.
+6. **`prisma/migrations/` does not exist** while `BACKUP_RESTORE.md` and
+   `INCIDENT_RUNBOOKS.md` call `prisma migrate deploy` in four procedures. The
+   schema is push-managed. The disaster-recovery runbooks cannot succeed as
+   written.
+7. **Test-suite credibility** — ~210 skipped tests (the entire Architecture
+   module), coverage thresholds set to 0, the a11y suite asserts against
+   hand-written HTML strings rather than rendered components, the bundle-budget
+   test never parses build output, and 185 Playwright tests never run in CI
+   (`baseURL` is port 3000, `pnpm dev` serves 3002).
+8. **UI duplication** — 71% of components are unreachable from any route; five
+   Button implementations; the canonical EmptyState/Toast/AriaLive have zero
+   consumers; `BaseModal` (28 dialogs) lacks `role="dialog"`/`aria-modal`; the
+   primary brand blue `#007AFF` on white is 4.02:1 and fails WCAG AA; the
+   `dark:` variant is wired to a selector nothing sets.
 
 ## 0. Gate-Status Correction & P0 Remediation (2026-06-05)
 
