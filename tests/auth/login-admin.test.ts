@@ -14,6 +14,7 @@ import {
   setupTestDatabase,
   teardownTestDatabase,
 } from "./helpers/test-setup";
+import { accessCodeLimiter } from "../../src/lib/server-rate-limiter";
 
 describe("Admin Login Flow", () => {
   beforeAll(async () => {
@@ -26,6 +27,10 @@ describe("Admin Login Flow", () => {
 
   beforeEach(async () => {
     await cleanupTestData();
+    // admin-login enforces a per-account access-code limit (5 / 15 min). Every
+    // test here redeems a code for the same address, so the counter must be
+    // cleared between them or later tests receive 429 from earlier attempts.
+    await accessCodeLimiter.reset(TEST_USERS.ADMIN_USER.email.toLowerCase());
   });
 
   describe("admin-login success scenarios", () => {

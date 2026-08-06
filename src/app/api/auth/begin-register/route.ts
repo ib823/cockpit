@@ -9,6 +9,7 @@ type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb" | "hybrid";
 import { sanitizeHtml } from "@/lib/input-sanitizer";
 import { logger } from "@/lib/logger";
 import { isValidRegistrationGrant } from "@/lib/auth/registration-grant";
+import { accessCodeLimiter } from "@/lib/server-rate-limiter";
 
 export const runtime = "nodejs";
 
@@ -42,6 +43,22 @@ export async function POST(req: Request) {
     if (!magicLink) {
       if (!code || code.length !== 6) {
         return badRequest("Invalid code format.");
+      }
+
+      // SECURITY: bound brute force against the 6-digit access code per
+      // account. The middleware limiter is IP-keyed and parallelisable.
+      const rateLimit = await accessCodeLimiter.check(email);
+      if (!rateLimit.success) {
+        return NextResponse.json(
+          {
+            ok: false,
+            message: `Too many attempts. Please try again in ${rateLimit.retryAfter} seconds.`,
+          },
+          {
+            status: 429,
+            headers: { "Retry-After": String(rateLimit.retryAfter ?? 900) },
+          }
+        );
       }
 
       const approval = await prisma.emailApproval.findUnique({ where: { email } });

@@ -50,13 +50,41 @@ New tests: `tests/security/registration-grant.test.ts` (8),
 `tests/security/delta-cross-project-idor.test.ts` (6). Verified 13/14 fail
 against the pre-fix code.
 
-Residual risk (audited, NOT yet fixed — see audit backlog): `'unsafe-inline'` in
-the production `script-src` CSP; magic-link URLs built from the `Host` header;
-`/api/security/revoke` is a destructive GET reachable by link prefetchers; no
-per-account rate limit on `admin-login`/`begin-register`; `ErrorBoundary` and
-the Sentry stub are unmounted/unimported so production errors are unreported;
-`vercel.json` schedules `/api/cron/revoke`, which does not exist;
-`prisma/migrations/` does not exist while four runbooks call `prisma migrate deploy`.
+### Follow-up batch (same date)
+
+Also closed, with the same gates re-run green:
+
+- **V-4 host-header injection.** `send-magic-link` built the emailed login URL
+  from `x-forwarded-proto`/`host`, so a forged Host caused a valid unused token
+  to be mailed to the victim pointing at attacker infrastructure. Now built from
+  `NEXT_PUBLIC_APP_URL`/`NEXTAUTH_URL` only, failing closed if neither is set.
+- **V-5 unbounded access-code brute force.** Added `accessCodeLimiter`
+  (5 attempts / 15 min, keyed by email) to `admin-login` and `begin-register`.
+  The middleware's general limiter is IP-keyed and parallelises trivially, so
+  the 6-digit / 7-day code space was reachable. Also normalised `admin-login`'s
+  email to lowercase — every other flow did, this one did not, so mixed-case
+  addresses silently failed to match. Regression tests:
+  `tests/security/access-code-rate-limit.test.ts` (3).
+- **No production error surface.** Added `src/app/error.tsx` and
+  `src/app/global-error.tsx`. Previously neither existed, so any unhandled
+  render error was an unstyled white screen with nothing logged; both now log
+  through the canonical logger including Next's `digest` correlation id.
+- **Dangling cron.** Removed `/api/cron/revoke` from `vercel.json` — the route
+  does not exist in `src/app/api/cron/`, so the schedule was a daily 404. It was
+  removed rather than reconstructed because the intended behaviour is not
+  recoverable from the codebase; if a revocation sweep is wanted, it needs to be
+  specified and written.
+
+Residual risk (audited, NOT yet fixed): `'unsafe-inline'` in the production
+`script-src` CSP (requires nonce-ing the two static bootstrap scripts in
+`layout.tsx`); `/api/security/revoke` is a destructive GET that email
+prefetchers and URL scanners can trigger to lock an account; `ErrorBoundary`
+and the Sentry stub remain unmounted/unimported so errors are logged but not
+reported anywhere; `prisma/migrations/` does not exist while four runbooks call
+`prisma migrate deploy`; `delta.tasks` is accepted by the schema and silently
+discarded, so a task edit still rewrites its whole phase subtree; background
+sync still re-fetches the full project every 5s to compute a delta. See the
+audit backlog for the full ranked list.
 
 ## 0. Gate-Status Correction & P0 Remediation (2026-06-05)
 
