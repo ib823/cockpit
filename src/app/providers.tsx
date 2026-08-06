@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AntDThemeBridge } from "@/ui/compat/AntDThemeBridge";
 import { ToastProvider } from "@/ui/toast/ToastProvider";
 import { DynamicFavicon } from "@/components/DynamicFavicon";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useEffect, useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -35,32 +36,39 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
+    // Suppresses known-benign third-party console noise only.
+    //
+    // This filter previously also swallowed every `[BackgroundSync]` error —
+    // the save path's own failure reporting. Sync errors are surfaced in the UI
+    // as a toast, but that gives no stack, no payload and no way to diagnose a
+    // save that is silently not persisting, which is the highest-consequence
+    // failure this app has. Those clauses are gone; anything matched here must
+    // be noise the app cannot act on.
     const originalError = console.error;
+    const SUPPRESSED = [
+      // antd v5 React 19 compatibility banner
+      (msg: string) => msg.includes("antd: compatible"),
+      // Expected while the session endpoint is unreachable; surfaced in the UI
+      (msg: string) => msg.includes("[next-auth][error][CLIENT_FETCH_ERROR]"),
+      // antd css-in-js emits different class hashes on server and client
+      (msg: string) => msg.includes("Hydration") && msg.includes("css-dev-only-do-not-override"),
+      // The splash loader is injected client-side only, so it always mismatches
+      (msg: string) => msg.includes("Hydration") && msg.includes("initial-loader"),
+      // We deliberately use the standalone message API over the static one
+      (msg: string) => msg.includes("[antd: message]") && msg.includes("Static function"),
+    ];
+
     console.error = (...args) => {
-      if (
-        typeof args[0] === "string" &&
-        (args[0].includes("antd: compatible") ||
-          args[0].includes("[next-auth][error][CLIENT_FETCH_ERROR]") ||
-          // Suppress AntD hydration warnings - expected with dynamic theming
-          (args[0].includes("Hydration") && args[0].includes("css-dev-only-do-not-override")) ||
-          // Suppress IndexedDB transaction errors (fixed in code, but may persist in old sessions)
-          (args[0].includes("[BackgroundSync]") && args[0].includes("transaction has finished")) ||
-          // Suppress ALL background sync errors - handled gracefully by toast + modal UI
-          (args[0].includes("[BackgroundSync]") && args[0].includes("Sync")) ||
-          // Suppress specific sync error patterns
-          (args[0].includes("[BackgroundSync]") && (args[0].includes("error") || args[0].includes("failed") || args[0].includes("Error"))) ||
-          // Suppress validation and permanent error messages - shown in UI
-          (args[0].includes("[BackgroundSync]") && args[0].includes("Permanent error")) ||
-          // Suppress initial loader hydration warnings - loader is created client-side only
-          (args[0].includes("Hydration") && args[0].includes("initial-loader")) ||
-          // Suppress static message API warnings - we use standalone API for better performance
-          (args[0].includes("[antd: message]") && args[0].includes("Static function")))
-      ) {
+      if (typeof args[0] === "string" && SUPPRESSED.some((matches) => matches(args[0]))) {
         return;
       }
       if (typeof originalError === "function") {
         originalError.apply(console, args);
       }
+    };
+
+    return () => {
+      console.error = originalError;
     };
   }, []);
 
@@ -72,7 +80,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <ToastProvider>
               <App>
                 <DynamicFavicon />
-                {children}
+                {/*
+                  Catches render errors in the client tree. `error.tsx` only
+                  covers errors thrown during a route render; a throw inside an
+                  already-mounted client component (the Gantt canvas, a modal)
+                  unmounts the whole tree to a blank page without this.
+                */}
+                <ErrorBoundary>{children}</ErrorBoundary>
               </App>
             </ToastProvider>
           </AntDThemeBridge>
