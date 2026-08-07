@@ -24,7 +24,7 @@ function LoginContent() {
   const [stage, setStage] = useState<"input" | "creating" | "verifying" | "success">("input");
   const [successMessage, setSuccessMessage] = useState<string>("");
 
-  const onRegisterWithMagicLink = useCallback(async (emailAddress: string) => {
+  const onRegisterWithMagicLink = useCallback(async (emailAddress: string, registrationGrant: string) => {
     setBusy(true);
     setErr(null);
     setStage("creating");
@@ -32,7 +32,7 @@ function LoginContent() {
       const begin = await fetch("/api/auth/begin-register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailAddress, magicLink: true }),
+        body: JSON.stringify({ email: emailAddress, magicLink: true, registrationGrant }),
       }).then((r) => r.json());
 
       if (!begin.ok) {
@@ -101,9 +101,16 @@ function LoginContent() {
       setStatus(statusJson);
 
       if (statusJson.needsAction === "enter_invite") {
-        // Automatically trigger passkey registration since magic link was verified
+        // Automatically trigger passkey registration since magic link was verified.
+        // The grant is the server's proof of that verification — begin-register
+        // rejects the request without it.
+        if (!json.registrationGrant) {
+          setErr("Magic link verification incomplete. Please request a new link.");
+          return;
+        }
         setSuccessMessage("Magic link verified! Creating your passkey...");
-        setTimeout(() => onRegisterWithMagicLink(json.email), 500);
+        const grant = json.registrationGrant as string;
+        setTimeout(() => onRegisterWithMagicLink(json.email, grant), 500);
       } else if (statusJson.needsAction === "login") {
         setSuccessMessage("Magic link verified! Please use your passkey to login.");
       }

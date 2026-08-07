@@ -18,12 +18,11 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db";
 import { withCache, CACHE_CONFIG, cache } from "@/lib/cache/redis-cache";
 import { withAdmin } from "@/lib/auth/with-auth";
 import { logger } from "@/lib/logger";
 
-const prisma = new PrismaClient();
 
 /**
  * GET handler for L3 catalog (with Redis caching)

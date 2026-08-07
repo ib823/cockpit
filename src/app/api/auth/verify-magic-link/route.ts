@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { logger } from "@/lib/logger";
+import {
+  REGISTRATION_GRANT_TYPE,
+  REGISTRATION_GRANT_TTL_MS,
+} from "@/lib/auth/registration-grant";
 
 export const runtime = "nodejs";
 
@@ -56,10 +61,27 @@ export async function POST(req: Request) {
       data: { usedAt: new Date() },
     });
 
+    // Mint a single-use registration grant proving this magic link was verified
+    // server-side. `begin-register` requires it before it will issue a passkey
+    // registration challenge, so possession of the grant is equivalent to
+    // possession of the emailed magic link. It is deliberately short-lived and
+    // bound to the token's email — it is never derived from client input.
+    const registrationGrant = randomBytes(32).toString("hex");
+    await prisma.magic_tokens.create({
+      data: {
+        id: randomBytes(16).toString("hex"),
+        email: magicToken.email,
+        token: registrationGrant,
+        type: REGISTRATION_GRANT_TYPE,
+        expiresAt: new Date(Date.now() + REGISTRATION_GRANT_TTL_MS),
+      },
+    });
+
     // Return the email associated with this token
     return NextResponse.json({
       ok: true,
       email: magicToken.email,
+      registrationGrant,
       message: "Magic link verified successfully",
     });
   } catch (error) {

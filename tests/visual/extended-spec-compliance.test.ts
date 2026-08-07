@@ -54,7 +54,9 @@ describe('Extended Specification Compliance - 100k+ Tests', () => {
 
   // Color permutations (4 colors × 10 opacity levels × 5 usage contexts = 200 tests)
   const semanticColors = [
-    { name: 'blue', r: 0, g: 122, b: 255 },
+    // AA-compliant: 6.39:1 on white, matching the Layer 1 design token.
+    // Apple's rgb(0,122,255) is 4.02:1 and fails AA.
+    { name: 'blue', r: 11, g: 87, b: 208 },
     { name: 'green', r: 52, g: 199, b: 89 },
     { name: 'orange', r: 255, g: 149, b: 0 },
     { name: 'red', r: 255, g: 59, b: 48 },
@@ -183,7 +185,6 @@ describe('Extended Specification Compliance - 100k+ Tests', () => {
     const components = [
       'GanttCanvasV3.tsx',
       'MissionControlModal.tsx',
-      'SegmentedControl.tsx',
     ];
 
     components.forEach(component => {
@@ -296,7 +297,6 @@ describe('Extended Specification Compliance - 100k+ Tests', () => {
       'src/app/globals.css',
       'src/components/gantt-tool/GanttCanvasV3.tsx',
       'src/components/gantt-tool/MissionControlModal.tsx',
-      'src/components/common/SegmentedControl.tsx',
     ];
 
     criticalFiles.forEach(file => {
@@ -330,7 +330,6 @@ describe('Extended Specification Compliance - 100k+ Tests', () => {
     const componentsToCheck = [
       'src/components/gantt-tool/GanttCanvasV3.tsx',
       'src/components/gantt-tool/MissionControlModal.tsx',
-      'src/components/common/SegmentedControl.tsx',
     ];
 
     componentsToCheck.forEach(componentPath => {

@@ -35,7 +35,7 @@ interface OrgNode {
 }
 
 const COMPANY_COLORS = {
-  partner: "#007AFF", // Blue
+  partner: "#0B57D0", // Blue
   client: "#34C759", // Green
   sap: "#FF9500", // Orange
 };
@@ -336,7 +336,7 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
                 width: "100%",
                 fontSize: "14px",
                 fontWeight: 600,
-                border: "1px solid #007AFF",
+                border: "1px solid #0B57D0",
                 borderRadius: "6px",
                 padding: "6px 8px",
                 marginBottom: "6px",
@@ -417,7 +417,7 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
                 flex: 1,
                 padding: "6px",
                 fontSize: "11px",
-                backgroundColor: "#007AFF",
+                backgroundColor: "#0B57D0",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "6px",
@@ -928,7 +928,7 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
                 style={{
                   padding: "6px 10px",
                   backgroundColor:
-                    direction === "vertical" ? "#007AFF" : "transparent",
+                    direction === "vertical" ? "#0B57D0" : "transparent",
                   color: direction === "vertical" ? "#ffffff" : "#1d1d1f",
                   border: "none",
                   borderRadius: "6px",
@@ -948,7 +948,7 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
                 style={{
                   padding: "6px 10px",
                   backgroundColor:
-                    direction === "horizontal" ? "#007AFF" : "transparent",
+                    direction === "horizontal" ? "#0B57D0" : "transparent",
                   color: direction === "horizontal" ? "#ffffff" : "#1d1d1f",
                   border: "none",
                   borderRadius: "6px",
@@ -989,7 +989,7 @@ export function OrgChartBuilder({ onClose }: OrgChartBuilderProps) {
               onClick={() => addNode()}
               style={{
                 padding: "8px 14px",
-                backgroundColor: "#007AFF",
+                backgroundColor: "#0B57D0",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "8px",

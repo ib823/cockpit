@@ -23,7 +23,7 @@
 
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FocusTrap from "focus-trap-react";
@@ -86,6 +86,13 @@ export interface BaseModalProps {
 // COMPONENT
 // ============================================================================
 
+/**
+ * Number of currently-open BaseModals. The body scroll lock is released only
+ * when this returns to zero, so a stacked modal closing does not unlock the
+ * page while an outer modal is still open.
+ */
+let openModalCount = 0;
+
 export function BaseModal({
   isOpen,
   onClose,
@@ -102,6 +109,12 @@ export function BaseModal({
 }: BaseModalProps) {
   const modalContentRef = useRef<HTMLDivElement>(null);
 
+  // Stable ids so aria-labelledby/aria-describedby can point at the real
+  // heading and subtitle rather than duplicating their text.
+  const generatedId = useId();
+  const titleId = `${generatedId}-title`;
+  const subtitleId = `${generatedId}-subtitle`;
+
   // Handle escape key
   useEffect(() => {
     if (!isOpen || preventEscapeClose) return;
@@ -116,16 +129,24 @@ export function BaseModal({
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose, preventEscapeClose]);
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open.
+  //
+  // Ref-counted because modals stack here (ResourceAllocationModal opens
+  // ResourceEditModal). The previous version reset `overflow` unconditionally on
+  // cleanup, so closing the inner modal restored page scrolling while the outer
+  // one was still open and covering the page.
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (!isOpen) return;
+
+    openModalCount += 1;
+    document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = "";
+      openModalCount -= 1;
+      if (openModalCount <= 0) {
+        openModalCount = 0;
+        document.body.style.overflow = "";
+      }
     };
   }, [isOpen]);
 
@@ -144,7 +165,11 @@ export function BaseModal({
       {isOpen && (
         <FocusTrap
           focusTrapOptions={{
-            initialFocus: false,
+            // Focus the dialog itself on open. This was `false`, which told
+            // focus-trap NOT to move focus into the dialog at all — keyboard and
+            // screen-reader users were left on the now-obscured trigger behind
+            // the overlay (WCAG 2.4.3).
+            initialFocus: () => modalContentRef.current ?? false,
             allowOutsideClick: true,
             escapeDeactivates: !preventEscapeClose,
           }}
@@ -174,6 +199,16 @@ export function BaseModal({
               {/* Modal Content */}
               <motion.div
                 ref={modalContentRef}
+                // Dialog semantics. Without these a screen reader announces this
+                // as an unlabelled group and does not confine the user to it,
+                // so the page behind stays reachable while it is visually
+                // covered. A11Y_EVIDENCE.md claimed these were already applied;
+                // they were not.
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={subtitle ? subtitleId : undefined}
+                tabIndex={-1}
                 variants={VARIANTS.modal}
                 initial="initial"
                 animate="animate"
@@ -227,6 +262,7 @@ export function BaseModal({
                   {/* Title & Subtitle */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h2
+                      id={titleId}
                       style={{
                         fontFamily: TYPOGRAPHY.fontFamily.display,
                         fontSize: TYPOGRAPHY.fontSize.title, // 20px
@@ -244,6 +280,7 @@ export function BaseModal({
                     </h2>
                     {subtitle && (
                       <p
+                        id={subtitleId}
                         style={{
                           fontFamily: TYPOGRAPHY.fontFamily.text,
                           fontSize: TYPOGRAPHY.fontSize.caption, // 13px

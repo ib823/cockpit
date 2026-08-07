@@ -631,7 +631,7 @@ describe('ModalButton - All Variants', () => {
     const button = screen.getByText('Primary');
     const bg = button.style.backgroundColor;
     // Accept hex or rgb format
-    expect(bg === COLORS.blue || bg === 'rgb(0, 122, 255)').toBe(true);
+    expect(bg === COLORS.blue || bg === 'rgb(11, 87, 208)').toBe(true);
   });
 
   it('SCENARIO 42: primary button has white text', () => {

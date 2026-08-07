@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { sendSecurityEmail } from "@/lib/email";
 import { passwordExpiryWarningTemplate } from "@/lib/email-templates";
 import { logger } from "@/lib/logger";
+import { timingSafeCompare } from "@/lib/crypto-utils";
 
 export const runtime = "nodejs";
 
@@ -29,8 +30,16 @@ export async function GET(req: Request) {
     // ============================================
     // 1. Verify Cron Secret (Security)
     // ============================================
+    // Prefer the Authorization header — Vercel Cron sends the secret that way,
+    // and a secret in the query string lands in proxy/CDN access logs and
+    // Referer headers. The `?key=` form is still accepted so an existing
+    // schedule keeps working.
     const url = new URL(req.url);
-    const providedKey = url.searchParams.get("key");
+    const authHeader = req.headers.get("authorization");
+    const bearerKey = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice("Bearer ".length)
+      : null;
+    const providedKey = bearerKey ?? url.searchParams.get("key");
     const cronSecret = process.env.CRON_SECRET_KEY;
 
     // Allow execution without key in development
@@ -43,7 +52,8 @@ export async function GET(req: Request) {
         );
       }
 
-      if (providedKey !== cronSecret) {
+      // Constant-time so the secret cannot be recovered byte-by-byte.
+      if (!providedKey || !timingSafeCompare(providedKey, cronSecret)) {
         logger.warn("[PasswordExpiryCron] Invalid cron secret provided");
         return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
       }

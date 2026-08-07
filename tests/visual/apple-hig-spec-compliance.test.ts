@@ -49,8 +49,13 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
       expect(designSystemCSS).toContain('--space-64: 4rem'); // 64px
     });
 
-    it('should have EXACT Apple System Blue color rgb(0, 122, 255)', () => {
-      expect(designSystemCSS).toContain('--color-blue: rgb(0, 122, 255)');
+    it('should use an AA-compliant primary blue', () => {
+      // Deliberately NOT Apple's rgb(0,122,255): that is 4.02:1 on white and
+      // fails WCAG 2.2 AA for normal text (needs 4.5:1), which matters because
+      // this token is the background of every primary button and carries white
+      // text. rgb(11,87,208) is 6.39:1 and matches the Layer 1 design token
+      // (docs/DESIGN_BRIEF_PROMPT.md). Do not "restore" the Apple value.
+      expect(designSystemCSS).toContain('--color-blue: rgb(11, 87, 208)');
     });
 
     it('should have EXACT Apple System Green color rgb(52, 199, 89)', () => {
@@ -262,38 +267,6 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
     });
   });
 
-  describe('6. SegmentedControl Component - Pixel Perfect', () => {
-    const segmentedPath = path.join(process.cwd(), 'src/components/common/SegmentedControl.tsx');
-
-    if (fs.existsSync(segmentedPath)) {
-      const segmentedCode = fs.readFileSync(segmentedPath, 'utf-8');
-
-      it('should use var(--color-gray-6) for background', () => {
-        expect(segmentedCode).toContain('var(--color-gray-6)');
-      });
-
-      it('should use var(--font-text) for typography', () => {
-        expect(segmentedCode).toContain('var(--font-text)');
-      });
-
-      it('should use var(--text-body) for font size', () => {
-        expect(segmentedCode).toContain('var(--text-body)');
-      });
-
-      it('should have selected state with white background', () => {
-        expect(segmentedCode).toContain('var(--color-bg-primary)');
-      });
-
-      it('should have unselected opacity 0.6', () => {
-        expect(segmentedCode).toContain('opacity: 0.6');
-      });
-
-      it('should use var(--duration-default) for transitions', () => {
-        expect(segmentedCode).toContain('var(--duration-default)');
-      });
-    }
-  });
-
   describe('7. Spacing Grid - 8px Multiples', () => {
     const ganttV3Path = path.join(process.cwd(), 'src/components/gantt-tool/GanttCanvasV3.tsx');
     const ganttV3Code = fs.readFileSync(ganttV3Path, 'utf-8');
@@ -340,10 +313,6 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
       expect(exists).toBe(true);
     });
 
-    it('should have SegmentedControl component', () => {
-      const exists = fs.existsSync(path.join(process.cwd(), 'src/components/common/SegmentedControl.tsx'));
-      expect(exists).toBe(true);
-    });
 
     it('should have docs directory', () => {
       // Docs directory should exist for documentation

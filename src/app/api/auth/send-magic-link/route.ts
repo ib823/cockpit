@@ -51,11 +51,19 @@ export async function POST(req: Request) {
     // Create magic link (valid for 2 minutes)
     const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
 
-    // Get base URL from request
-    const protocol = req.headers.get("x-forwarded-proto") || "http";
-    const host = req.headers.get("host") || "localhost:3000";
-    const baseUrl = `${protocol}://${host}`;
-    const magicLink = `${baseUrl}/login?token=${token}`;
+    // SECURITY: never build an emailed login URL from request headers. An
+    // attacker who can reach this origin with a forged Host / X-Forwarded-Proto
+    // would otherwise have a valid, unused magic token mailed to the victim
+    // pointing at infrastructure they control. Use configured origin only.
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
+    if (!baseUrl) {
+      logger.error("[send-magic-link] No configured app origin (NEXT_PUBLIC_APP_URL/NEXTAUTH_URL)");
+      return NextResponse.json(
+        { ok: false, message: "Failed to send email. Please try again." },
+        { status: 500 }
+      );
+    }
+    const magicLink = `${baseUrl.replace(/\/$/, "")}/login?token=${token}`;
 
     // Store token in database
     await prisma.magic_tokens.create({

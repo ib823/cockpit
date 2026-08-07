@@ -41,10 +41,16 @@ build command `pnpm build` (auto-detected; `build` runs `prisma generate`).
 Pushing the branch (or merging to `main`) triggers the deploy.
 
 ## 4. Create the schema + seed reference data (run once, locally)
+
+> If the target database **already has tables** (any environment created before
+> migrations existed), do NOT run `migrate deploy` — it will fail on the first
+> table that already exists. Baseline it instead with
+> `pnpm prisma migrate resolve --applied 0_init`, then `pnpm prisma migrate status`.
+> See `prisma/migrations/README.md`.
 ```bash
 export DATABASE_URL="<Neon DIRECT url>"
-pnpm prisma db push     # creates all tables from prisma/schema.prisma
-pnpm prisma db seed     # seeds L3 catalog + regional holidays (reference data)
+pnpm prisma migrate deploy  # applies prisma/migrations (creates all 65 tables)
+pnpm prisma db seed         # seeds L3 catalog + regional holidays (reference data)
 ```
 
 ## 5. Your test login (no email service required)

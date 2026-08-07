@@ -152,7 +152,7 @@ export function UnifiedProjectSelector({
               <div style={{
                 width: "32px",
                 height: "32px",
-                background: "linear-gradient(135deg, #007AFF, #5856D6)",
+                background: "linear-gradient(135deg, #0B57D0, #5856D6)",
                 borderRadius: "4px",
                 display: "flex",
                 alignItems: "center",
@@ -481,7 +481,7 @@ export function UnifiedProjectSelector({
                         <div style={{
                           width: "28px",
                           height: "28px",
-                          background: "linear-gradient(135deg, #007AFF, #5856D6)",
+                          background: "linear-gradient(135deg, #0B57D0, #5856D6)",
                           borderRadius: "4px",
                           display: "flex",
                           alignItems: "center",

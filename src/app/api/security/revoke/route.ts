@@ -10,6 +10,70 @@ import { setUserEpoch } from "@/lib/auth/revocation";
 
 export const runtime = "nodejs";
 
+const PAGE_STYLES = `
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 520px; text-align: center; }
+    h1 { color: #1d1d1f; margin: 0 0 16px 0; font-size: 24px; }
+    p { color: #64748b; line-height: 1.6; margin: 0 0 12px 0; }
+    ul { color: #64748b; line-height: 1.6; text-align: left; margin: 0 0 24px 0; }
+    button { background: #dc2626; color: white; border: none; border-radius: 8px; padding: 14px 28px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    button:hover { background: #b91c1c; }
+    .muted { font-size: 13px; color: #94a3b8; margin-top: 20px; }
+`;
+
+const MISSING_TOKEN_PAGE = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>Invalid Security Link</title><style>${PAGE_STYLES}</style></head>
+<body>
+  <div class="card">
+    <h1>⚠️ Invalid Link</h1>
+    <p>This security link is missing its token. Please use the link exactly as it appears in your security alert email.</p>
+  </div>
+</body>
+</html>`;
+
+/**
+ * Confirmation page. The destructive action is behind a form POST so that no
+ * automated GET (prefetch, scanner, prerender) can trigger it.
+ */
+function confirmationPage(token: string): string {
+  // The token is placed in an HTML attribute, so escape the characters that
+  // could break out of it. JWTs are base64url + dots and will not normally
+  // contain these, but the value is attacker-supplied and must not be trusted.
+  const safeToken = token.replace(/[&<>"']/g, (c) => {
+    const map: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return map[c];
+  });
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Confirm Account Lockdown</title><style>${PAGE_STYLES}</style></head>
+<body>
+  <div class="card">
+    <h1>Secure your account</h1>
+    <p>Confirming will immediately:</p>
+    <ul>
+      <li>Sign you out on every device</li>
+      <li>Remove all passkeys registered to your account</li>
+      <li>Reset two-factor authentication</li>
+      <li>Lock the account until an administrator restores access</li>
+    </ul>
+    <form method="POST">
+      <input type="hidden" name="token" value="${safeToken}">
+      <button type="submit">Yes, lock my account</button>
+    </form>
+    <p class="muted">If you did not receive a security alert, you can close this page &mdash; nothing has changed yet.</p>
+  </div>
+</body>
+</html>`;
+}
+
 /**
  * Security Action Handler - "Not Me" Button
  *
@@ -26,10 +90,49 @@ export const runtime = "nodejs";
  * 8. Log security event
  * 9. Send confirmation email
  */
+/**
+ * Renders the confirmation step for the "This Wasn't Me" link.
+ *
+ * SECURITY: the revocation itself must never run on GET. It terminates every
+ * session, deletes every passkey, clears TOTP and locks the account — so a mail
+ * client prefetching the link, a corporate URL scanner following it, or a
+ * browser prerendering it would silently brick the user's account without them
+ * ever clicking. GET therefore only renders a form; POST does the work.
+ */
 export async function GET(req: NextRequest) {
+  const token = req.nextUrl.searchParams.get("token");
+
+  if (!token) {
+    return new Response(MISSING_TOKEN_PAGE, {
+      status: 400,
+      headers: { "Content-Type": "text/html", "Cache-Control": "no-store" },
+    });
+  }
+
+  return new Response(confirmationPage(token), {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html",
+      // Never cached or indexed: the URL carries a bearer token.
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      "X-Robots-Tag": "noindex, nofollow",
+      "Referrer-Policy": "no-referrer",
+    },
+  });
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const searchParams = req.nextUrl.searchParams;
-    const token = searchParams.get("token");
+    // Accept the token from the confirmation form, falling back to the query
+    // string so an existing in-flight link still resolves.
+    let token = req.nextUrl.searchParams.get("token");
+    try {
+      const formData = await req.formData();
+      const fromForm = formData.get("token");
+      if (typeof fromForm === "string" && fromForm) token = fromForm;
+    } catch {
+      // Not a form submission — keep the query-string token.
+    }
 
     if (!token) {
       return new Response(

@@ -75,28 +75,42 @@ export const GET = withAuth(async (request, auth) => {
       byCategory[r.category] = (byCategory[r.category] || 0) + 1;
     });
 
-    // Check for unassigned resources
-    const unassignedResources = await Promise.all(
-      validationReport.valid.map(async (resource) => {
-        const taskAssignments =
-          await prisma.ganttTaskResourceAssignment.count({
-            where: { resourceId: resource.id },
-          });
+    // Check for unassigned resources. Counted with two grouped queries rather
+    // than two per resource — this was 2N round trips against the validated set.
+    const validResourceIds = validationReport.valid.map((r) => r.id);
 
-        const phaseAssignments =
-          await prisma.ganttPhaseResourceAssignment.count({
-            where: { resourceId: resource.id },
-          });
+    const [taskAssignmentGroups, phaseAssignmentGroups] = await Promise.all([
+      prisma.ganttTaskResourceAssignment.groupBy({
+        by: ["resourceId"],
+        _count: { _all: true },
+        where: { resourceId: { in: validResourceIds } },
+      }),
+      prisma.ganttPhaseResourceAssignment.groupBy({
+        by: ["resourceId"],
+        _count: { _all: true },
+        where: { resourceId: { in: validResourceIds } },
+      }),
+    ]);
 
-        return {
-          resourceId: resource.id,
-          name: resource.name,
-          assigned: taskAssignments + phaseAssignments > 0,
-          taskCount: taskAssignments,
-          phaseCount: phaseAssignments,
-        };
-      })
+    const taskCountByResource = new Map(
+      taskAssignmentGroups.map((g) => [g.resourceId, g._count._all])
     );
+    const phaseCountByResource = new Map(
+      phaseAssignmentGroups.map((g) => [g.resourceId, g._count._all])
+    );
+
+    const unassignedResources = validationReport.valid.map((resource) => {
+      const taskAssignments = taskCountByResource.get(resource.id) ?? 0;
+      const phaseAssignments = phaseCountByResource.get(resource.id) ?? 0;
+
+      return {
+        resourceId: resource.id,
+        name: resource.name,
+        assigned: taskAssignments + phaseAssignments > 0,
+        taskCount: taskAssignments,
+        phaseCount: phaseAssignments,
+      };
+    });
 
     const unassignedCount = unassignedResources.filter(
       r => !r.assigned

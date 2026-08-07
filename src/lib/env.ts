@@ -58,6 +58,13 @@ const envSchema = z.object({
     .transform((val) => val === "true"),
 
   // Monitoring and analytics - Optional
+  //
+  // NEXT_PUBLIC_SENTRY_DSN is the one that actually takes effect: the browser
+  // SDK needs the value inlined at build time, which only a NEXT_PUBLIC_ name
+  // provides. The bare SENTRY_DSN is kept as a server-side fallback because it
+  // is what this schema has always validated — see src/lib/monitoring/sentry.ts,
+  // which reads the public name first.
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
   SENTRY_DSN: z.string().url().optional(),
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
@@ -121,8 +128,8 @@ function validateEnv(): Env {
         warnings.push("WEBAUTHN_ORIGIN (passkey authentication may fail)");
       }
 
-      if (!env.SENTRY_DSN) {
-        warnings.push("SENTRY_DSN (error tracking disabled)");
+      if (!env.NEXT_PUBLIC_SENTRY_DSN && !env.SENTRY_DSN) {
+        warnings.push("NEXT_PUBLIC_SENTRY_DSN (error tracking disabled)");
       }
 
       if (!env.NEXT_PUBLIC_POSTHOG_KEY) {

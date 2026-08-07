@@ -1,6 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
+ * Dev-server port. Defaults to the port `pnpm dev` binds (see package.json);
+ * override with PLAYWRIGHT_PORT to test against an already-running server.
+ */
+const E2E_PORT = process.env.PLAYWRIGHT_PORT ?? "3002";
+const E2E_BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${E2E_PORT}`;
+
+/**
  * Playwright Configuration for Cockpit E2E Tests
  *
  * Focused on responsive design testing across multiple devices
@@ -20,7 +27,7 @@ export default defineConfig({
 
   // Global test settings
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: E2E_BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -100,10 +107,15 @@ export default defineConfig({
     },
   ],
 
-  // Web server configuration
+  // Web server configuration.
+  //
+  // The port must match the one `pnpm dev` actually binds (package.json runs
+  // `next dev -p 3002`). This previously launched the dev server and then waited
+  // on port 3000, so the server never became "ready" and every project failed on
+  // the 120s timeout — the whole E2E suite was unrunnable.
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
+    command: `pnpm dev --port ${E2E_PORT}`,
+    url: E2E_BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

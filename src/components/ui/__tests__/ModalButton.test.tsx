@@ -79,7 +79,7 @@ describe('ModalButton - Variant Styling', () => {
     const button = screen.getByText('Primary') as HTMLButtonElement;
 
     // JSDOM converts hex to RGB
-    expect(button.style.backgroundColor).toBe('rgb(0, 122, 255)'); // #007AFF
+    expect(button.style.backgroundColor).toBe('rgb(11, 87, 208)'); // #0B57D0
     expect(button.style.color).toBe('rgb(255, 255, 255)'); // white
   });
 
@@ -272,7 +272,7 @@ describe('ModalButton - Hover States (Event Handlers)', () => {
     const button = screen.getByText('Hover Me') as HTMLButtonElement;
     const initialColor = button.style.backgroundColor;
 
-    expect(initialColor).toBe('rgb(0, 122, 255)'); // #007AFF
+    expect(initialColor).toBe('rgb(11, 87, 208)'); // #0B57D0
 
     // Trigger hover
     fireEvent.mouseEnter(button);
@@ -280,7 +280,7 @@ describe('ModalButton - Hover States (Event Handlers)', () => {
 
     // Trigger leave
     fireEvent.mouseLeave(button);
-    expect(button.style.backgroundColor).toBe('rgb(0, 122, 255)'); // #007AFF
+    expect(button.style.backgroundColor).toBe('rgb(11, 87, 208)'); // #0B57D0
   });
 
   it('SCENARIO 24: destructive button hover changes to redHover color', () => {

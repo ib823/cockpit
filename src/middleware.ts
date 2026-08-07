@@ -53,8 +53,28 @@ function getIdentifier(request: NextRequest): string {
   return Buffer.from(userAgent).toString("base64").substring(0, 16);
 }
 
-// PUBLIC_PATHS: Exact matches or specific allowed prefixes
-const PUBLIC_PATHS = new Set(["/", "/login", "/register", "/design", "/api/favicon", "/api/health"]);
+// PUBLIC_PATHS: Exact matches or specific allowed prefixes.
+//
+// The entries below carry their own authentication — a signed JWT in the link
+// (security/email revocation, account recovery) or a shared secret (cron) — and
+// are reached by users who are by definition NOT signed in: someone locked out
+// of their account, or Vercel's scheduler, which sends no session cookie.
+// Requiring a session here made each of them unreachable: the "This Wasn't Me"
+// lockdown link redirected the compromised user to /login, and the cron job
+// could never run. They are public to the middleware and authenticated in the
+// route.
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/login",
+  "/register",
+  "/design",
+  "/api/favicon",
+  "/api/health",
+  "/api/security/revoke",
+  "/api/user/email/revoke",
+  "/api/user/recovery/request",
+  "/api/cron/password-expiry-warnings",
+]);
 const PUBLIC_PREFIXES = ["/api/auth/"]; // NextAuth and login endpoints
 // SENSITIVE_PATHS: Require strict rate limiting
 const SENSITIVE_PATHS = ["/api/auth/begin-login", "/api/auth/magic-login", "/api/auth/verify-otp", "/api/auth/check-admin"];

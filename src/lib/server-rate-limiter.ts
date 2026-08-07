@@ -170,3 +170,14 @@ export const loginLimiter = new ServerRateLimiter("login", 10, 60 * 60 * 1000);
  * More lenient than OTP due to device-based authentication
  */
 export const webauthnLimiter = new ServerRateLimiter("webauthn", 10, 15 * 60 * 1000);
+
+/**
+ * Access-code redemption: 5 attempts per 15 minutes per email.
+ *
+ * Admin access codes are 6 digits (10^6 space) and stay valid for 7 days, so
+ * the endpoints that redeem them (`admin-login`, `begin-register`) are the
+ * highest-value brute-force targets in the app. The middleware's general
+ * limiter is keyed by IP, which an attacker parallelises trivially; this one is
+ * keyed by email so the ceiling follows the targeted account instead.
+ */
+export const accessCodeLimiter = new ServerRateLimiter("access-code", 5, 15 * 60 * 1000);

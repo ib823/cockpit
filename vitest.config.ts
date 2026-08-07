@@ -25,18 +25,33 @@ export default defineConfig({
       "**/*.spec.ts", // Playwright uses .spec.ts, Vitest uses .test.ts
     ],
     // Coverage configuration (B-05: regression floor thresholds)
-    // Set to 0 (non-blocking) deliberately: actual coverage is ~11% statements/lines
-    // while the gate previously demanded 50%, which kept CI permanently red. Coverage
-    // is still REPORTED (text + json-summary) every run; raise these as real coverage
-    // improves so they act as a true regression floor rather than an unmet aspiration.
+    //
+    // Floors are set just below MEASURED coverage (2026-08-07, after the dead-code
+    // deletion: statements 16.42%, branches 76.06%, functions 54.81%, lines 16.42%)
+    // so they act as a real regression floor. They were previously all 0, which
+    // meant coverage could fall to nothing with CI still green.
+    //
+    // Re-baselined once: the first floors were measured BEFORE 262 unreachable
+    // files were deleted, and removing that much code changes the denominator.
+    // Statements/lines rose sharply (10.1% -> 16.42%) because most deleted files
+    // reported 0%; functions fell (62.66% -> 54.81%). Re-baselining after a
+    // deliberate composition change is legitimate; lowering a floor to make a
+    // red build pass is not. Do the former, never the latter.
+    //
+    // Raise these as coverage improves; never lower them to make a build pass.
+    //
+    // Why statements/lines sit so far below branches/functions: a large share of
+    // src/ is unreachable from any route (dead components, abandoned features),
+    // and every one of those files reports 0%. Deleting that code raises the
+    // statement figure without writing a single new test.
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary"],
       thresholds: {
-        statements: 0,
-        branches: 0,
-        functions: 0,
-        lines: 0,
+        statements: 15,
+        branches: 73,
+        functions: 52,
+        lines: 15,
       },
     },
   },

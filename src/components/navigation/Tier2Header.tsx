@@ -84,7 +84,7 @@ export function Tier2Header<T extends BaseProject = GanttProject>({
     switch (syncStatus) {
       case "saving-local":
       case "syncing-cloud":
-        return "#007AFF"; // Blue - in progress
+        return "#0B57D0"; // Blue - in progress
       case "error":
         return "#FF3B30"; // Red - error
       default:

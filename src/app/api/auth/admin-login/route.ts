@@ -4,6 +4,7 @@ import { compare } from "bcryptjs";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { accessCodeLimiter } from "@/lib/server-rate-limiter";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
@@ -27,6 +28,31 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { ok: false, message: "Email and code required" },
         { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Accounts are stored lowercase (see finish-register); every other auth
+    // flow normalises before lookup and this one did not.
+    email = email.toLowerCase();
+
+    // SECURITY: access codes are 6 digits and live for 7 days. The middleware's
+    // general limiter is keyed by IP and so is parallelisable across sources;
+    // this per-account limit is what actually bounds a brute force. Checked
+    // before any DB read so it also blunts enumeration timing.
+    const rateLimit = await accessCodeLimiter.check(email);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: `Too many attempts. Please try again in ${rateLimit.retryAfter} seconds.`,
+        },
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(rateLimit.retryAfter ?? 900),
+          },
+        }
       );
     }
 

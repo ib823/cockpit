@@ -296,7 +296,7 @@ export function ResourceAllocationModal({
             taskId: task.id,
             phaseId: phase.id,
             phaseName: phase.name,
-            phaseColor: phase.color || "#007AFF",
+            phaseColor: phase.color || "#0B57D0",
             taskName: task.name,
             startDate: new Date(task.startDate),
             endDate: new Date(task.endDate),
@@ -330,7 +330,7 @@ export function ResourceAllocationModal({
               taskId: t.task.id,
               phaseId: phase.id,
               phaseName: phase.name,
-              phaseColor: phase.color || "#007AFF",
+              phaseColor: phase.color || "#0B57D0",
               taskName: t.task.name,
               startDate: new Date(t.task.startDate),
               endDate: new Date(t.task.endDate),
@@ -772,7 +772,7 @@ export function ResourceAllocationModal({
                 width: "48px",
                 height: "48px",
                 borderRadius: "12px",
-                backgroundColor: "var(--color-blue, #007AFF)",
+                backgroundColor: "var(--color-blue, #0B57D0)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1067,14 +1067,14 @@ export function ResourceAllocationModal({
                         fontSize: "13px",
                         fontWeight: 500,
                         border: allocationPercent === preset.value
-                          ? "2px solid var(--color-blue, #007AFF)"
+                          ? "2px solid var(--color-blue, #0B57D0)"
                           : "1px solid rgba(0, 0, 0, 0.12)",
                         borderRadius: "8px",
                         backgroundColor: allocationPercent === preset.value
                           ? "rgba(0, 122, 255, 0.08)"
                           : "var(--color-bg-primary, #fff)",
                         color: allocationPercent === preset.value
-                          ? "var(--color-blue, #007AFF)"
+                          ? "var(--color-blue, #0B57D0)"
                           : "var(--color-text-primary)",
                         cursor: "pointer",
                         transition: "all 0.15s ease",
@@ -1136,7 +1136,7 @@ export function ResourceAllocationModal({
                         gap: "12px",
                         padding: "12px 16px",
                         border: pattern === option.id
-                          ? "2px solid var(--color-blue, #007AFF)"
+                          ? "2px solid var(--color-blue, #0B57D0)"
                           : "1px solid rgba(0, 0, 0, 0.08)",
                         borderRadius: "10px",
                         backgroundColor: pattern === option.id
@@ -1153,7 +1153,7 @@ export function ResourceAllocationModal({
                           height: "32px",
                           borderRadius: "8px",
                           backgroundColor: pattern === option.id
-                            ? "var(--color-blue, #007AFF)"
+                            ? "var(--color-blue, #0B57D0)"
                             : "rgba(0, 0, 0, 0.04)",
                           display: "flex",
                           alignItems: "center",
@@ -1391,7 +1391,7 @@ export function ResourceAllocationModal({
                           width: "8px",
                           height: "32px",
                           borderRadius: "4px",
-                          backgroundColor: phase.color || "#007AFF",
+                          backgroundColor: phase.color || "#0B57D0",
                           marginRight: "12px",
                         }}
                       />
@@ -1470,7 +1470,7 @@ export function ResourceAllocationModal({
                           borderRadius: "8px",
                           border: "none",
                           backgroundColor: allSelected
-                            ? "var(--color-blue, #007AFF)"
+                            ? "var(--color-blue, #0B57D0)"
                             : someSelected
                               ? "rgba(0, 122, 255, 0.2)"
                               : "rgba(0, 0, 0, 0.04)",
@@ -1532,7 +1532,7 @@ export function ResourceAllocationModal({
                               fontWeight: 500,
                               border:
                                 currentPhaseAlloc === preset.value
-                                  ? "2px solid var(--color-blue, #007AFF)"
+                                  ? "2px solid var(--color-blue, #0B57D0)"
                                   : "1px solid rgba(0, 0, 0, 0.12)",
                               borderRadius: "6px",
                               backgroundColor:
@@ -1541,7 +1541,7 @@ export function ResourceAllocationModal({
                                   : "#fff",
                               color:
                                 currentPhaseAlloc === preset.value
-                                  ? "var(--color-blue, #007AFF)"
+                                  ? "var(--color-blue, #0B57D0)"
                                   : "var(--color-text-primary)",
                               cursor: "pointer",
                               minHeight: "32px",
@@ -1616,7 +1616,7 @@ export function ResourceAllocationModal({
                                     ? "none"
                                     : "2px solid rgba(0, 0, 0, 0.12)",
                                   backgroundColor: isSelected
-                                    ? "var(--color-blue, #007AFF)"
+                                    ? "var(--color-blue, #0B57D0)"
                                     : "transparent",
                                   cursor: "pointer",
                                   display: "flex",
@@ -1804,7 +1804,7 @@ export function ResourceAllocationModal({
                           fontWeight: 500,
                           border:
                             selectedRecurringPreset === preset.id
-                              ? "2px solid var(--color-blue, #007AFF)"
+                              ? "2px solid var(--color-blue, #0B57D0)"
                               : "1px solid rgba(0, 0, 0, 0.12)",
                           borderRadius: "10px",
                           backgroundColor:
@@ -1813,7 +1813,7 @@ export function ResourceAllocationModal({
                               : "#fff",
                           color:
                             selectedRecurringPreset === preset.id
-                              ? "var(--color-blue, #007AFF)"
+                              ? "var(--color-blue, #0B57D0)"
                               : "var(--color-text-primary)",
                           cursor: "pointer",
                           minHeight: "44px",
@@ -1855,7 +1855,7 @@ export function ResourceAllocationModal({
                           fontWeight: 500,
                           border:
                             selectedRecurringPreset === preset.id
-                              ? "2px solid var(--color-blue, #007AFF)"
+                              ? "2px solid var(--color-blue, #0B57D0)"
                               : "1px solid rgba(0, 0, 0, 0.12)",
                           borderRadius: "10px",
                           backgroundColor:
@@ -1864,7 +1864,7 @@ export function ResourceAllocationModal({
                               : "#fff",
                           color:
                             selectedRecurringPreset === preset.id
-                              ? "var(--color-blue, #007AFF)"
+                              ? "var(--color-blue, #0B57D0)"
                               : "var(--color-text-primary)",
                           cursor: "pointer",
                           minHeight: "44px",
@@ -2088,7 +2088,7 @@ export function ResourceAllocationModal({
                         <div style={{ fontSize: "11px", color: "var(--color-text-tertiary)", marginBottom: "2px" }}>
                           Allocation
                         </div>
-                        <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-blue, #007AFF)" }}>
+                        <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-blue, #0B57D0)" }}>
                           {allocationPercent}%
                         </div>
                       </div>
@@ -2476,7 +2476,7 @@ export function ResourceAllocationModal({
                       <div style={{ fontSize: "11px", color: "var(--color-text-tertiary)", marginBottom: "4px" }}>
                         Commitment
                       </div>
-                      <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--color-blue, #007AFF)" }}>
+                      <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--color-blue, #0B57D0)" }}>
                         {recurringSummary.label}
                       </div>
                     </div>
@@ -2684,14 +2684,14 @@ export function ResourceAllocationModal({
                                 fontSize: "12px",
                                 fontWeight: 500,
                                 border: selectedOPEPreset === preset.id
-                                  ? "2px solid var(--color-blue, #007AFF)"
+                                  ? "2px solid var(--color-blue, #0B57D0)"
                                   : "1px solid rgba(0, 0, 0, 0.12)",
                                 borderRadius: "6px",
                                 backgroundColor: selectedOPEPreset === preset.id
                                   ? "rgba(0, 122, 255, 0.08)"
                                   : "#fff",
                                 color: selectedOPEPreset === preset.id
-                                  ? "var(--color-blue, #007AFF)"
+                                  ? "var(--color-blue, #0B57D0)"
                                   : "var(--color-text-primary)",
                                 cursor: "pointer",
                               }}
@@ -2879,7 +2879,7 @@ export function ResourceAllocationModal({
                     ? !selectedResourceId || selectedTasks.size === 0
                     : !selectedResourceId)
                   ? "rgba(0, 0, 0, 0.08)"
-                  : "var(--color-blue, #007AFF)",
+                  : "var(--color-blue, #0B57D0)",
               color:
                 (mode === "phase"
                   ? !selectedResourceId || !selectedPhaseId || phaseWeeks.length === 0

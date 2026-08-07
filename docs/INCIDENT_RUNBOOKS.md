@@ -26,7 +26,10 @@ Last Updated: 2026-02-20
 1. If provider outage: monitor provider status, no action required
 2. If connection pool exhausted: restart application (Vercel redeploy)
 3. If env var misconfigured: fix in Vercel dashboard, redeploy
-4. If schema drift: run `pnpm prisma db push` or `pnpm prisma migrate deploy`
+4. If schema drift: run `pnpm prisma migrate status` to see what is unapplied,
+   then `pnpm prisma migrate deploy`. Do NOT reach for `prisma db push` during
+   an incident — it mutates the live schema with no migration record and is what
+   produced the drift this step is diagnosing.
 
 **Recovery verification**: `curl /api/health` returns `{ status: "healthy" }`
 

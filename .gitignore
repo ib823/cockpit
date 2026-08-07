@@ -58,7 +58,11 @@ yarn-error.log*
 next-env.d.ts
 
 # prisma
-/prisma/migrations
+# NOTE: prisma/migrations is intentionally TRACKED. It was ignored here, which
+# is why the repo had no migration history at all while BACKUP_RESTORE.md and
+# INCIDENT_RUNBOOKS.md documented `prisma migrate deploy` recovery steps that
+# could never run. Migrations are source, not build output — they must be
+# reviewed and deployed with the code that depends on them.
 # Environment files
 .env.local
 .env

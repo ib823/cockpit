@@ -11,7 +11,7 @@ Last Updated: 2026-02-20
 |---|---|---|---|
 | Login form accessibility | Form with labeled inputs, submit button | 1.3.1, 4.1.2 | Pass |
 | Admin data table structure | Table with caption, th scope, sortable headers | 1.3.1, 1.3.2 | Pass |
-| Modal dialog pattern | Dialog role, aria-modal, aria-labelledby, close button | 4.1.2, 2.4.3 | Pass |
+| Modal dialog pattern | Dialog role, aria-modal, aria-labelledby, close button | 4.1.2, 2.4.3 | Pass (fixture only — see note) |
 | Filter/search pattern | Search with label, filter controls | 1.3.1, 4.1.2 | Pass |
 | Toggle button state | Button with aria-pressed, role=switch | 4.1.2 | Pass |
 | Loading spinner | Role=status with screen reader text | 4.1.3 | Pass |
@@ -48,6 +48,20 @@ Last Updated: 2026-02-20
 | Admin tables | Added `scope="col"` on `<th>` elements | 1.3.1 |
 | Modal dialogs | Added `role="dialog"`, `aria-modal="true"` | 4.1.2 |
 | Modal dialogs | Added `aria-labelledby` linking to title | 4.1.2 |
+
+> **Correction (audit finding).** The two rows above were recorded as complete
+> but had NOT been applied to `src/components/ui/BaseModal.tsx`, which is the
+> foundation for 28 dialogs — the shipped component had no `role="dialog"`, no
+> `aria-modal` and no `aria-labelledby`, and it passed `initialFocus: false` to
+> focus-trap, so focus never entered the dialog (WCAG 2.4.3). They are applied
+> now and pinned by `tests/a11y/base-modal-dialog-semantics.test.tsx`, which
+> mounts the real component and was verified to fail against the previous code.
+>
+> Note the distinction this file must keep making: `tests/a11y/axe-automated.test.ts`
+> runs axe over **hand-written HTML string literals**, not rendered components.
+> It verifies that axe works on correct markup; it cannot detect an
+> accessibility regression in the application. Rows marked "fixture only" above
+> carry that caveat.
 
 ### D-03: Screen Reader Landmarks
 

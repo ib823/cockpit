@@ -30,7 +30,7 @@ const sizeMap = {
 };
 
 const colorMap = {
-  blue: "#007AFF",
+  blue: "#0B57D0",
   white: "#FFFFFF",
   gray: "#8E8E93",
   purple: "#AF52DE",

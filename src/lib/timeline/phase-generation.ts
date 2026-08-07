@@ -8,7 +8,7 @@ const formatEffort = (effort: number): number => Math.round(effort);
 
 // Phase colors for visualization
 const PHASE_COLORS = [
-  "#007AFF",
+  "#0B57D0",
   "#34C759",
   "#FF9500",
   "#FF3B30",
@@ -23,7 +23,7 @@ const PHASE_COLORS = [
 // SAP Activate phase distribution
 const SAP_ACTIVATE_PHASES = {
   Prepare: { percentage: 0.15, color: "#34C759" }, // 15% - Green
-  Explore: { percentage: 0.25, color: "#007AFF" }, // 25% - Blue
+  Explore: { percentage: 0.25, color: "#0B57D0" }, // 25% - Blue
   Realize: { percentage: 0.4, color: "#AF52DE" }, // 40% - Purple
   Deploy: { percentage: 0.15, color: "#FF9500" }, // 15% - Yellow
   Run: { percentage: 0.05, color: "#34C759" }, // 5% - Green

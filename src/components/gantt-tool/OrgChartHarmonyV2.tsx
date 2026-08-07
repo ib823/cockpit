@@ -67,8 +67,8 @@ const TOKENS = {
   colors: {
     bg: { primary: "#FFFFFF", secondary: "#F5F5F7", tertiary: "#FAFAFA", subtle: "#F9F9F9" },
     text: { primary: "#1D1D1F", secondary: "#86868B", tertiary: "#A1A1A6", inverse: "#FFFFFF", disabled: "#C7C7CC" },
-    border: { default: "#E5E5E7", subtle: "#F0F0F0", focus: "#007AFF" },
-    accent: { blue: "#007AFF", green: "#34C759", red: "#FF3B30" },
+    border: { default: "#E5E5E7", subtle: "#F0F0F0", focus: "#0B57D0" },
+    accent: { blue: "#0B57D0", green: "#34C759", red: "#FF3B30" },
   },
   spacing: [0, 4, 8, 12, 16, 20, 24, 28, 32] as const,
   layout: { nodeWidth: 300, nodeHeight: 160, nodeGap: 100, levelGap: 180, padding: 60 },

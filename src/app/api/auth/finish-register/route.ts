@@ -11,9 +11,18 @@ import { logger } from "@/lib/logger";
 type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb" | "hybrid";
 export const runtime = "nodejs";
 
+/** Raised when first-passkey enrolment targets an account that already has one. */
+class PasskeyAlreadyEnrolledError extends Error {
+  constructor() {
+    super("Account already has a passkey enrolled");
+    this.name = "PasskeyAlreadyEnrolledError";
+  }
+}
+
 export async function POST(req: Request) {
   const expectedOrigin =
     process.env.WEBAUTHN_ORIGIN ?? new URL(process.env.NEXTAUTH_URL ?? req.url).origin;
+  let email = "";
   try {
     let body: unknown;
     try {
@@ -21,7 +30,7 @@ export async function POST(req: Request) {
     } catch {
       return badRequest("Invalid JSON body");
     }
-    const email = String((body as Record<string, unknown>).email ?? "")
+    email = String((body as Record<string, unknown>).email ?? "")
       .trim()
       .toLowerCase();
     const response = (body as Record<string, unknown>).response as RegistrationResponseJSON | undefined;
@@ -64,6 +73,20 @@ export async function POST(req: Request) {
     // Use a transaction to ensure all or nothing
     type UserResult = { id: string; email: string; role: "USER" | "MANAGER" | "ADMIN"; name: string | null };
     const user: UserResult = await (prisma.$transaction as unknown as (fn: (tx: typeof prisma) => Promise<UserResult>) => Promise<UserResult>)(async (tx) => {
+      // SECURITY: this route enrols a user's *first* passkey and is reachable
+      // without a session. Adding further passkeys goes through the
+      // session-guarded /api/auth/passkey/register/* pair, so an account that
+      // already has an authenticator must never be enrolled here — otherwise a
+      // leaked or replayed challenge would be enough to bind an attacker's
+      // credential to an established account.
+      const existingCredential = await tx.authenticator.findFirst({
+        where: { users: { email } },
+        select: { id: true },
+      });
+      if (existingCredential) {
+        throw new PasskeyAlreadyEnrolledError();
+      }
+
       const newUser = await tx.users.upsert({
         where: { email },
         update: {
@@ -116,6 +139,12 @@ export async function POST(req: Request) {
 
     return jsonResponse;
   } catch (e) {
+    if (e instanceof PasskeyAlreadyEnrolledError) {
+      logger.warn("Rejected first-passkey enrolment for an account that already has one", {
+        email,
+      });
+      return conflict("This account already has a passkey. Sign in to add another.");
+    }
     logger.error("Finish registration failed", { error: e });
     if (e instanceof Error && e.message.includes("Unique constraint failed")) {
       return conflict("This passkey is already registered.");

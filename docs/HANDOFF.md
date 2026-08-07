@@ -2,7 +2,307 @@
 
 Status: Active  
 Version: 1.0.0  
-Last Updated (UTC): 2026-02-20
+Last Updated (UTC): 2026-08-06
+
+## -1. Security Remediation — Critical Auth Bypass & Cross-Project IDOR (2026-08-06)
+
+A full-codebase audit found two exploitable vulnerabilities in code that the
+Section 8 release certification had marked green. Both are now closed with
+regression tests that were verified to FAIL against the pre-fix code.
+
+**V-1 (CRITICAL) — unauthenticated account takeover via passkey registration.**
+`POST /api/auth/begin-register` accepted a client-supplied `magicLink: true`
+flag and, when set, skipped access-code validation entirely — checking only
+that an `EmailApproval` row existed for the address. `finish-register`
+validated only the WebAuthn challenge. Two unauthenticated requests therefore
+attached an attacker's passkey to any approved account (including ADMIN) and
+returned a live session. The route was also not gated by `ENABLE_MAGIC_LINKS`
+and is CSRF-exempt via `PUBLIC_PREFIXES`.
+
+Fix: registration now requires a *registration grant* — a random, single-purpose,
+email-bound, 10-minute token that only `/api/auth/verify-magic-link` can mint,
+and only after verifying and consuming a real emailed magic link
+(`src/lib/auth/registration-grant.ts`). Grants live in `magic_tokens` using its
+existing `type` discriminator, so no new secret material is required — notably
+not the optional `JWT_SECRET_KEY`. The magic-link branch is now also gated by
+`ENABLE_MAGIC_LINKS`. Defense in depth: `finish-register` refuses to enrol a
+first passkey on an account that already has one (additional passkeys go
+through the session-guarded `/api/auth/passkey/register/*` pair).
+
+**V-2 (HIGH) — cross-project IDOR in the delta-save endpoint.**
+`PATCH /api/gantt-tool/projects/[projectId]/delta` verified write access
+against `projectId` but applied per-entity mutations using client-supplied ids
+with no project scoping. A user with write access to their own project could
+name another tenant's phase/resource/milestone/holiday id and have the write
+land there; naming a foreign phase id also triggered
+`ganttTask.deleteMany({ where: { phaseId: { in: [...] } } })`, destroying every
+task under it plus its resource assignments.
+
+Fix: `assertDeltaOwnership()` authorizes every referenced id against the target
+project inside the transaction before any write runs, failing the whole request
+closed with 403. All four `update` calls became `updateMany` scoped by
+`projectId`, and both `deleteMany` calls gained a `phase: { projectId }`
+relation filter, as defense in depth.
+
+Evidence: `pnpm lint:strict` PASS, `pnpm typecheck:strict` PASS,
+`pnpm test --run` PASS (1734 passed / 195 skipped), `pnpm build` PASS.
+New tests: `tests/security/registration-grant.test.ts` (8),
+`tests/security/delta-cross-project-idor.test.ts` (6). Verified 13/14 fail
+against the pre-fix code.
+
+### Follow-up batch (same date)
+
+Also closed, with the same gates re-run green:
+
+- **V-4 host-header injection.** `send-magic-link` built the emailed login URL
+  from `x-forwarded-proto`/`host`, so a forged Host caused a valid unused token
+  to be mailed to the victim pointing at attacker infrastructure. Now built from
+  `NEXT_PUBLIC_APP_URL`/`NEXTAUTH_URL` only, failing closed if neither is set.
+- **V-5 unbounded access-code brute force.** Added `accessCodeLimiter`
+  (5 attempts / 15 min, keyed by email) to `admin-login` and `begin-register`.
+  The middleware's general limiter is IP-keyed and parallelises trivially, so
+  the 6-digit / 7-day code space was reachable. Also normalised `admin-login`'s
+  email to lowercase — every other flow did, this one did not, so mixed-case
+  addresses silently failed to match. Regression tests:
+  `tests/security/access-code-rate-limit.test.ts` (3).
+- **No production error surface.** Added `src/app/error.tsx` and
+  `src/app/global-error.tsx`. Previously neither existed, so any unhandled
+  render error was an unstyled white screen with nothing logged; both now log
+  through the canonical logger including Next's `digest` correlation id.
+- **Dangling cron.** Removed `/api/cron/revoke` from `vercel.json` — the route
+  does not exist in `src/app/api/cron/`, so the schedule was a daily 404. It was
+  removed rather than reconstructed because the intended behaviour is not
+  recoverable from the codebase; if a revocation sweep is wanted, it needs to be
+  specified and written.
+
+### Third batch — data layer (same date)
+
+- **Connection-pool churn.** `dashboard/stats`, `lobs` and `l3-catalog` each
+  built their own module-scope `PrismaClient`, and `auth/email-status` built one
+  per request in a fallback path; on serverless each is a separate pool against
+  a `connection_limit=5` pooler. All now use the shared client.
+  `dashboard/stats` also called `$disconnect()` in a `finally` on every request,
+  tearing the pool down per invocation — removed.
+- **Over-fetch.** `dashboard/stats` loaded every `GanttResource` row across all
+  of a user's projects only to take `.length`; now counted with `_count`.
+- **N+1.** `admin/approvals` issued 2N+2 queries (two `aggregate` calls per
+  user) — replaced with one `groupBy`. `resources/validate` issued 2N `count`
+  calls — replaced with two `groupBy` calls.
+- **Indexes.** Added composites matching real access patterns:
+  `GanttTask([phaseId, order])`, `GanttPhase([projectId, order])`,
+  `GanttMilestone([projectId, date])`, `GanttHoliday([projectId, date])`,
+  `GanttResource([projectId, isActive, deletedAt])`,
+  `GanttProject([userId, deletedAt, updatedAt])`.
+
+### Fourth batch — safe methods, reachability, error visibility (same date)
+
+- **V-7 destructive GET.** `/api/security/revoke` performed the full account
+  lockdown on a bare GET. GET is now side-effect free and renders a confirmation
+  form (token HTML-escaped, `no-store`, `noindex`); POST performs the action.
+- **V-6 unreachable token endpoints.** `/api/security/revoke`,
+  `/api/user/email/revoke`, `/api/user/recovery/request` and
+  `/api/cron/password-expiry-warnings` were behind the middleware session gate
+  despite carrying their own authentication, so the lockdown link redirected the
+  locked-out user to `/login` and the cron job could never run. Added to
+  `PUBLIC_PATHS`; still authenticated in-route. Cron auth now prefers
+  `Authorization: Bearer` and compares in constant time.
+- **ErrorBoundary mounted.** It was implemented with 22 passing tests and
+  wrapped nothing; a throw inside an already-mounted client component blanked
+  the page (`error.tsx` does not cover that case).
+- **Console suppression narrowed.** The filter in `providers.tsx` was swallowing
+  every `[BackgroundSync]` error — the save path's own failure reporting. Only
+  third-party noise is filtered now.
+
+### Fifth batch — dead weight, unrunnable E2E, env hygiene (same date)
+
+- Removed 13 dependencies with zero imports (chart.js, react-chartjs-2,
+  @react-pdf/renderer, vis-timeline, vis-data, react-hotkeys-hook,
+  @radix-ui/react-slider, comlink, lodash + @types/lodash,
+  @auth/prisma-adapter, @prisma/adapter-neon, @neondatabase/serverless).
+- **E2E was unrunnable, not merely unrun**: playwright.config.ts waited on port
+  3000 while `pnpm dev` binds 3002, so the server never became ready and all 185
+  tests died on the 120s timeout. Port is now one constant used by both
+  `webServer.url` and `baseURL`.
+- Deleted specs targeting routes/modules that no longer exist
+  (plan-mode-responsive → /project/plan, estimator-flow → /estimator,
+  dashboard → /dashboard-demo, run-responsive-tests.sh, test-suites.ts).
+- `team-capacity-api.spec.ts` moved out of `src/__tests__/integration/`, where
+  it was run by NEITHER runner (Vitest excludes `*.spec.ts`; Playwright only
+  scans `tests/e2e`) — 21 tests that silently never ran. Now an explicit
+  RUN_DB_E2E-gated skip.
+- `.env.example` covered 39 of 51 vars actually read. Added the rest, several of
+  which are security controls that fail silently when unset (IP_ALLOWLIST,
+  IP_BLOCKLIST, TRUST_PROXY, CAPTCHA, SECURITY_ALERT_WEBHOOK, Redis).
+
+### Sixth batch — migration baseline (same date)
+
+Root cause of "no migration history": `.gitignore` excluded `/prisma/migrations`,
+so any migration ever generated was untracked. Stopped ignoring it, added
+`0_init` (65 CREATE TABLE = one per model, 170 indexes), and documented the two
+application paths — a NEW database takes `migrate deploy`, an EXISTING one must
+be baselined with `migrate resolve --applied 0_init`. Corrected all four restore
+runbook steps accordingly, since a restored dump already contains the tables.
+NOT yet executed against a real Postgres; see prisma/migrations/README.md.
+
+### Seventh batch — BaseModal dialog semantics (same date)
+
+`BaseModal` backs 28 dialogs and shipped with no `role="dialog"`, no
+`aria-modal`, no `aria-labelledby`, and `initialFocus: false` — which told
+focus-trap not to move focus into the dialog at all, leaving keyboard users on
+the obscured trigger (WCAG 2.4.3). A11Y_EVIDENCE.md listed all of this as
+complete; it was not, and that file now carries the correction. Also made the
+body scroll lock ref-counted: modals stack here, and closing an inner one used
+to unlock the page while the outer was still open. Pinned by
+tests/a11y/base-modal-dialog-semantics.test.tsx (10 tests, verified to fail
+against the previous component).
+
+### Eighth batch — make the fake quality gates real (same date)
+
+Two CI gates could not fail. Both now can.
+
+**Bundle budgets.** `tests/performance/bundle-budgets.test.ts` declared
+`manifestPath`/`appPathsPath`, never read either, and asserted hardcoded
+constants against themselves (`expect(FIRST_LOAD_BUDGET_KB).toBeGreaterThan(100)`).
+No bundle size, however large, could fail it — so the "performance budget check"
+step in CI proved nothing. It now sums the real chunk bytes per route from
+`.next/app-build-manifest.json`.
+
+Turning it on produced a finding that contradicts this ledger. Measured
+2026-08-06:
+
+| Route | Route JS | First load | Documented target |
+|---|---|---|---|
+| /login | 23.6kB | 366.6kB | 30kB |
+| /dashboard | 98.4kB | 441.3kB | 30kB |
+| **/gantt-tool** | **642.9kB** | **985.9kB** | 100kB |
+| /admin | 260.3kB | 603.2kB | 30kB |
+| /admin/users | 569.7kB | 912.6kB | 30kB |
+
+Shared baseline alone is **343kB across 4 chunks**, so no route can reach the
+300kB first-load ceiling the docs quote regardless of page code — consistent with
+the audit finding that antd loads on every route via `providers.tsx`.
+
+**The E-02 entry above ("654kB→55.4kB page JS, 91.5% reduction") is not
+reproducible by this measurement.** /gantt-tool measures 642.9kB — essentially
+the quoted pre-optimization figure. Either the code-splitting is not taking
+effect or the 55.4kB figure measured something narrower than what the route
+actually loads. Treat E-02 as unverified until someone reconciles it.
+
+Budgets are therefore set as REGRESSION FLOORS from measured reality (~10%
+headroom), with the aspirational numbers kept separately as `PAGE_TARGETS` and
+deliberately NOT asserted — an unmet assertion either sits red forever or gets
+quietly neutered, which is exactly how this file came to prove nothing.
+
+**Coverage thresholds** were all `0`, so coverage could fall to nothing with CI
+green. Set to just below measured (statements 9, branches 74, functions 59,
+lines 9 against actual 10.1 / 77.59 / 62.66 / 10.1). Note statements/lines sit so
+far below branches/functions because a large share of `src/` is unreachable from
+any route and reports 0% — deleting that dead code raises the figure without
+writing a single test.
+
+### Ninth batch — Sentry error reporting (2026-08-07)
+
+Closes the audit's #1 production blocker: the app had no error visibility at
+all. Wired the SDK across client/server/edge, plus `onRequestError` so RSC,
+route-handler and middleware failures are captured. `ErrorBoundary`,
+`error.tsx` and `global-error.tsx` all logged but reached nothing off-box; they
+now report.
+
+`src/instrumentation.ts` also imports `@/lib/env`, which finally makes that
+module's "fails loudly at startup" claim true — it previously ran only when one
+of five routes imported it.
+
+Credential scrubbing is a security control, not hygiene: this app hands users
+URLs carrying live bearer tokens (account lockdown, email-change revocation,
+magic links, cron secret), so an error on those routes would have shipped a
+working credential to a third party. `scrubUrl` redacts them in the event URL
+and every breadcrumb; cookies/headers/body are dropped wholesale.
+`sendDefaultPii: false`; Session Replay deliberately not enabled.
+
+Bundle cost, measured: +186kB on the shared baseline (343 -> 529kB), paid by
+every route. Tree-shaking tracing out recovered ~82kB. The budget gate caught
+this unaided — which is what it was rebuilt for. Per-route budgets unchanged;
+only the first-load ceiling moved (1050 -> 1300kB).
+
+### Design system — complete and reviewed (2026-08-07)
+
+All five layers delivered (11 canonical documents). Reviewed against the brief:
+16 of 17 routes, all five breakpoints, sync state machine complete, redaction
+implemented as specified ("Visible subtotal — N of M lines", never a bare
+total). Three findings raised and all three fixed: a WCAG AA failure in Sync
+(invented `#CDEBDB` at 4.24:1, replaced with Layer 1's `#E3F5EB`), five missing
+system screens, and absent dark mode on the Auth and Core screens.
+
+Final audit: 237 colour pairs checked programmatically, **zero real failures** —
+every candidate was an extraction artifact or the documented `content/disabled`
+exemption. Every contrast ratio spot-checked against the documents' own claims
+matched exactly.
+
+The design is a specification, not an implementation. Building it into the app
+is a substantial programme, and the Gantt and org chart remain bespoke
+engineering regardless of how well they are specified.
+
+### Tenth batch — delta task persistence FIXED (2026-08-07)
+
+The top data-integrity defect is closed. Renaming one task destroyed its
+siblings; `delta.tasks` was accepted by the schema and read by nothing, so task
+edits could only reach the database through the phase path, which deleted every
+task in the phase and recreated whatever the payload held.
+
+Both causes fixed: there is now a real task-level branch, and the phase path
+diffs instead of replacing.
+
+**The decision worth remembering:** making the phase path a tidy diff was NOT
+enough. It still treated an omitted task as a deletion, so a partial payload
+still destroyed data — the integration test caught that in my own fix. A phase
+payload cannot distinguish "the user deleted this" from "the client did not send
+it", and in a local-first app the client may hold a partial or stale copy. So
+absence now means unchanged: the phase path only creates and updates, and
+deletion happens solely via `delta.tasks.deleted`.
+
+Consequence handled: assignments used to be swept away by cascade when their
+task was deleted and recreated. Surviving tasks keep them, so they are now
+reconciled explicitly — and only for tasks that actually supplied
+`resourceAssignments`, since undefined means "not specified", not "empty".
+
+Verified by 7 tests calling the REAL route against real Postgres 16. The test
+previously re-implemented the route's logic, which would only ever have proven
+the re-implementation.
+
+### Remaining known issues (audited, NOT fixed)
+
+Ranked, with the reason each was deferred rather than attempted here:
+
+1. ~~`delta.tasks` silently discarded~~ — FIXED 2026-08-07, see the tenth batch
+   above. Verified against real Postgres.
+2. **Background sync re-fetches the full project every 5s** to compute a delta
+   baseline (`background-sync.ts:307`), a full-document read for a partial
+   write, started as a module import side-effect that cannot be stopped.
+3. **No optimistic locking on the delta route** — `GanttProject.version` exists
+   and the legacy full-PATCH route uses it, but delta never reads or increments
+   it, so concurrent edits are last-writer-wins.
+4. **`'unsafe-inline'` in the production `script-src` CSP** — requires nonce-ing
+   the two static bootstrap scripts in `layout.tsx`; needs browser verification
+   before shipping, since getting it wrong breaks every page.
+5. **No error tracking backend.** Errors now reach the logger and an
+   ErrorBoundary, but `src/lib/monitoring/sentry.ts` is still an unimported
+   stub, so nothing is reported off-box.
+6. **`prisma/migrations/` does not exist** while `BACKUP_RESTORE.md` and
+   `INCIDENT_RUNBOOKS.md` call `prisma migrate deploy` in four procedures. The
+   schema is push-managed. The disaster-recovery runbooks cannot succeed as
+   written.
+7. **Test-suite credibility** — ~210 skipped tests (the entire Architecture
+   module), coverage thresholds set to 0, the a11y suite asserts against
+   hand-written HTML strings rather than rendered components, the bundle-budget
+   test never parses build output, and 185 Playwright tests never run in CI
+   (`baseURL` is port 3000, `pnpm dev` serves 3002).
+8. **UI duplication** — 71% of components are unreachable from any route; five
+   Button implementations; the canonical EmptyState/Toast/AriaLive have zero
+   consumers; `BaseModal` (28 dialogs) lacks `role="dialog"`/`aria-modal`; the
+   primary brand blue `#007AFF` on white is 4.02:1 and fails WCAG AA; the
+   `dark:` variant is wired to a selector nothing sets.
+
+## 0. Gate-Status Correction & P0 Remediation (2026-06-05)
 
 This file is the takeover ledger for any AI LLM CLI.
 
