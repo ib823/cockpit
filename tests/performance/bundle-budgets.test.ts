@@ -44,9 +44,15 @@ import { join } from "path";
 //            for CSS Module hashes, and cost ~24kB on every route that imported
 //            a component.
 //
-// The remaining gap is module granularity: Field.tsx holds Input, Textarea,
-// NumberInput, SearchInput and Select, and a page wanting one gets all five.
-// Splitting it is the next reduction and is recorded in docs/HANDOFF.md.
+// Field.tsx was subsequently split per component on the theory that it was the
+// remaining weight. It was measured afterwards and gained ~0.1kB -- the theory
+// was wrong, and is corrected in docs/HANDOFF.md rather than left standing.
+//
+// What the chunks actually contain: 11.4kB of design system SHARED by both
+// routes, plus 10.0kB and 3.0kB of page code. This metric sums every chunk a
+// route loads, so shared code is attributed to each route that touches it --
+// which makes the first migrations look worse than the steady state, since
+// there is nothing yet to amortise against.
 //
 // The distinction that matters, same as the coverage floors: re-baselining
 // after a deliberate composition change is legitimate; raising a budget to make

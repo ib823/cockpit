@@ -8,7 +8,7 @@ import VersionDisplay from "@/components/shared/VersionDisplay";
 // re-exports Modal, which pulls focus-trap-react into any page that touches
 // the barrel. That alone took /login from 28kB to 121kB of route JS.
 import { Button } from "@/components/ds/Button";
-import { Input } from "@/components/ds/Field";
+import { Input } from "@/components/ds/Input";
 import { Banner } from "@/components/ds/Banner";
 import {
   AuthShell,
