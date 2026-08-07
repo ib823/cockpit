@@ -70,10 +70,23 @@ pnpm prisma migrate deploy                              # CI / production
 Stop using `prisma db push` outside a throwaway local database. It is what
 produced the drift this baseline exists to end.
 
-## Known gap
+## Verification status
 
-This baseline was generated and verified structurally (model and index counts
-checked against the schema), but it has **not** been executed against a real
-Postgres instance, because no database was reachable from the environment that
-created it. Before relying on it in a restore drill, run it once against a
-scratch database and confirm `prisma migrate status` comes back clean.
+Executed against a real PostgreSQL 16 instance on 2026-08-07:
+
+```
+$ createdb cockpit_e2e
+$ DATABASE_URL=postgresql://.../cockpit_e2e pnpm prisma migrate deploy
+All migrations have been successfully applied.
+
+$ DATABASE_URL=postgresql://.../cockpit_e2e pnpm prisma migrate status
+1 migration found in prisma/migrations
+Database schema is up to date!
+```
+
+66 tables created (65 models + `_prisma_migrations`), no drift reported.
+
+Still untested: the `migrate resolve --applied 0_init` baselining path against a
+database that was originally created by `db push`. That is the path production
+will take, and it should be rehearsed on a copy of a real environment before the
+first restore drill.
