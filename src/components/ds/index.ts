@@ -102,6 +102,15 @@ export {
   describePredecessors,
 } from "./gantt/announce";
 export type { BarFacts } from "./gantt/announce";
+export {
+  flattenRows,
+  initialExpanded,
+  computeWindow,
+  moveCursor,
+  scrollToRow,
+  AUTO_EXPAND_ROW_LIMIT,
+} from "./gantt/rows";
+export type { FlatRow, GanttPhase, GanttTask, RowWindow } from "./gantt/rows";
 
 export { Tabs } from "./Tabs";
 export type { TabsProps, TabItem } from "./Tabs";
