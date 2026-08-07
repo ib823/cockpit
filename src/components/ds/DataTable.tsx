@@ -20,7 +20,7 @@
  *    and toolbar operational so the user can undo the filter that emptied it.
  */
 
-import { cn } from "@/lib/utils";
+import { cx } from "./cx";
 import React, { type ReactNode } from "react";
 import { Checkbox } from "./Choice";
 import styles from "./DataTable.module.css";
@@ -115,7 +115,7 @@ export function DataTable<Row>({
   };
 
   return (
-    <div className={cn(styles.wrap, className)}>
+    <div className={cx(styles.wrap, className)}>
       {/* The bulk bar replaces the toolbar; it never stacks on top of it. */}
       {selectable && selectedCount > 0 ? (
         <div className={styles.bulkBar}>
@@ -135,7 +135,7 @@ export function DataTable<Row>({
           <thead>
             <tr>
               {selectable && (
-                <th scope="col" className={cn(styles.headerCell, styles.checkboxCell)}>
+                <th scope="col" className={cx(styles.headerCell, styles.checkboxCell)}>
                   <Checkbox
                     // "Select all" over a paginated set is a promise the table
                     // cannot keep, so the label states the real scope.
@@ -154,7 +154,7 @@ export function DataTable<Row>({
                     key={column.key}
                     scope="col"
                     style={column.width ? { width: column.width } : undefined}
-                    className={cn(
+                    className={cx(
                       styles.headerCell,
                       column.numeric && styles.headerCellNumeric
                     )}
@@ -173,7 +173,7 @@ export function DataTable<Row>({
                     {column.sortable && onSort ? (
                       <button
                         type="button"
-                        className={cn(styles.sortButton, active && styles.sortActive)}
+                        className={cx(styles.sortButton, active && styles.sortActive)}
                         onClick={() => handleSort(column)}
                       >
                         {column.header}
@@ -220,11 +220,11 @@ export function DataTable<Row>({
                 return (
                   <tr
                     key={key}
-                    className={cn(styles.row, selected && styles.rowSelected)}
+                    className={cx(styles.row, selected && styles.rowSelected)}
                     aria-selected={selectable ? selected : undefined}
                   >
                     {selectable && (
-                      <td className={cn(styles.cell, styles.checkboxCell)}>
+                      <td className={cx(styles.cell, styles.checkboxCell)}>
                         <Checkbox
                           label={`Select row ${key}`}
                           hideLabel
@@ -236,7 +236,7 @@ export function DataTable<Row>({
                     {columns.map((column) => (
                       <td
                         key={column.key}
-                        className={cn(styles.cell, column.numeric && styles.cellNumeric)}
+                        className={cx(styles.cell, column.numeric && styles.cellNumeric)}
                       >
                         {column.render(row)}
                       </td>

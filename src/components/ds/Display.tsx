@@ -11,7 +11,7 @@
  * projector, a monochrome printout, and any colour-vision deficiency.
  */
 
-import { cn } from "@/lib/utils";
+import { cx } from "./cx";
 import React, { type ReactNode } from "react";
 import styles from "./Display.module.css";
 
@@ -78,7 +78,7 @@ export interface StatusPillProps {
 
 export function StatusPill({ tone, children, className }: StatusPillProps) {
   return (
-    <span className={cn(styles.pill, styles[tone], className)}>
+    <span className={cx(styles.pill, styles[tone], className)}>
       {TONE_GLYPH[tone]}
       {children}
     </span>
@@ -106,7 +106,7 @@ export function Badge({ count, max = 99, tone = "accent", label, className }: Ba
   const display = count > max ? `${max}+` : String(count);
   return (
     <span
-      className={cn(
+      className={cx(
         styles.badge,
         tone === "neutral" && styles.badgeNeutral,
         tone === "danger" && styles.badgeDanger,
@@ -134,7 +134,7 @@ export interface ChipProps {
 
 export function Chip({ children, onRemove, removeLabel, className }: ChipProps) {
   return (
-    <span className={cn(styles.chip, !onRemove && styles.chipStatic, className)}>
+    <span className={cx(styles.chip, !onRemove && styles.chipStatic, className)}>
       {children}
       {onRemove && (
         <button
@@ -183,7 +183,7 @@ export function Avatar({ name, src, size = "md", className }: AvatarProps) {
 
   return (
     <span
-      className={cn(styles.avatar, sizeClass, className)}
+      className={cx(styles.avatar, sizeClass, className)}
       role="img"
       aria-label={name}
       title={name}
@@ -224,7 +224,7 @@ export function Progress({
   const width = Math.max(0, Math.min(100, value));
 
   return (
-    <div className={cn(styles.progressWrap, className)}>
+    <div className={cx(styles.progressWrap, className)}>
       <div
         className={styles.progressTrack}
         role="progressbar"
@@ -237,7 +237,7 @@ export function Progress({
         aria-valuetext={`${Math.round(value)}%`}
       >
         <div
-          className={cn(
+          className={cx(
             styles.progressFill,
             tone === "success" && styles.progressFillSuccess,
             tone === "warning" && styles.progressFillWarning,
@@ -277,7 +277,7 @@ export function Skeleton({ width, height, variant = "block", className }: Skelet
   return (
     <span
       aria-hidden="true"
-      className={cn(
+      className={cx(
         styles.skeleton,
         variant === "text" && styles.skeletonText,
         variant === "circle" && styles.skeletonCircle,

@@ -41,19 +41,19 @@ export type {
   ProjectRole,
 } from "./AppShell";
 
+export { AuthShell, AuthStatus, AuthActions, codeInputClass } from "./AuthShell";
+export type { AuthShellProps, AuthStatusProps } from "./AuthShell";
+
 export { DataTable } from "./DataTable";
 export type { DataTableProps, Column, SortDirection } from "./DataTable";
 
 export { Modal, Drawer } from "./Modal";
 export type { ModalProps, DrawerProps } from "./Modal";
 
-export { EmptyState, Banner, ToastProvider, useToast } from "./Feedback";
-export type {
-  EmptyStateProps,
-  BannerProps,
-  BannerTone,
-  ToastOptions,
-} from "./Feedback";
+export { Banner } from "./Banner";
+export type { BannerProps, BannerTone } from "./Banner";
+export { EmptyState, ToastProvider, useToast } from "./Feedback";
+export type { EmptyStateProps, ToastOptions } from "./Feedback";
 
 export { StatusPill, Badge, Chip, Avatar, Progress, Skeleton } from "./Display";
 export type {

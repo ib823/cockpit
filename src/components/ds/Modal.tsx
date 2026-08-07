@@ -19,7 +19,7 @@
  *  - Stacking is capped at two, with the parent made inert.
  */
 
-import { cn } from "@/lib/utils";
+import { cx } from "./cx";
 import FocusTrap from "focus-trap-react";
 import React, {
   useCallback,
@@ -173,7 +173,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className={cn(styles.scrim, depth > 0 && styles.scrimStacked)}
+      className={cx(styles.scrim, depth > 0 && styles.scrimStacked)}
       onKeyDown={handleKeyDown}
       onMouseDown={(event) => {
         // mousedown, not click: a click that *starts* inside the dialog and
@@ -190,14 +190,14 @@ export function Modal({
           aria-labelledby={titleId}
           aria-describedby={descriptionId}
           tabIndex={-1}
-          className={cn(
+          className={cx(
             styles.dialog,
             styles[size],
             depth > 0 && styles.stacked,
             className
           )}
         >
-          <div className={cn(styles.header, scrolled && styles.headerScrolled)}>
+          <div className={cx(styles.header, scrolled && styles.headerScrolled)}>
             <div className={styles.titleWrap}>
               <h2 className={styles.title} id={titleId}>
                 {title}
@@ -325,7 +325,7 @@ export function Drawer({
           aria-labelledby={titleId}
           aria-describedby={descriptionId}
           tabIndex={-1}
-          className={cn(styles.drawer, width === "wide" && styles.drawerWide, className)}
+          className={cx(styles.drawer, width === "wide" && styles.drawerWide, className)}
         >
           <div className={styles.header}>
             <div className={styles.titleWrap}>
