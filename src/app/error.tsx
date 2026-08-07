@@ -15,6 +15,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { logger } from "@/lib/logger";
+import { SENTRY_ENABLED } from "@/lib/monitoring/sentry";
 
 export default function Error({
   error,
@@ -28,6 +29,14 @@ export default function Error({
     // error; it is the only handle on the original stack once it is redacted
     // in production, so it must be logged.
     logger.error("Unhandled route error", { error, digest: error.digest });
+
+    // Report off-box, tagged with the same digest so a Sentry issue can be
+    // matched to the server log line that recorded it.
+    if (SENTRY_ENABLED) {
+      void import("@sentry/nextjs").then((Sentry) =>
+        Sentry.captureException(error, { tags: { digest: error.digest ?? "none" } })
+      );
+    }
   }, [error]);
 
   return (

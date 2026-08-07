@@ -2,6 +2,7 @@
 
 import React, { Component, ReactNode } from "react";
 import { logger } from "@/lib/logger";
+import { SENTRY_ENABLED } from "@/lib/monitoring/sentry";
 
 interface Props {
   children: ReactNode;
@@ -36,9 +37,17 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // Send to error tracking service (future: Sentry, etc.)
-    if (process.env.NODE_ENV === "production") {
-      // Note: Integrate with Sentry or error tracking service for production monitoring
+    // Report off-box. Without a DSN this is a no-op, so local and CI runs are
+    // unaffected. The React component stack is attached as context because it
+    // is the one piece of information the stack trace alone does not give.
+    if (SENTRY_ENABLED) {
+      void import("@sentry/nextjs").then((Sentry) => {
+        Sentry.captureException(error, {
+          contexts: {
+            react: { componentStack: errorInfo.componentStack },
+          },
+        });
+      });
     }
   }
 

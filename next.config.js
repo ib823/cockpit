@@ -142,4 +142,39 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Sentry wrapping is applied only when a DSN is configured. Without one the
+// plugin would still run its build-time work (source-map generation and upload
+// attempts) for no benefit, and would fail the build in CI where no auth token
+// exists — so the unwrapped config is exported instead.
+const sentryEnabled = Boolean(
+  process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN
+);
+
+if (!sentryEnabled) {
+  module.exports = nextConfig;
+} else {
+  const { withSentryConfig } = require("@sentry/nextjs");
+
+  module.exports = withSentryConfig(nextConfig, {
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+
+    // Uploading source maps needs SENTRY_AUTH_TOKEN. When it is absent the
+    // build still succeeds; stack traces are just minified until it is set.
+    silent: !process.env.CI,
+
+    // Strip the uploaded maps from the client bundle so minified sources are
+    // not publicly served alongside the app.
+    sourcemaps: { deleteSourcemapsAfterUpload: true },
+
+    // Route Sentry's browser requests through the app's own origin so ad
+    // blockers do not silently drop error reports.
+    tunnelRoute: "/monitoring",
+
+    // Ship the error-reporting SDK only. Tracing/performance monitoring is what
+    // this app needs least and costs most — the audit finding was "no error
+    // tracking", not "no APM" — so it is tree-shaken out entirely rather than
+    // merely sampled at a low rate.
+    webpack: { treeshake: { removeDebugLogging: true, removeTracing: true } },
+  });
+}

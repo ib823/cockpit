@@ -48,10 +48,18 @@ const PAGE_TARGETS: Record<string, number> = {
   "/admin/users": 30,
 };
 
-// Ceiling for everything a route loads, shared chunks included. The shared
-// baseline alone is ~343kB across 4 chunks, so no route can currently come in
-// under the 300kB figure the docs quote.
-const FIRST_LOAD_BUDGET_KB = 1050;
+// Ceiling for everything a route loads, shared chunks included.
+//
+// Re-baselined 2026-08-07 when Sentry was wired in. The error-reporting SDK
+// costs ~186kB on the shared baseline (343kB -> 529kB), so it is paid by every
+// route. Tracing is already tree-shaken out (next.config.js
+// treeshake.removeTracing), which recovered ~82kB of that.
+//
+// This is a deliberate trade: the audit's top production blocker was that the
+// app had no error visibility at all — a crash was an unstyled white screen
+// nobody was told about. Per-route budgets were unaffected and are unchanged;
+// only this ceiling moved.
+const FIRST_LOAD_BUDGET_KB = 1300;
 
 const NEXT_DIR = join(process.cwd(), ".next");
 const APP_MANIFEST = join(NEXT_DIR, "app-build-manifest.json");

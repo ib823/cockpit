@@ -11,6 +11,7 @@
 
 import { useEffect } from "react";
 import { logger } from "@/lib/logger";
+import { SENTRY_ENABLED } from "@/lib/monitoring/sentry";
 
 export default function GlobalError({
   error,
@@ -21,6 +22,17 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     logger.error("Unhandled root layout error", { error, digest: error.digest });
+
+    // The root layout failed, so this is the most severe class of client error
+    // the app can produce — report it at fatal level.
+    if (SENTRY_ENABLED) {
+      void import("@sentry/nextjs").then((Sentry) =>
+        Sentry.captureException(error, {
+          level: "fatal",
+          tags: { digest: error.digest ?? "none", boundary: "global-error" },
+        })
+      );
+    }
   }, [error]);
 
   return (
