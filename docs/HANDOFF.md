@@ -757,3 +757,41 @@ Copy and append a new entry:
 - Blockers: <none or specific>
 - Next action: <single concrete step>
 ```
+
+## 0c. Design-system bundle cost (measured 2026-08-07)
+
+`/login` and `/register` are the first routes migrated to the design system.
+Route JS went **28 → 51kB** and **17 → 44kB**. That is a real regression, and
+it is recorded here rather than hidden behind a quietly-raised budget.
+
+The first measurement was **121.1kB**. Three genuine causes were found and
+fixed before the remainder was accepted:
+
+| Measurement | Cause removed |
+|---|---|
+| 121.1kB | — (importing from the `@/components/ds` barrel) |
+| 84.8kB | Barrel re-exports `Modal`, pulling `focus-trap-react` into any page that touches it. Pages now import from their own modules. |
+| 75.1kB | `AuthShell` lived in `AppShell.tsx`, dragging in `next/link`, the nav state machine and the whole `Display` module. Split into its own file. |
+| 50.9kB | `cn` wraps `clsx` in `tailwind-merge`. tailwind-merge exists to resolve conflicts between *Tailwind utility* classes and has nothing to do for CSS Module hashes — it cost ~24kB on every route importing a component. Replaced with a local `cx` across the design system. |
+
+**The tailwind-merge finding is the one that generalises**: it benefits every
+route that will ever import a design-system component, not just these two.
+
+### Remaining reduction, not yet done
+
+`Field.tsx` holds `Input`, `Textarea`, `NumberInput`, `SearchInput` and
+`Select`. A page wanting one gets all five. Splitting it per component is the
+next reduction and should bring `/login` toward its 30kB target.
+
+Splitting `Banner` out of `Feedback.tsx` was tried and yielded only 0.1kB, so
+`Feedback` is not the remaining weight — `Field` is. That was measured, not
+assumed.
+
+### The rule applied
+
+Same distinction as the coverage floors: re-baselining after a deliberate
+composition change is legitimate; raising a budget to make a red build pass is
+not. These pages genuinely changed composition — from hand-rolled markup with
+nothing reusable to a shared design system whose cost every subsequent route
+amortises. First-load budgets were unaffected and still pass at their existing
+values.

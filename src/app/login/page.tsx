@@ -4,6 +4,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { startRegistration, startAuthentication } from "@simplewebauthn/browser";
 import { logger } from "@/lib/logger";
 import VersionDisplay from "@/components/shared/VersionDisplay";
+// Imported from their own modules rather than the barrel: `@/components/ds`
+// re-exports Modal, which pulls focus-trap-react into any page that touches
+// the barrel. That alone took /login from 28kB to 121kB of route JS.
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Field";
+import { Banner } from "@/components/ds/Banner";
+import {
+  AuthShell,
+  AuthStatus,
+  AuthActions,
+  codeInputClass,
+} from "@/components/ds/AuthShell";
 
 type EmailStatus = {
   registered: boolean;
@@ -293,238 +305,195 @@ function LoginContent() {
     }
   };
 
+  const subtitle =
+    stage === "input"
+      ? "Enter your work email to continue"
+      : stage === "creating"
+        ? "Follow your browser prompt"
+        : stage === "verifying"
+          ? "Completing registration"
+          : "Redirecting to your dashboard";
+
+  const title =
+    stage === "input"
+      ? "Sign in"
+      : stage === "creating"
+        ? "Creating passkey"
+        : stage === "verifying"
+          ? "Verifying"
+          : "Signed in";
+
   return (
-    <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
-      <div className="w-full max-w-md px-6">
-        <div className="bg-white dark:bg-slate-800 dark:ring-1 dark:ring-slate-700 rounded-2xl shadow-xl p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              {stage === "input" && "Sign in"}
-              {stage === "creating" && "Creating Passkey"}
-              {stage === "verifying" && "Verifying"}
-              {stage === "success" && "Success!"}
-            </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {stage === "input" && "Enter your work email to continue"}
-              {stage === "creating" && "Follow your browser prompt..."}
-              {stage === "verifying" && "Completing registration..."}
-              {stage === "success" && "Redirecting to dashboard..."}
-            </p>
-          </div>
+    <AuthShell title={title} subtitle={subtitle}>
+      {(stage === "creating" || stage === "verifying") && (
+        <AuthStatus
+          message={
+            stage === "creating" ? "Waiting for passkey…" : "Verifying credentials…"
+          }
+        />
+      )}
 
-          {/* Loading/Success States */}
-          {(stage === "creating" || stage === "verifying") && (
-            <div className="text-center py-8" role="status" aria-live="polite">
-              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 mb-4" aria-hidden="true"></div>
-              <p className="text-slate-600 dark:text-slate-400">
-                {stage === "creating" && "Waiting for passkey..."}
-                {stage === "verifying" && "Verifying credentials..."}
-              </p>
-            </div>
+      {stage === "success" && <AuthStatus variant="success" message={successMessage} />}
+
+      {stage === "input" && (
+        <>
+          {err && (
+            <Banner
+              tone="danger"
+              title="Sign-in failed"
+              actions={
+                // Only a cancelled passkey prompt is retryable in place;
+                // anything else needs the email re-checked first.
+                err.includes("cancelled") ? (
+                  <Button size="sm" variant="secondary" loading={busy} onClick={onCheck}>
+                    Try again
+                  </Button>
+                ) : undefined
+              }
+            >
+              {err}
+            </Banner>
           )}
 
-          {stage === "success" && (
-            <div className="text-center py-8" role="status" aria-live="polite">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-                <svg
-                  className="w-8 h-8 text-green-600 dark:text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
+          <Input
+            label="Work email"
+            id="login-email"
+            type="email"
+            required
+            autoComplete="email"
+            size="lg"
+            placeholder="you@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            // Enter submits, because a single-field form that requires
+            // reaching for the mouse is a form that annoys everyone.
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !busy && !status) onCheck();
+            }}
+            readOnly={Boolean(status)}
+            helper={status ? "Change email to sign in as someone else." : undefined}
+          />
+
+          {!status && (
+            <AuthActions>
+              <Button variant="primary" size="lg" loading={busy} loadingLabel="Checking…" onClick={onCheck}>
+                Continue
+              </Button>
+            </AuthActions>
+          )}
+
+          {status?.needsAction === "not_found" && (
+            <>
+              <Banner tone="info" title="No access for this email">
+                This email is not registered or approved for access. Ask an
+                administrator to approve it, then try again.
+              </Banner>
+              <AuthActions>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  loading={busy}
+                  onClick={() => {
+                    setStatus(null);
+                    setEmail("");
+                    setErr(null);
+                  }}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <p className="text-xl text-slate-900 dark:text-slate-100 font-semibold mb-2">{successMessage}</p>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Please wait...</p>
-            </div>
+                  Try a different email
+                </Button>
+              </AuthActions>
+            </>
           )}
 
-          {/* Input Stage */}
-          {stage === "input" && (
-            <div className="space-y-6">
-              {/* Error Message */}
-              {err && (
-                <div role="alert" className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-300 text-sm space-y-3">
-                  <p>{err}</p>
-                  {err.includes("cancelled") && (
-                    <button
-                      onClick={() => {
-                        setErr(null);
-                        onCheck();
-                      }}
-                      disabled={busy}
-                      className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      Try Again
-                    </button>
-                  )}
-                </div>
-              )}
-
-              <div>
-                <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Work Email</label>
-                <input
-                  id="login-email"
-                  type="email"
-                  aria-required="true"
-                  autoComplete="email"
-                  className="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                />
-              </div>
-
-              {!status && (
-                <button
-                  onClick={onCheck}
-                  disabled={busy}
-                  className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          {status?.needsAction === "login" && (
+            <>
+              <AuthStatus message={successMessage || "Preparing your passkey…"} />
+              <AuthActions>
+                <Button
+                  variant="ghost"
+                  loading={busy}
+                  onClick={() => {
+                    setStatus(null);
+                    setErr(null);
+                    setSuccessMessage("");
+                  }}
                 >
-                  Continue
-                </button>
-              )}
-
-              {status?.needsAction === "not_found" && (
-                <div className="space-y-4">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
-                    This email is not registered or approved for access.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setStatus(null);
-                      setEmail("");
-                      setErr(null);
-                    }}
-                    disabled={busy}
-                    className="w-full py-3 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Try Different Email
-                  </button>
-                </div>
-              )}
-
-              {status?.needsAction === "login" && (
-                <div className="space-y-4">
-                  <div className="text-center py-4">
-                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 mb-3"></div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      {successMessage || "Preparing your passkey..."}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setStatus(null);
-                      setErr(null);
-                      setSuccessMessage("");
-                    }}
-                    disabled={busy}
-                    className="w-full py-2 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                  >
-                    Change Email
-                  </button>
-                </div>
-              )}
-
-              {status?.needsAction === "enter_invite" && status.inviteMethod === "link" && (
-                <div className="space-y-4">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
-                    Click the button below to receive a magic link via email.
-                  </p>
-                  <button
-                    onClick={onSendMagicLink}
-                    disabled={busy}
-                    className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                    Send Magic Link
-                  </button>
-                  <button
-                    onClick={() => {
-                      setStatus(null);
-                      setErr(null);
-                    }}
-                    disabled={busy}
-                    className="w-full py-2 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Change Email
-                  </button>
-                </div>
-              )}
-
-              {status?.needsAction === "enter_invite" && status.inviteMethod === "code" && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      6-Digit Code
-                    </label>
-                    <input
-                      inputMode="numeric"
-                      maxLength={6}
-                      className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 dark:border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
-                      placeholder="000000"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
-                    />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
-                      Enter the code provided by your administrator
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={onRegisterWithCode}
-                      disabled={busy || code.length !== 6}
-                      className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                        />
-                      </svg>
-                      Create Passkey
-                    </button>
-                    <button
-                      onClick={() => {
-                        setStatus(null);
-                        setCode("");
-                        setErr(null);
-                      }}
-                      disabled={busy}
-                      className="px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Change
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                  Change email
+                </Button>
+              </AuthActions>
+            </>
           )}
-        </div>
-      </div>
-    </main>
+
+          {status?.needsAction === "enter_invite" && status.inviteMethod === "link" && (
+            <AuthActions>
+              <Button
+                variant="primary"
+                size="lg"
+                loading={busy}
+                loadingLabel="Sending…"
+                onClick={onSendMagicLink}
+              >
+                Email me a sign-in link
+              </Button>
+              <Button
+                variant="ghost"
+                loading={busy}
+                onClick={() => {
+                  setStatus(null);
+                  setErr(null);
+                }}
+              >
+                Change email
+              </Button>
+            </AuthActions>
+          )}
+
+          {status?.needsAction === "enter_invite" && status.inviteMethod === "code" && (
+            <>
+              <Input
+                label="6-digit code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                size="lg"
+                placeholder="000000"
+                className={codeInputClass}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && code.length === 6 && !busy) onRegisterWithCode();
+                }}
+                helper="Enter the code provided by your administrator."
+              />
+              <AuthActions row>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  disabled={code.length !== 6}
+                  loading={busy}
+                  loadingLabel="Creating…"
+                  onClick={onRegisterWithCode}
+                >
+                  Create passkey
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  loading={busy}
+                  onClick={() => {
+                    setStatus(null);
+                    setCode("");
+                    setErr(null);
+                  }}
+                >
+                  Change
+                </Button>
+              </AuthActions>
+            </>
+          )}
+        </>
+      )}
+    </AuthShell>
   );
 }
 
@@ -532,9 +501,9 @@ export default function LoginEmailFirst() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400"></div>
-        </div>
+        <AuthShell title="Sign in">
+          <AuthStatus message="Loading…" />
+        </AuthShell>
       }
     >
       <LoginContent />

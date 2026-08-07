@@ -24,7 +24,7 @@
  * and explain on activation.
  */
 
-import { cn } from "@/lib/utils";
+import { cx } from "./cx";
 // Explicit import: tsconfig uses `jsx: "preserve"` with no automatic runtime,
 // which is the convention across this codebase.
 import React, { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
@@ -120,7 +120,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       {...rest}
       ref={ref}
       type={type}
-      className={cn(
+      className={cx(
         styles.button,
         styles[variant],
         styles[size],

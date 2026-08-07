@@ -24,8 +24,38 @@ import { join } from "path";
 // with ~10% headroom — not targets. They exist so a bundle cannot grow further
 // unnoticed. See TARGETS below for where these should eventually land, and
 // docs/HANDOFF.md for why the two differ so widely.
+//
+// /login and /register were re-baselined 2026-08-07 when they became the first
+// routes migrated to the design system. This is a REAL regression, recorded
+// rather than hidden: route JS went 28 -> 51kB and 17 -> 44kB.
+//
+// The migration was measured, not guessed, and three genuine causes were fixed
+// before accepting the remainder:
+//
+//   121.1kB  first measurement, importing from the `@/components/ds` barrel
+//    84.8kB  after importing components from their own modules -- the barrel
+//            re-exports Modal, which pulls focus-trap-react into any page that
+//            touches it
+//    75.1kB  after splitting AuthShell out of AppShell, which was dragging in
+//            next/link, the nav state machine and the whole Display module
+//    50.9kB  after replacing `cn` with a local `cx` across the design system.
+//            `cn` wraps clsx in tailwind-merge, whose only job is resolving
+//            conflicts between Tailwind utility classes -- it has nothing to do
+//            for CSS Module hashes, and cost ~24kB on every route that imported
+//            a component.
+//
+// The remaining gap is module granularity: Field.tsx holds Input, Textarea,
+// NumberInput, SearchInput and Select, and a page wanting one gets all five.
+// Splitting it is the next reduction and is recorded in docs/HANDOFF.md.
+//
+// The distinction that matters, same as the coverage floors: re-baselining
+// after a deliberate composition change is legitimate; raising a budget to make
+// a red build pass is not. These pages genuinely changed composition -- from
+// hand-rolled markup with nothing reusable to a shared design system whose cost
+// every subsequent route amortises. The tailwind-merge fix above already
+// benefits every route that will follow.
 const PAGE_BUDGETS: Record<string, number> = {
-  "/login": 28,
+  "/login": 55,
   "/dashboard": 110,
   "/gantt-tool": 700,
   "/admin": 290,
@@ -34,13 +64,14 @@ const PAGE_BUDGETS: Record<string, number> = {
   "/account/add-passkey": 15,
   "/settings": 6,
   "/settings/security": 18,
-  "/register": 17,
+  "/register": 48,
 };
 
 // Aspirational targets. Deliberately NOT asserted — an unmet assertion either
 // sits red forever or gets quietly neutered, which is how the previous version
 // of this file ended up proving nothing. Tracked in docs/HANDOFF.md instead.
 const PAGE_TARGETS: Record<string, number> = {
+  // Reachable once Field.tsx is split per component.
   "/login": 30,
   "/dashboard": 30,
   "/gantt-tool": 100,

@@ -346,3 +346,123 @@
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * AuthShell — the centred card used by sign-in, registration and recovery
+ * -------------------------------------------------------------------------*/
+.authShell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--ds-space-6) var(--ds-space-4);
+  background: var(--ds-surface-app);
+}
+
+.authCard {
+  width: 100%;
+  max-width: 420px;
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-elevation-2);
+  padding: var(--ds-space-8) var(--ds-space-6);
+}
+
+.authHeader {
+  margin-bottom: var(--ds-space-6);
+}
+
+.authTitle {
+  font: var(--ds-type-display);
+  letter-spacing: var(--ds-ls-display);
+  color: var(--ds-content-primary);
+  margin: 0;
+}
+
+.authSubtitle {
+  font: var(--ds-type-body);
+  color: var(--ds-content-secondary);
+  margin: var(--ds-space-2) 0 0;
+}
+
+.authBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+}
+
+/* A busy or finished stage: centred, with the message in a live region. */
+.authStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-6) 0;
+  text-align: center;
+}
+
+.authSpinner {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ds-radius-full);
+  border: 3px solid var(--ds-border-subtle);
+  border-top-color: var(--ds-accent-default);
+  animation: ds-auth-spin 800ms linear infinite;
+}
+
+@keyframes ds-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .authSpinner {
+    animation-duration: 2.4s;
+    animation-timing-function: steps(8, end);
+  }
+}
+
+.authStatusText {
+  font: var(--ds-type-body);
+  color: var(--ds-content-secondary);
+  margin: 0;
+}
+
+.authSuccessGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-success-subtle);
+  border: var(--ds-border-hairline) solid var(--ds-success-border);
+  color: var(--ds-success-default);
+}
+
+/* The 6-digit access code: one figure per column, widely tracked so a
+ * transposed digit is obvious. */
+.codeInput input {
+  text-align: center;
+  font: var(--ds-type-mono);
+  font-size: 22px;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em; /* Recentres text that letter-spacing pushes left. */
+}
+
+.authActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+
+.authActionsRow {
+  display: flex;
+  gap: var(--ds-space-2);
+}
+
+.authActionsRow > *:first-child {
+  flex: 1 1 auto;
+}

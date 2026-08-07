@@ -15,7 +15,7 @@
  * attribute and cannot be expressed in JSX.
  */
 
-import { cn } from "@/lib/utils";
+import { cx } from "./cx";
 import React, {
   forwardRef,
   useEffect,
@@ -86,7 +86,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
 
   return (
     <label
-      className={cn(
+      className={cx(
         styles.row,
         disabled && styles.disabled,
         readOnly && styles.readOnly,
@@ -120,7 +120,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           }}
         />
         <span
-          className={cn(
+          className={cx(
             styles.control,
             styles.box,
             isOn && styles.checkedControl,
@@ -148,7 +148,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
       </span>
       <span className={styles.labelWrap}>
         <span
-          className={cn(
+          className={cx(
             styles.label,
             error && styles.labelError,
             disabled && styles.labelDisabled
@@ -194,7 +194,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(function Radio(
 
   return (
     <label
-      className={cn(
+      className={cx(
         styles.row,
         disabled && styles.disabled,
         readOnly && styles.readOnly,
@@ -227,7 +227,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(function Radio(
           }}
         />
         <span
-          className={cn(
+          className={cx(
             styles.control,
             styles.circle,
             isOn && styles.checkedControl,
@@ -241,7 +241,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(function Radio(
       </span>
       <span className={styles.labelWrap}>
         <span
-          className={cn(
+          className={cx(
             styles.label,
             error && styles.labelError,
             disabled && styles.labelDisabled
@@ -296,7 +296,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(function Toggle(
 
   return (
     <label
-      className={cn(
+      className={cx(
         styles.row,
         disabled && styles.disabled,
         readOnly && styles.readOnly,
@@ -328,7 +328,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(function Toggle(
           }}
         />
         <span
-          className={cn(
+          className={cx(
             styles.track,
             isOn && styles.trackOn,
             pending && styles.trackPending,
@@ -336,7 +336,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(function Toggle(
           )}
         >
           <span
-            className={cn(
+            className={cx(
               styles.knob,
               isOn && styles.knobOn,
               disabled && styles.knobDisabled
@@ -346,7 +346,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(function Toggle(
       </span>
       <span className={styles.labelWrap}>
         <span
-          className={cn(styles.label, disabled && styles.labelDisabled)}
+          className={cx(styles.label, disabled && styles.labelDisabled)}
           style={hideLabel ? srOnly : undefined}
         >
           {label}
@@ -408,19 +408,19 @@ export function ChoiceGroup({
 
   return (
     <fieldset
-      className={cn(styles.group, className)}
+      className={cx(styles.group, className)}
       aria-describedby={descriptionId}
       aria-invalid={Boolean(error) || undefined}
     >
       <legend className={styles.legend}>{legend}</legend>
       <div
-        className={cn(styles.group, orientation === "horizontal" && styles.groupHorizontal)}
+        className={cx(styles.group, orientation === "horizontal" && styles.groupHorizontal)}
       >
         {children}
       </div>
       {descriptionId && (
         <span
-          className={cn(styles.groupHelper, error && styles.groupError)}
+          className={cx(styles.groupHelper, error && styles.groupError)}
           id={descriptionId}
         >
           {error ?? helper}

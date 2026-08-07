@@ -3,6 +3,13 @@
 import { startRegistration } from "@simplewebauthn/browser";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+// Imported from their own modules rather than the barrel: `@/components/ds`
+// re-exports Modal, which pulls focus-trap-react into any page that touches
+// the barrel. That alone took /login from 28kB to 121kB of route JS.
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Field";
+import { Banner } from "@/components/ds/Banner";
+import { AuthShell, AuthStatus, AuthActions, codeInputClass } from "@/components/ds/AuthShell";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -77,138 +84,92 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
-      <div className="w-full max-w-md px-6">
-        <div className="bg-white dark:bg-slate-800 dark:ring-1 dark:ring-slate-700 rounded-2xl shadow-xl p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Register Your Passkey</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {stage === "input" && "Enter your email and 6-digit code"}
-              {stage === "waiting" && "Creating your passkey..."}
-              {stage === "done" && "Registration complete!"}
-            </p>
-          </div>
+    <AuthShell
+      title={
+        stage === "input"
+          ? "Create your passkey"
+          : stage === "waiting"
+            ? "Setting up"
+            : "All set"
+      }
+      subtitle={
+        stage === "input"
+          ? "Enter your email and the code your administrator gave you"
+          : stage === "waiting"
+            ? "Follow your browser prompt"
+            : "Signing you in"
+      }
+    >
+      {errorMessage && (
+        <Banner tone="danger" title="Registration failed">
+          {errorMessage}
+        </Banner>
+      )}
 
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-300 text-sm">
-              {errorMessage}
-            </div>
-          )}
+      {stage === "input" && (
+        <>
+          <Input
+            label="Email address"
+            type="email"
+            size="lg"
+            required
+            autoComplete="email"
+            autoFocus
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value.trim().toLowerCase());
+              setErrorMessage("");
+            }}
+          />
 
-          {/* Input Stage */}
-          {stage === "input" && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value.trim().toLowerCase());
-                    setErrorMessage("");
-                  }}
-                  placeholder="you@example.com"
-                  autoFocus
-                  className="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
-                />
-              </div>
+          <Input
+            label="6-digit code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            size="lg"
+            required
+            placeholder="000000"
+            className={codeInputClass}
+            value={code}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+              setCode(value);
+              setErrorMessage("");
+            }}
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              email.includes("@") &&
+              code.length === 6 &&
+              handleRegister()
+            }
+            helper="Enter the code provided by your administrator."
+          />
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  6-Digit Code
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={code}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setCode(value);
-                    setErrorMessage("");
-                  }}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" &&
-                    email.includes("@") &&
-                    code.length === 6 &&
-                    handleRegister()
-                  }
-                  placeholder="000000"
-                  maxLength={6}
-                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:border-blue-400 dark:focus:ring-blue-900/40 focus:outline-none transition-all"
-                />
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
-                  Enter the code provided by your administrator
-                </p>
-              </div>
+          <AuthActions>
+            <Button
+              variant="primary"
+              size="lg"
+              disabled={!email.includes("@") || code.length !== 6}
+              loading={isAuthInProgress}
+              loadingLabel="Creating…"
+              onClick={handleRegister}
+            >
+              Create passkey
+            </Button>
+            <Button variant="ghost" onClick={() => router.push("/login")}>
+              Already have a passkey? Sign in
+            </Button>
+          </AuthActions>
+        </>
+      )}
 
-              <button
-                onClick={handleRegister}
-                disabled={!email.includes("@") || code.length !== 6 || isAuthInProgress}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
-              >
-                <svg
-                  className="w-5 h-5 align-middle"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
-                Create Passkey
-              </button>
+      {stage === "waiting" && (
+        <AuthStatus message={message || "Setting up your passkey…"} />
+      )}
 
-              <div className="text-center">
-                <button
-                  onClick={() => router.push("/login")}
-                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                >
-                  Already have a passkey? Sign in
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Waiting Stage */}
-          {stage === "waiting" && (
-            <div className="text-center py-8">
-              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-blue-600 dark:border-t-blue-400 mb-4"></div>
-              <p className="text-slate-600 dark:text-slate-400">{message || "Setting up your passkey..."}</p>
-            </div>
-          )}
-
-          {/* Success Stage */}
-          {stage === "done" && (
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-                <svg
-                  className="w-8 h-8 text-green-600 dark:text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <p className="text-xl text-slate-900 dark:text-slate-100 font-semibold">{message}</p>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Logging you in...</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+      {stage === "done" && <AuthStatus variant="success" message={message} />}
+    </AuthShell>
   );
 }

@@ -19,7 +19,7 @@
  * greying it would suggest it is missing.
  */
 
-import { cn } from "@/lib/utils";
+import { cx } from "./cx";
 import React, {
   forwardRef,
   useId,
@@ -93,7 +93,7 @@ function Description({
 }) {
   if (!id) return null;
   return (
-    <span className={cn(styles.helper, error && styles.helperError)} id={id}>
+    <span className={cx(styles.helper, error && styles.helperError)} id={id}>
       {error ?? helper}
     </span>
   );
@@ -119,7 +119,7 @@ function boxClasses(
   size: FieldSize,
   { error, readOnly, disabled }: { error?: string; readOnly?: boolean; disabled?: boolean }
 ) {
-  return cn(
+  return cx(
     styles.box,
     styles[size],
     error && styles.error,
@@ -162,7 +162,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const { controlId, describedById, invalid } = useFieldWiring(error, helper);
 
   return (
-    <div className={cn(styles.wrapper, className)}>
+    <div className={cx(styles.wrapper, className)}>
       <Label
         htmlFor={controlId}
         label={label}
@@ -217,7 +217,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   const { controlId, describedById, invalid } = useFieldWiring(error, helper);
 
   return (
-    <div className={cn(styles.wrapper, className)}>
+    <div className={cx(styles.wrapper, className)}>
       <Label
         htmlFor={controlId}
         label={label}
@@ -230,7 +230,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
           ref={ref}
           id={controlId}
           rows={rows}
-          className={cn(styles.control, styles.textarea)}
+          className={cx(styles.control, styles.textarea)}
           disabled={disabled}
           readOnly={readOnly}
           required={required}
@@ -288,7 +288,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     };
 
     return (
-      <div className={cn(styles.wrapper, className)}>
+      <div className={cx(styles.wrapper, className)}>
         <Label
           htmlFor={controlId}
           label={label}
@@ -310,7 +310,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             step={step}
             min={min}
             max={max}
-            className={cn(styles.control, styles.numeric)}
+            className={cx(styles.control, styles.numeric)}
             disabled={disabled}
             readOnly={readOnly}
             required={required}
@@ -397,7 +397,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     const hasValue = value !== undefined && value !== "";
 
     return (
-      <div className={cn(styles.wrapper, className)}>
+      <div className={cx(styles.wrapper, className)}>
         <Label htmlFor={controlId} label={label} />
         <div className={boxClasses(size, { error, readOnly, disabled })}>
           <span className={styles.searchIcon} aria-hidden="true">
@@ -479,7 +479,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   const { controlId, describedById, invalid } = useFieldWiring(error, helper);
 
   return (
-    <div className={cn(styles.wrapper, className)}>
+    <div className={cx(styles.wrapper, className)}>
       <Label
         htmlFor={controlId}
         label={label}
@@ -494,7 +494,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
           {...rest}
           ref={ref}
           id={controlId}
-          className={cn(styles.control, styles.select)}
+          className={cx(styles.control, styles.select)}
           disabled={disabled}
           required={required}
           aria-invalid={invalid || undefined}

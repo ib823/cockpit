@@ -22,7 +22,7 @@
  *    make that decision; the shell only guarantees the facts are visible.
  */
 
-import { cn } from "@/lib/utils";
+import { cx } from "./cx";
 import Link from "next/link";
 import React, { useState, type ReactNode } from "react";
 import styles from "./AppShell.module.css";
@@ -67,7 +67,7 @@ export function SyncChip({ state, queued }: SyncChipProps) {
 
   return (
     <span
-      className={cn(styles.syncChip, SYNC_CLASS[state])}
+      className={cx(styles.syncChip, SYNC_CLASS[state])}
       role="status"
       aria-live="polite"
       // The visible text is abbreviated at narrow widths, so the full state is
@@ -173,7 +173,7 @@ export function AppShell({
   const [navOpen, setNavOpen] = useState(false);
 
   return (
-    <div className={cn("ds", styles.shell, className)}>
+    <div className={cx("ds", styles.shell, className)}>
       <header className={styles.topBar}>
         <Link href="/dashboard" className={styles.brand}>
           {brand}
@@ -193,7 +193,7 @@ export function AppShell({
           <>
             <button
               type="button"
-              className={cn(styles.navLink, styles.menuButton)}
+              className={cx(styles.navLink, styles.menuButton)}
               aria-expanded={navOpen}
               aria-controls="ds-primary-nav"
               onClick={() => setNavOpen((open) => !open)}
@@ -203,13 +203,13 @@ export function AppShell({
             <nav
               id="ds-primary-nav"
               aria-label="Primary"
-              className={cn(styles.primaryNav, navOpen && styles.primaryNavOpen)}
+              className={cx(styles.primaryNav, navOpen && styles.primaryNavOpen)}
             >
               {primaryNav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={cn(styles.navLink, item.current && styles.navLinkActive)}
+                  className={cx(styles.navLink, item.current && styles.navLinkActive)}
                   // The fill is the sighted signal; this is the other one.
                   aria-current={item.current ? "page" : undefined}
                   onClick={() => setNavOpen(false)}
@@ -238,7 +238,7 @@ export function AppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={cn(styles.subLink, item.current && styles.subLinkActive)}
+                  className={cx(styles.subLink, item.current && styles.subLinkActive)}
                   aria-current={item.current ? "page" : undefined}
                 >
                   {item.label}
@@ -277,7 +277,7 @@ export interface PageHeaderProps {
 
 export function PageHeader({ title, description, actions, className }: PageHeaderProps) {
   return (
-    <div className={cn(styles.pageHeader, className)}>
+    <div className={cx(styles.pageHeader, className)}>
       <div className={styles.pageTitleWrap}>
         {/* One h1 per screen, and it is the page title — never a panel heading. */}
         <h1 className={styles.pageTitle}>{title}</h1>
@@ -301,7 +301,7 @@ export function Card({ children, padded = true, className, label }: CardProps) {
   const Tag = label ? "section" : "div";
   return (
     <Tag
-      className={cn(styles.card, padded && styles.cardPadded, className)}
+      className={cx(styles.card, padded && styles.cardPadded, className)}
       aria-label={label}
     >
       {children}
