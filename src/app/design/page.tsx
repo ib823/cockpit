@@ -34,6 +34,21 @@ import { Banner } from "@/components/ds/Banner";
 import { EmptyState } from "@/components/ds/Feedback";
 import { Modal, Drawer } from "@/components/ds/Modal";
 import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
+import dynamic from "next/dynamic";
+import { AllocationCell } from "@/components/ds/gantt/AllocationCell";
+import { initialExpanded, type GanttPhase } from "@/components/ds/gantt/rows";
+import type { ZoomGrain } from "@/components/ds/gantt/scale";
+
+// Loaded lazily, and this is not a showcase convenience — it is how the canvas
+// must be loaded everywhere. Importing it statically here put the whole Gantt
+// module into the chunk this page shares with every other design-system route,
+// so /settings — a redirect page — went from 16kB to 71kB of route JS. A
+// timeline canvas belongs in its own chunk, fetched by the routes that draw a
+// timeline.
+const GanttCanvas = dynamic(
+  () => import("@/components/ds/gantt/GanttCanvas").then((m) => m.GanttCanvas),
+  { ssr: false, loading: () => <Skeleton width="100%" height={340} /> }
+);
 import styles from "./design.module.css";
 
 function Section({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
@@ -55,7 +70,44 @@ const SURFACES = ["base", "raised", "app", "sunken"] as const;
 const CONTENT = ["primary", "secondary", "tertiary", "disabled"] as const;
 const SEMANTIC = ["accent", "success", "warning", "danger", "info"] as const;
 
+const DEMO_PHASES: GanttPhase[] = [
+  { id: "prepare", name: "Prepare", tasks: [
+    { id: "t1", name: "Project charter" },
+    { id: "t2", name: "Kick-off workshop" },
+  ]},
+  { id: "explore", name: "Explore", tasks: [
+    { id: "t3", name: "Fit-gap — Finance" },
+    { id: "t4", name: "Fit-gap — Logistics" },
+    { id: "t5", name: "Chart of accounts workshop" },
+  ]},
+  { id: "realize", name: "Realize", tasks: [
+    { id: "t6", name: "Build — Finance" },
+    { id: "t7", name: "Unit test — Finance" },
+    { id: "t8", name: "Sign-off" },
+  ]},
+];
+
+const DEMO_PLACEMENTS = {
+  prepare: { startDay: 0, durationDays: 60, progress: 100 },
+  t1: { startDay: 0, durationDays: 14, progress: 100 },
+  t2: { startDay: 14, durationDays: 3, progress: 100 },
+  explore: { startDay: 48, durationDays: 138, progress: 70 },
+  t3: { startDay: 48, durationDays: 30, progress: 100 },
+  t4: { startDay: 60, durationDays: 30, progress: 60 },
+  t5: { startDay: 90, durationDays: 21, progress: 10, critical: true },
+  realize: { startDay: 160, durationDays: 292, progress: 20 },
+  t6: { startDay: 160, durationDays: 60, progress: 35, baselineStartDay: 150, baselineDurationDays: 60 },
+  t7: { startDay: 220, durationDays: 30, progress: 0 },
+  t8: { startDay: 250, durationDays: 1, progress: 0 },
+};
+
+const DEMO_ALLOCATIONS = [0, 40, 65, 80, 95, 100, 120, 140];
+
 export default function DesignShowcasePage() {
+  const [ganttGrain, setGanttGrain] = useState<ZoomGrain>("Week");
+  const [ganttExpanded, setGanttExpanded] = useState<Set<string>>(() =>
+    initialExpanded(DEMO_PHASES)
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -225,6 +277,56 @@ export default function DesignShowcasePage() {
         <Button variant="secondary" onClick={() => setDrawerOpen(true)}>
           Open drawer
         </Button>
+      </Section>
+
+      <Section
+        title="Gantt canvas"
+        note="Layer 4. Click into it, then use ↑↓ to move the cursor, ←→ to expand a phase, M for Move mode, Space to select, +/− to zoom. Announcements are shown below the canvas; in the product that region is visually hidden."
+      >
+        <div style={{ width: "100%" }}>
+          <GanttCanvas
+            phases={DEMO_PHASES}
+            placements={DEMO_PLACEMENTS}
+            formatDay={(d) => {
+              const date = new Date(2026, 0, 5 + d);
+              return date.toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "2-digit",
+              });
+            }}
+            totalDays={460}
+            grain={ganttGrain}
+            onGrainChange={setGanttGrain}
+            expandedIds={ganttExpanded}
+            onExpandedChange={setGanttExpanded}
+            majorTicks={[
+              { day: 0, label: "Q1 2026" },
+              { day: 90, label: "Q2 2026" },
+              { day: 181, label: "Q3 2026" },
+              { day: 273, label: "Q4 2026" },
+              { day: 365, label: "Q1 2027" },
+            ]}
+            nonWorkingDays={[{ day: 25, name: "Thaipusam (MY)" }, { day: 48, name: "Chinese New Year" }]}
+            todayDay={120}
+            height={340}
+            debugAnnouncements
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="Allocation heat"
+        note="Figure, fill and — above 100% — a diagonal hatch. Three channels, so it survives a projector and a monochrome print."
+      >
+        {DEMO_ALLOCATIONS.map((value) => (
+          <AllocationCell key={value} value={value} label={`Consultant, week ${value}`} />
+        ))}
+        <AllocationCell
+          value={80}
+          label="Consultant, week 33"
+          redactedReason="Needs cost visibility level 2."
+        />
       </Section>
 
       <Section title="Loading">

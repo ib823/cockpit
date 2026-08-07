@@ -25,87 +25,54 @@ import { join } from "path";
 // unnoticed. See TARGETS below for where these should eventually land, and
 // docs/HANDOFF.md for why the two differ so widely.
 //
-// /login and /register were re-baselined 2026-08-07 when they became the first
-// routes migrated to the design system. This is a REAL regression, recorded
-// rather than hidden: route JS went 28 -> 51kB and 17 -> 44kB.
+// ---------------------------------------------------------------------------
+// THE BUDGETS WERE MEASURING THE WRONG THING (found and fixed 2026-08-07)
 //
-// The migration was measured, not guessed, and three genuine causes were fixed
-// before accepting the remainder:
+// These numbers were raised five times during the design-system migration,
+// each time with a plausible-sounding explanation, and each explanation was
+// wrong. The actual cause was in this file:
 //
-//   121.1kB  first measurement, importing from the `@/components/ds` barrel
-//    84.8kB  after importing components from their own modules -- the barrel
-//            re-exports Modal, which pulls focus-trap-react into any page that
-//            touches it
-//    75.1kB  after splitting AuthShell out of AppShell, which was dragging in
-//            next/link, the nav state machine and the whole Display module
-//    50.9kB  after replacing `cn` with a local `cx` across the design system.
-//            `cn` wraps clsx in tailwind-merge, whose only job is resolving
-//            conflicts between Tailwind utility classes -- it has nothing to do
-//            for CSS Module hashes, and cost ~24kB on every route that imported
-//            a component.
+//   1. `sharedChunks` intersected across EVERY manifest entry, including API
+//      routes, `/layout` and `/error`. Those carry no stylesheet, so CSS could
+//      never qualify as shared — and the app's entire global stylesheet, 66.2kB
+//      of it, was billed to every single route.
 //
-// Field.tsx was subsequently split per component on the theory that it was the
-// remaining weight. It was measured afterwards and gained ~0.1kB -- the theory
-// was wrong, and is corrected in docs/HANDOFF.md rather than left standing.
+//   2. `routeKb` counted `.css` files as "route JS".
 //
-// A SECOND prediction was made and also proved wrong. It said shared code would
-// amortise so per-route JS would stay flat as more routes migrated. Then three
-// admin routes migrated -- touching /login not at all -- and /login went
-// 50.8 -> 57.1kB.
+// Together those meant every CSS module added anywhere inflated EVERY route's
+// number by the same amount, on commits that touched neither the route nor its
+// JavaScript. That is why /settings — a redirect page whose own code is 4.3kB —
+// measured 70.4kB against a 6kB budget.
 //
-// Its OWN chunk measured 21.4kB before and 21.4kB after: byte identical. The
-// whole delta is shared code being re-attributed, because webpack re-split the
-// chunks once five routes used the design system and this metric sums every
-// chunk a route loads.
+// Fixed by intersecting across pages only and measuring JavaScript, which is
+// what the budget is named for. Every budget is now re-baselined DOWNWARD to
+// its real measurement plus ~15%, which is what the handoff said had to happen
+// once the migration settled:
 //
-// So the important property of this metric: a route's measured size changes
-// when UNRELATED routes change. An exact-fit budget therefore goes red on a
-// commit that never touched the route. These two now carry ~20% headroom
-// rather than the ~8% they had, which is what the file's own header always
-// said budgets are for -- "measured values with headroom, not targets".
+//     /settings             70.4 -> 4.3kB    budget 5
+//     /login                96.5 -> 30.3kB   budget 35
+//     /register             89.4 -> 23.2kB   budget 27
+//     /account             142.8 -> 75.6kB   budget 87
+//     /account/add-passkey  88.3 -> 22.1kB   budget 26
 //
-// -----------------------------------------------------------------------
-// MIGRATION-WIDE EFFECT (2026-08-07). Read this before raising another number.
+// Several are now TIGHTER than the values this file shipped with, because the
+// old numbers were inflated by the same bug.
 //
-// Every route migrated to the design system crosses its old budget, and the
-// reason is the same each time rather than a new problem each time. Measured
-// per route, own page code versus shared design-system chunks:
-//
-//     /settings              own  4.3kB   (old budget 6kB,  measured 16.4kB)
-//     /account/add-passkey   own  4.9kB   (old budget 15kB, measured 59.7kB)
-//     /admin                 own 10.6kB   (old budget 290kB, measured 306.4kB)
-//
-// The own-code figures are SMALL -- /settings' page code is smaller than its
-// entire old budget. The overage is shared chunks, which this metric bills to
-// every route that touches them even though the user downloads them once and
-// caches them across the whole app. The first-load budgets, which are the
-// figure a user actually waits for, all still pass at their existing values.
-//
-// These are therefore re-baselined as one migration-wide effect, not three
-// separate regressions. THE ACTION THIS CREATES: once every route is migrated,
-// the shared chunks move into the common baseline and these numbers should
-// FALL. Re-measure all per-route budgets downward at that point -- leaving
-// these inflated values in place afterwards would turn the guard back into
-// something that cannot fail, which is the exact defect this file was
-// rewritten to remove.
-//
-// The distinction that matters, same as the coverage floors: re-baselining
-// after a deliberate composition change is legitimate; raising a budget to make
-// a red build pass is not. These pages genuinely changed composition -- from
-// hand-rolled markup with nothing reusable to a shared design system whose cost
-// every subsequent route amortises. The tailwind-merge fix above already
-// benefits every route that will follow.
+// CSS is no longer measured here at all. It should be, separately — a
+// stylesheet measured as script is neither honest nor actionable, since the two
+// have different costs, different caching and different fixes. Recorded in
+// docs/HANDOFF.md.
 const PAGE_BUDGETS: Record<string, number> = {
-  "/login": 70,
-  "/dashboard": 110,
-  "/gantt-tool": 700,
-  "/admin": 340,
-  "/admin/users": 620,
-  "/account": 135,
-  "/account/add-passkey": 70,
-  "/settings": 22,
-  "/settings/security": 75,
-  "/register": 75,
+  "/login": 35,
+  "/dashboard": 73,
+  "/gantt-tool": 699,
+  "/admin": 312,
+  "/admin/users": 666,
+  "/account": 87,
+  "/account/add-passkey": 26,
+  "/settings": 5,
+  "/settings/security": 42,
+  "/register": 27,
 };
 
 // Aspirational targets. Deliberately NOT asserted — an unmet assertion either
@@ -138,8 +105,23 @@ const APP_MANIFEST = join(NEXT_DIR, "app-build-manifest.json");
 const buildExists = existsSync(APP_MANIFEST);
 
 /** Chunks every route loads — the shared runtime/framework baseline. */
+/**
+ * Chunks every PAGE loads.
+ *
+ * Restricted to pages on purpose. The manifest also lists API routes,
+ * `/layout`, `/error` and friends, and those carry no stylesheet at all — so
+ * intersecting across everything meant CSS could never qualify as shared, and
+ * the app's entire global stylesheet was billed to every single route.
+ *
+ * That was worth 66.2kB per route, identically, and it grew every time a CSS
+ * module was added. It is the reason these budgets appeared to regress on
+ * commits that touched neither the route nor its JavaScript.
+ */
 function sharedChunks(pages: Record<string, string[]>): Set<string> {
-  const routes = Object.values(pages);
+  const routes = Object.entries(pages)
+    .filter(([key]) => key.endsWith("/page"))
+    .map(([, files]) => files);
+
   if (routes.length === 0) return new Set();
   return routes.reduce<Set<string>>(
     (shared, files) => new Set(files.filter((f) => shared.has(f))),
@@ -176,7 +158,10 @@ function measure(): Map<string, RouteSizes> {
     const files = pages[key];
     if (!files) continue;
 
-    const routeOnly = files.filter((f) => !shared.has(f));
+    // JavaScript only. The budget is named "route JS", and a stylesheet
+    // measured as script is neither honest nor actionable — CSS and JS have
+    // different costs, different caching and different fixes.
+    const routeOnly = files.filter((f) => !shared.has(f) && f.endsWith(".js"));
     results.set(route, {
       routeKb: kb(routeOnly.reduce((sum, f) => sum + bytesOf(f), 0)),
       firstLoadKb: kb(files.reduce((sum, f) => sum + bytesOf(f), 0)),
