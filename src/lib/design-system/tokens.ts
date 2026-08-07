@@ -53,7 +53,7 @@ export const COLORS = {
   },
 
   // SYSTEM COLORS (Only two - use with extreme discipline)
-  blue: '#007AFF',          // Primary action, selected state
+  blue: '#0062CC',          // Primary action, selected state
   blueHover: '#0051D5',     // Blue hover state
   bluePressed: '#004BB8',   // Blue pressed state
   blueLight: 'rgba(0, 122, 255, 0.1)', // Blue subtle background
@@ -81,7 +81,7 @@ export const COLORS = {
     success: '#34C759',
     warning: '#FF9500',
     error: '#FF3B30',
-    info: '#007AFF',
+    info: '#0062CC',
   },
 
   // Legacy gray scale (for gradual migration)

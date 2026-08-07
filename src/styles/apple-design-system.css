@@ -51,7 +51,7 @@
      ═══════════════════════════════════════════════════════════════════════ */
 
   /* System Colors - Light Mode */
-  --color-blue: rgb(0, 122, 255);
+  --color-blue: rgb(0, 98, 204); /* #0062CC — 5.8:1 on white. Was rgb(0,122,255) = 4.02:1, failed WCAG AA */
   --color-blue-dark: rgb(0, 112, 235);
   --color-blue-light: rgba(0, 122, 255, 0.1);
 

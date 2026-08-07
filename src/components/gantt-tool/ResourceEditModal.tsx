@@ -33,8 +33,8 @@ const TOKENS = {
   colors: {
     bg: { primary: "#FFFFFF", secondary: "#F5F5F7", overlay: "rgba(0, 0, 0, 0.5)" },
     text: { primary: "#1D1D1F", secondary: "#86868B", inverse: "#FFFFFF" },
-    border: { default: "#E5E5EA", focus: "#007AFF" },
-    accent: { blue: "#007AFF", red: "#FF3B30", green: "#34C759" },
+    border: { default: "#E5E5EA", focus: "#0062CC" },
+    accent: { blue: "#0062CC", red: "#FF3B30", green: "#34C759" },
   },
   typography: {
     family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",

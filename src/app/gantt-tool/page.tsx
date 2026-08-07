@@ -770,13 +770,13 @@ export default function GanttToolV3Page() {
                         padding: "32px 24px",
                         backgroundColor: "#FFFFFF",
                         borderRadius: "12px",
-                        border: "2px solid #007AFF",
+                        border: "2px solid #0062CC",
                       }}>
                         <div style={{
                           fontFamily: "var(--font-text)",
                           fontSize: "48px",
                           fontWeight: 700,
-                          color: "#007AFF",
+                          color: "#0062CC",
                           lineHeight: 1,
                           marginBottom: "8px",
                         }}>
@@ -874,7 +874,7 @@ export default function GanttToolV3Page() {
                           onClick={() => setShowOrgChartModal(true)}
                           style={{
                             padding: "16px 20px",
-                            backgroundColor: "#007AFF",
+                            backgroundColor: "#0062CC",
                             border: "none",
                             borderRadius: "12px",
                             color: "#FFFFFF",
@@ -891,7 +891,7 @@ export default function GanttToolV3Page() {
                             e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 122, 255, 0.4)";
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "#007AFF";
+                            e.currentTarget.style.backgroundColor = "#0062CC";
                             e.currentTarget.style.transform = "translateY(0)";
                             e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 122, 255, 0.3)";
                           }}
@@ -914,7 +914,7 @@ export default function GanttToolV3Page() {
                             transition: "all 150ms cubic-bezier(0.4, 0, 0.2, 1)",
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "#007AFF";
+                            e.currentTarget.style.borderColor = "#0062CC";
                             e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.05)";
                             e.currentTarget.style.transform = "translateY(-2px)";
                             e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.08)";

@@ -500,7 +500,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
             <div
               key={logo.id}
               style={{
-                border: "2px solid #007AFF",
+                border: "2px solid #0062CC",
                 borderRadius: "12px",
                 padding: SPACING[4],
                 backgroundColor: "#FFFFFF",
@@ -589,7 +589,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                       padding: "8px 12px",
                       fontFamily: TYPOGRAPHY.fontFamily.text,
                       fontSize: TYPOGRAPHY.fontSize.caption,
-                      border: "2px solid #007AFF",
+                      border: "2px solid #0062CC",
                       borderRadius: "6px",
                       outline: "none",
                       marginBottom: SPACING[2],
@@ -604,7 +604,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                       fontSize: TYPOGRAPHY.fontSize.caption,
                       fontWeight: TYPOGRAPHY.fontWeight.semibold,
                       color: "#FFFFFF",
-                      backgroundColor: "#007AFF",
+                      backgroundColor: "#0062CC",
                       border: "none",
                       borderRadius: "6px",
                       cursor: "pointer",
@@ -614,7 +614,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                       e.currentTarget.style.backgroundColor = "#0051D5";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#007AFF";
+                      e.currentTarget.style.backgroundColor = "#0062CC";
                     }}
                   >
                     Save Name
@@ -687,7 +687,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                 transition: "all 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "#007AFF";
+                e.currentTarget.style.borderColor = "#0062CC";
                 e.currentTarget.style.backgroundColor = "#F0F9FF";
                 e.currentTarget.style.transform = "scale(1.02)";
               }}
@@ -697,13 +697,13 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
                 e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              <Upload size={40} color="#007AFF" style={{ marginBottom: "12px" }} />
+              <Upload size={40} color="#0062CC" style={{ marginBottom: "12px" }} />
               <div
                 style={{
                   fontFamily: TYPOGRAPHY.fontFamily.text,
                   fontSize: "13px",
                   fontWeight: TYPOGRAPHY.fontWeight.semibold,
-                  color: "#007AFF",
+                  color: "#0062CC",
                 }}
               >
                 Upload Logo
@@ -808,7 +808,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
           onClick={() => fileInputRef.current?.click()}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
           style={{
-            border: `2px dashed ${isDragging ? "#007AFF" : "#D1D1D6"}`,
+            border: `2px dashed ${isDragging ? "#0062CC" : "#D1D1D6"}`,
             borderRadius: "12px",
             padding: "40px 32px",
             backgroundColor: isDragging ? "#F0F9FF" : "#F5F5F7",
@@ -819,7 +819,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
         >
           <Upload
             size={48}
-            color={isDragging ? "#007AFF" : "#86868B"}
+            color={isDragging ? "#0062CC" : "#86868B"}
             style={{ marginBottom: SPACING[4] }}
           />
           <div
@@ -827,7 +827,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
               fontFamily: TYPOGRAPHY.fontFamily.text,
               fontSize: "16px",
               fontWeight: TYPOGRAPHY.fontWeight.semibold,
-              color: isDragging ? "#007AFF" : "#1D1D1F",
+              color: isDragging ? "#0062CC" : "#1D1D1F",
               marginBottom: SPACING[2],
             }}
           >
@@ -874,7 +874,7 @@ export function LogoLibraryModal({ isOpen, onClose }: LogoLibraryModalProps) {
               fontFamily: TYPOGRAPHY.fontFamily.text,
               fontSize: TYPOGRAPHY.fontSize.body,
               fontWeight: 500,
-              color: "#007AFF",
+              color: "#0062CC",
             }}
           >
             Processing logo...

@@ -73,7 +73,7 @@ describe('COLORS System - Black-based Opacity', () => {
   });
 
   it('SCENARIO 5: blue accent has all required states', () => {
-    expect(COLORS.blue).toBe('#007AFF');
+    expect(COLORS.blue).toBe('#0062CC');
     expect(COLORS.blueHover).toBe('#0051D5');
     expect(COLORS.bluePressed).toBe('#004BB8');
     expect(COLORS.blueLight).toBe('rgba(0, 122, 255, 0.1)');
@@ -95,7 +95,7 @@ describe('COLORS System - Black-based Opacity', () => {
     expect(COLORS.status.success).toBe('#34C759');
     expect(COLORS.status.warning).toBe('#FF9500');
     expect(COLORS.status.error).toBe('#FF3B30');
-    expect(COLORS.status.info).toBe('#007AFF');
+    expect(COLORS.status.info).toBe('#0062CC');
   });
 
   it('SCENARIO 9: legacy gray scale exists for migration', () => {

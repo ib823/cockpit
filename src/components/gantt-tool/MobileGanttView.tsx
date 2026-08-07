@@ -151,7 +151,7 @@ export function MobileGanttView({
           <div className="space-y-2">
             {/* Date Range */}
             <div className="flex items-center gap-2 text-[15px]">
-              <Calendar className="w-4 h-4 text-[#007AFF]" />
+              <Calendar className="w-4 h-4 text-[#0062CC]" />
               <span className="text-black font-medium">
                 {format(projectStart, 'MMM d')} – {format(projectEnd, 'MMM d, yyyy')}
               </span>
@@ -188,7 +188,7 @@ export function MobileGanttView({
             const phaseEnd = new Date(phase.endDate);
             const phaseDays = differenceInDays(phaseEnd, phaseStart) + 1;
             const phaseStatus = phase.phaseType === "ams"
-              ? { color: '#007AFF', label: 'Ongoing', bg: 'rgba(0, 122, 255, 0.1)' }
+              ? { color: '#0062CC', label: 'Ongoing', bg: 'rgba(0, 122, 255, 0.1)' }
               : getTimelineStatus(phaseStart, phaseEnd);
 
             // Count resources
@@ -258,7 +258,7 @@ export function MobileGanttView({
 
                     {/* Phase Timeline */}
                     <div className="flex items-center gap-2 text-[15px] text-black">
-                      <Calendar className="w-4 h-4 text-[#007AFF]" />
+                      <Calendar className="w-4 h-4 text-[#0062CC]" />
                       {phase.phaseType === "ams" ? (
                         <span className="font-medium">
                           AMS starts {format(phaseStart, 'dd-MMM-yy (EEE)')}
@@ -322,7 +322,7 @@ export function MobileGanttView({
                                   <h3 className="text-[17px] font-semibold text-black text-left flex-1">
                                     {task.name}
                                   </h3>
-                                  <Edit3 className="w-4 h-4 text-[#007AFF] flex-shrink-0 mt-0.5" />
+                                  <Edit3 className="w-4 h-4 text-[#0062CC] flex-shrink-0 mt-0.5" />
                                 </div>
 
                                 {/* Timeline Status Badge */}
@@ -338,7 +338,7 @@ export function MobileGanttView({
 
                                 {/* Task Timeline */}
                                 <div className="flex items-center gap-2 text-[15px]">
-                                  <Calendar className="w-4 h-4 text-[#007AFF]" />
+                                  <Calendar className="w-4 h-4 text-[#0062CC]" />
                                   <span className="text-black font-medium">
                                     {format(taskStart, 'MMM d')} – {format(taskEnd, 'MMM d')}
                                   </span>

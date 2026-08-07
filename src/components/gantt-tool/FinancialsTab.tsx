@@ -46,7 +46,7 @@ const TOKENS = {
     success: "#34C759",
     warning: "#FF9500",
     danger: "#FF3B30",
-    blue: "#007AFF",
+    blue: "#0062CC",
     purple: "#AF52DE",
     green: "#30D158",
     teal: "#5AC8FA",

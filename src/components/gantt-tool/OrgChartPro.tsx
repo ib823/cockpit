@@ -76,10 +76,10 @@ const TOKENS = {
     border: {
       default: "#E5E5EA",
       subtle: "#F2F2F7",
-      focus: "#007AFF",
+      focus: "#0062CC",
     },
     accent: {
-      blue: "#007AFF",
+      blue: "#0062CC",
       green: "#34C759",
       red: "#FF3B30",
       orange: "#FF9500",

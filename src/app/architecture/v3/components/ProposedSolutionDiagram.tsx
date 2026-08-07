@@ -25,7 +25,7 @@ export function ProposedSolutionDiagram({
     switch (settings.visualStyle) {
       case "clean":
         return {
-          primary: "#007AFF",
+          primary: "#0062CC",
           primaryLight: "rgba(0, 122, 255, 0.08)",
           success: "#248A3D",
           successLight: "rgba(52, 199, 89, 0.12)",
@@ -39,13 +39,13 @@ export function ProposedSolutionDiagram({
         };
       case "bold":
         return {
-          primary: "#007AFF",
+          primary: "#0062CC",
           primaryLight: "#005EC4",
           success: "#248A3D",
           successLight: "#1B6B2F",
           warning: "#C93400",
           warningLight: "#A02B00",
-          bg: "#007AFF",
+          bg: "#0062CC",
           border: "#005EC4",
           text: "#fff",
           textSecondary: "#f0f0f0",
@@ -53,14 +53,14 @@ export function ProposedSolutionDiagram({
         };
       case "gradient":
         return {
-          primary: "#007AFF",
+          primary: "#0062CC",
           primaryLight: "#AF52DE",
           success: "#34C759",
           successLight: "#248A3D",
           warning: "#FF9500",
           warningLight: "#C93400",
-          bg: "linear-gradient(135deg, #007AFF 0%, #AF52DE 100%)",
-          border: "#007AFF",
+          bg: "linear-gradient(135deg, #0062CC 0%, #AF52DE 100%)",
+          border: "#0062CC",
           text: "#fff",
           textSecondary: "#f0f0f0",
           shadow: "0 4px 12px rgba(0, 122, 255, 0.3)",

@@ -49,7 +49,7 @@ function AllocationSlider({
   const getColor = () => {
     if (value > 100) return "#FF3B30"; // Red
     if (value >= 80) return "#FF9500"; // Orange
-    return "#007AFF"; // Blue
+    return "#0062CC"; // Blue
   };
 
   return (

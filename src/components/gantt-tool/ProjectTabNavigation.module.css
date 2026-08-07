@@ -47,14 +47,14 @@
 }
 
 .tab:focus-visible {
-  outline: 2px solid var(--color-blue, #007aff);
+  outline: 2px solid var(--color-blue, #0062CC);
   outline-offset: -2px;
   border-radius: 4px;
 }
 
 .tab.active {
-  color: var(--color-blue, #007aff);
-  border-bottom-color: var(--color-blue, #007aff);
+  color: var(--color-blue, #0062CC);
+  border-bottom-color: var(--color-blue, #0062CC);
   font-weight: 600;
 }
 

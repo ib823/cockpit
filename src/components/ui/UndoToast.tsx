@@ -122,8 +122,8 @@ export function UndoToast({
   const variantConfig = {
     default: {
       bg: "#1D1D1F",
-      progressColor: "#007AFF",
-      iconColor: "#007AFF",
+      progressColor: "#0062CC",
+      iconColor: "#0062CC",
     },
     warning: {
       bg: "#FF9500",

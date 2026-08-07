@@ -34,7 +34,7 @@ interface MilestoneModalProps {
 // Apple-inspired color palette
 const MILESTONE_COLORS = [
   { name: 'Red', value: '#FF3B30', label: 'Launches, Deadlines' },
-  { name: 'Blue', value: '#007AFF', label: 'Reviews, Checkpoints' },
+  { name: 'Blue', value: '#0062CC', label: 'Reviews, Checkpoints' },
   { name: 'Green', value: '#34C759', label: 'Approvals, Go-Live' },
   { name: 'Yellow', value: '#FFCC00', label: 'Warnings, Decisions' },
   { name: 'Purple', value: '#AF52DE', label: 'Custom Events' },
@@ -275,7 +275,7 @@ export function MilestoneModal({
                     padding: "10px 12px",
                     backgroundColor: color === colorOption.value ? "#F0F9FF" : "#FFFFFF",
                     border: `2px solid ${
-                      color === colorOption.value ? "#007AFF" : "rgba(0, 0, 0, 0.08)"
+                      color === colorOption.value ? "#0062CC" : "rgba(0, 0, 0, 0.08)"
                     }`,
                     borderRadius: RADIUS.default,
                     cursor: "pointer",
@@ -402,7 +402,7 @@ export function MilestoneModal({
                       backgroundColor:
                         editingId === milestone.id ? "#F0F9FF" : "#FFFFFF",
                       border: `2px solid ${
-                        editingId === milestone.id ? "#007AFF" : "rgba(0, 0, 0, 0.08)"
+                        editingId === milestone.id ? "#0062CC" : "rgba(0, 0, 0, 0.08)"
                       }`,
                       borderRadius: "12px",
                       transition: "all 0.15s ease",
@@ -487,7 +487,7 @@ export function MilestoneModal({
                           border: "none",
                           borderRadius: "6px",
                           cursor: "pointer",
-                          color: "#007AFF",
+                          color: "#0062CC",
                           transition: "all 0.15s ease",
                         }}
                         onMouseEnter={(e) => {

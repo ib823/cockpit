@@ -34,7 +34,7 @@
 
 .org-drop-zone.active {
   opacity: 1;
-  border-color: #007AFF;
+  border-color: #0062CC;
 }
 
 .org-drop-zone-top {
@@ -50,7 +50,7 @@
 }
 
 .org-drop-zone.active.org-drop-zone-top {
-  border-top: 3px solid #007AFF;
+  border-top: 3px solid #0062CC;
   background: linear-gradient(to bottom,
     rgba(0, 122, 255, 0.15) 0%,
     rgba(0, 122, 255, 0.05) 50%,
@@ -61,7 +61,7 @@
 }
 
 .org-drop-zone.active.org-drop-zone-bottom {
-  border-bottom: 3px solid #007AFF;
+  border-bottom: 3px solid #0062CC;
   background: linear-gradient(to top,
     rgba(0, 122, 255, 0.15) 0%,
     rgba(0, 122, 255, 0.05) 50%,
@@ -77,7 +77,7 @@
   align-items: center;
   justify-content: center;
   padding: 4px 12px;
-  background-color: #007AFF;
+  background-color: #0062CC;
   color: #ffffff;
   font-size: 11px;
   font-weight: 600;
@@ -101,7 +101,7 @@
 /* Animations */
 @keyframes pulse-glow-top {
   0%, 100% {
-    border-top-color: #007AFF;
+    border-top-color: #0062CC;
     box-shadow: 0 -4px 12px rgba(0, 122, 255, 0.2);
   }
   50% {
@@ -112,7 +112,7 @@
 
 @keyframes pulse-glow-bottom {
   0%, 100% {
-    border-bottom-color: #007AFF;
+    border-bottom-color: #0062CC;
     box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
   }
   50% {
@@ -189,7 +189,7 @@
   transform: rotate(-2deg) scale(1.05);
   cursor: grabbing;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
-  border: 2px solid #007AFF;
+  border: 2px solid #0062CC;
   animation: gentle-wobble 0.3s ease-in-out infinite alternate;
 }
 
@@ -221,7 +221,7 @@
 
 /* Keyboard navigation focus */
 .org-card-keyboard-focus {
-  outline: 3px solid #007AFF;
+  outline: 3px solid #0062CC;
   outline-offset: 4px;
   box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.2);
 }
@@ -241,7 +241,7 @@
 /* Connection Lines */
 .org-connection-line {
   position: absolute;
-  stroke: #007AFF;
+  stroke: #0062CC;
   stroke-width: 2;
   fill: none;
   opacity: 0.4;

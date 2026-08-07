@@ -367,7 +367,7 @@ describe('HolidayAwareDatePicker - Core Date Selection', () => {
     const blueDots = Array.from(container.querySelectorAll('div')).filter(
       el => {
         const bg = (el as HTMLElement).style.backgroundColor;
-        return bg === COLORS.blue || bg === 'rgb(0, 122, 255)';
+        return bg === COLORS.blue || bg === 'rgb(0, 98, 204)';
       }
     );
 
@@ -862,7 +862,7 @@ describe('HolidayAwareDatePicker - Calendar Rendering & Navigation', () => {
     const blueBackgrounds = Array.from(container.querySelectorAll('div')).filter(
       el => {
         const bg = (el as HTMLElement).style.backgroundColor;
-        return bg === COLORS.blue || bg.includes('rgb(0, 122, 255)');
+        return bg === COLORS.blue || bg.includes('rgb(0, 98, 204)');
       }
     );
     expect(blueBackgrounds.length).toBeGreaterThan(0);
@@ -1797,7 +1797,7 @@ describe('HolidayAwareDatePicker - Touch Targets & Accessibility', () => {
 
     // Primary text: rgba(0,0,0,1) on white = 21:1 ✅
     // Secondary text: rgba(0,0,0,0.6) on white = 7:1 ✅
-    // Blue: #007AFF on white = 4.54:1 ✅
+    // Blue: #0062CC on white = 4.54:1 ✅
     expect(screen.getByText('Select date')).toBeInTheDocument();
   });
 
