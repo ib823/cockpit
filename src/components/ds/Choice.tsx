@@ -47,6 +47,12 @@ interface ChoiceBase extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" 
 export interface CheckboxProps extends ChoiceBase {
   /** Renders the dash glyph and sets the DOM property. */
   indeterminate?: boolean;
+  /**
+   * Hides the visible label while keeping it as the accessible name. For
+   * table selection cells, where a visible label per row would be noise but
+   * an unnamed checkbox is unusable by screen reader.
+   */
+  hideLabel?: boolean;
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
@@ -56,6 +62,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
     error,
     readOnly,
     indeterminate,
+    hideLabel,
     disabled,
     checked,
     defaultChecked,
@@ -146,6 +153,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
             error && styles.labelError,
             disabled && styles.labelDisabled
           )}
+          style={hideLabel ? srOnly : undefined}
         >
           {label}
         </span>

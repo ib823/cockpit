@@ -24,6 +24,26 @@ export type {
 export { Checkbox, Radio, Toggle, ChoiceGroup } from "./Choice";
 export type { CheckboxProps, RadioProps, ToggleProps, ChoiceGroupProps } from "./Choice";
 
+export {
+  AppShell,
+  PageHeader,
+  Card,
+  SyncChip,
+  RoleBadge,
+} from "./AppShell";
+export type {
+  AppShellProps,
+  PageHeaderProps,
+  CardProps,
+  NavItem,
+  SyncChipProps,
+  SyncState,
+  ProjectRole,
+} from "./AppShell";
+
+export { DataTable } from "./DataTable";
+export type { DataTableProps, Column, SortDirection } from "./DataTable";
+
 export { Modal, Drawer } from "./Modal";
 export type { ModalProps, DrawerProps } from "./Modal";
 
