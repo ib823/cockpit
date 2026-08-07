@@ -3,6 +3,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
+import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
+import { AuthStatus } from "@/components/ds/AuthShell";
+import { DataTable, type Column } from "@/components/ds/DataTable";
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Input";
+import { Banner } from "@/components/ds/Banner";
+import { StatusPill } from "@/components/ds/Display";
+import { EmptyState } from "@/components/ds/Feedback";
+import { Modal } from "@/components/ds/Modal";
+import { adminNav } from "../nav";
+import styles from "../admin.module.css";
 
 interface EmailApproval {
   email: string;
@@ -121,222 +132,152 @@ export default function EmailApprovalsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading email approvals...</p>
-        </div>
-      </div>
+      <AppShell brand="Admin" primaryNav={adminNav("/admin/email-approvals")}>
+        <PageHeader title="Email approvals" />
+        <AuthStatus message="Loading email approvals…" />
+      </AppShell>
     );
   }
 
+  const columns: Column<EmailApproval>[] = [
+    { key: "email", header: "Email", render: (a) => a.email },
+    {
+      key: "status",
+      header: "Status",
+      render: (a) => {
+        const expired = new Date(a.tokenExpiresAt) < new Date();
+        return a.usedAt ? (
+          <StatusPill tone="neutral">Used</StatusPill>
+        ) : expired ? (
+          <StatusPill tone="danger">Expired</StatusPill>
+        ) : (
+          <StatusPill tone="success">Active</StatusPill>
+        );
+      },
+    },
+    { key: "createdAt", header: "Created", render: (a) => formatDate(a.createdAt) },
+    { key: "tokenExpiresAt", header: "Expires", render: (a) => formatDate(a.tokenExpiresAt) },
+    {
+      key: "codeSent",
+      header: "Code sent",
+      render: (a) =>
+        a.codeSent ? (
+          <StatusPill tone="info">Sent</StatusPill>
+        ) : (
+          <StatusPill tone="neutral">Not sent</StatusPill>
+        ),
+    },
+  ];
+
+  const closeModal = () => {
+    setShowCreateModal(false);
+    setNewEmail("");
+    setGeneratedCode("");
+    setError("");
+  };
+
   return (
-    <main id="main-content" className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Email Approvals</h1>
-            <p className="text-slate-600">Manage email approvals for new user registrations</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              + Create Approval
-            </button>
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              ← Back to Dashboard
-            </button>
-          </div>
-        </div>
+    <AppShell brand="Admin" primaryNav={adminNav("/admin/email-approvals")}>
+      <PageHeader
+        title="Email approvals"
+        description="Approve an email address so its owner can register."
+        actions={
+          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+            Create approval
+          </Button>
+        }
+      />
 
-        {/* Error/Success Messages */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+      {error && (
+        <div style={{ marginBottom: "var(--ds-space-5)" }}>
+          <Banner tone="danger" title="Something went wrong" onDismiss={() => setError("")}>
             {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-            {success}
-          </div>
-        )}
-
-        {/* Approvals List */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {approvals.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="text-6xl mb-4">📧</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">No Email Approvals</h3>
-              <p className="text-slate-600 mb-6">
-                Create an email approval to allow a user to register
-              </p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                Create First Approval
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <caption className="sr-only">Email approval requests</caption>
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                      Expires
-                    </th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                      Code Sent
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {approvals.map((approval) => (
-                    <tr key={approval.email} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900">{approval.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            approval.usedAt
-                              ? "bg-gray-100 text-gray-700"
-                              : new Date(approval.tokenExpiresAt) < new Date()
-                                ? "bg-red-100 text-red-700"
-                                : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {approval.usedAt
-                            ? "Used"
-                            : new Date(approval.tokenExpiresAt) < new Date()
-                              ? "Expired"
-                              : "Active"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {formatDate(approval.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {formatDate(approval.tokenExpiresAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 rounded text-xs ${
-                            approval.codeSent
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {approval.codeSent ? "Yes" : "No"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Create Email Approval</h2>
-            <p className="text-slate-600 mb-6">
-              Enter the email address of the user you want to allow to register. They will receive a
-              6-digit code.
-            </p>
-
-            {generatedCode ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-bold text-green-900 mb-2">
-                  ✓ Approval Created Successfully
-                </h3>
-                <p className="text-sm text-green-800 mb-4">
-                  Share this 6-digit code with the user. They will need it to complete registration.
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-white border-2 border-green-300 rounded-lg p-4 text-center">
-                    <div className="text-3xl font-bold tracking-widest text-slate-900 font-mono">
-                      {generatedCode}
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleCopyCode}
-                    className="px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                  >
-                    Copy Code
-                  </button>
-                </div>
-                <p className="text-xs text-green-700 mt-3">
-                  Code expires in 7 days. User must visit /register to use it.
-                </p>
-              </div>
-            ) : (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Email Address <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !creating && handleCreateApproval()}
-                  placeholder="user@example.com"
-                  autoFocus
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-                />
-                <p className="text-xs text-slate-500 mt-2">
-                  The user will receive a 6-digit code to complete registration
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setNewEmail("");
-                  setGeneratedCode("");
-                  setError("");
-                }}
-                disabled={creating}
-                className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
-              >
-                {generatedCode ? "Done" : "Cancel"}
-              </button>
-              {!generatedCode && (
-                <button
-                  onClick={handleCreateApproval}
-                  disabled={creating || !newEmail}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-                >
-                  {creating ? "Creating..." : "Generate Code"}
-                </button>
-              )}
-            </div>
-          </div>
+          </Banner>
         </div>
       )}
-    </main>
+
+      {success && (
+        <div style={{ marginBottom: "var(--ds-space-5)" }}>
+          <Banner tone="success" title={success} onDismiss={() => setSuccess("")} />
+        </div>
+      )}
+
+      <Card padded={false}>
+        <DataTable
+          caption="Email approval requests"
+          columns={columns}
+          rows={approvals}
+          rowKey={(a) => a.email}
+          emptyState={
+            <EmptyState
+              kind="first-run"
+              title="No approvals yet"
+              body="Approving an email address lets its owner register with a 6-digit code. Nothing is wrong — there is simply nobody approved yet."
+              primaryAction={
+                <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+                  Create the first approval
+                </Button>
+              }
+            />
+          }
+        />
+      </Card>
+
+      <Modal
+        open={showCreateModal}
+        onClose={closeModal}
+        title={generatedCode ? "Approval created" : "Create email approval"}
+        description={
+          generatedCode
+            ? undefined
+            : "The user receives a 6-digit code they need to complete registration."
+        }
+        footer={
+          <>
+            <Button variant="tertiary" onClick={closeModal} loading={creating}>
+              {generatedCode ? "Done" : "Cancel"}
+            </Button>
+            {!generatedCode && (
+              <Button
+                variant="primary"
+                onClick={handleCreateApproval}
+                disabled={!newEmail}
+                loading={creating}
+                loadingLabel="Creating…"
+              >
+                Generate code
+              </Button>
+            )}
+          </>
+        }
+      >
+        {generatedCode ? (
+          <>
+            <Banner tone="success" title="Share this code once">
+              It expires in 7 days, and the user must visit <code>/register</code> to use it.
+            </Banner>
+            <div className={styles.codeReveal}>
+              <span className={styles.codeValue}>{generatedCode}</span>
+              <Button variant="secondary" onClick={handleCopyCode}>
+                Copy code
+              </Button>
+            </div>
+          </>
+        ) : (
+          <Input
+            label="Email address"
+            type="email"
+            required
+            size="lg"
+            autoFocus
+            placeholder="user@example.com"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !creating && handleCreateApproval()}
+            helper="They will receive a 6-digit code to complete registration."
+          />
+        )}
+      </Modal>
+    </AppShell>
   );
 }

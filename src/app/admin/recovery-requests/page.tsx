@@ -3,6 +3,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
+import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
+import { AuthStatus } from "@/components/ds/AuthShell";
+import { DataTable, type Column } from "@/components/ds/DataTable";
+import { Button } from "@/components/ds/Button";
+import { Textarea } from "@/components/ds/Textarea";
+import { Select } from "@/components/ds/Select";
+import { Banner } from "@/components/ds/Banner";
+import { StatusPill } from "@/components/ds/Display";
+import { EmptyState } from "@/components/ds/Feedback";
+import { Modal } from "@/components/ds/Modal";
+import { adminNav } from "../nav";
 
 interface RecoveryRequest {
   id: string;
@@ -172,279 +183,256 @@ export default function RecoveryRequestsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading recovery requests...</p>
-        </div>
-      </div>
+      <AppShell brand="Admin" primaryNav={adminNav("/admin/recovery-requests")}>
+        <PageHeader title="Account recovery" />
+        <AuthStatus message="Loading recovery requests…" />
+      </AppShell>
     );
   }
 
-  return (
-    <main id="main-content" className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Account Recovery Requests</h1>
-            <p className="text-slate-600">
-              Review and approve account recovery requests from users
-            </p>
-          </div>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
+  const columns: Column<RecoveryRequest>[] = [
+    {
+      key: "user",
+      header: "User",
+      render: (r) => (
+        <div>
+          <div style={{ fontWeight: 500 }}>{r.user.name || r.user.email}</div>
+          <div
+            style={{ font: "var(--ds-type-label)", color: "var(--ds-content-tertiary)" }}
           >
-            ← Back to Dashboard
-          </button>
+            {r.user.email}
+          </div>
         </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => (
+        <StatusPill
+          tone={
+            r.status === "approved"
+              ? "success"
+              : r.status === "rejected"
+                ? "danger"
+                : "warning"
+          }
+        >
+          {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+        </StatusPill>
+      ),
+    },
+    { key: "reason", header: "Reason", render: (r) => formatReason(r.reason) },
+    { key: "submittedAt", header: "Submitted", render: (r) => formatDate(r.submittedAt) },
+    {
+      key: "detail",
+      header: "Notes",
+      render: (r) => (
+        <span style={{ color: "var(--ds-content-secondary)" }}>
+          {r.rejectionReason ? `Rejected: ${r.rejectionReason}` : r.notes || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (r) =>
+        r.status === "pending" ? (
+          <div
+            style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-space-2)" }}
+          >
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => {
+                setSelectedRequest(r);
+                setShowApproveModal(true);
+              }}
+            >
+              Approve
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => {
+                setSelectedRequest(r);
+                setShowRejectModal(true);
+              }}
+            >
+              Reject
+            </Button>
+          </div>
+        ) : null,
+    },
+  ];
 
-        {/* Error/Success Messages */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+  const FILTERS = ["pending", "approved", "rejected", "all"] as const;
+
+  return (
+    <AppShell brand="Admin" primaryNav={adminNav("/admin/recovery-requests")}>
+      <PageHeader
+        title="Account recovery"
+        description="Approving a request lets someone re-enrol a passkey on an account they are locked out of. Verify identity before approving."
+      />
+
+      {error && (
+        <div style={{ marginBottom: "var(--ds-space-5)" }}>
+          <Banner tone="danger" title="Something went wrong" onDismiss={() => setError("")}>
             {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-            {success}
-          </div>
-        )}
-
-        {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <div className="flex gap-2">
-            {(["all", "pending", "approved", "rejected"] as const).map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilter(status)}
-                aria-current={filter === status ? "page" : undefined}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === status
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-                {status !== "all" && ` (${requests.filter((r) => r.status === status).length})`}
-              </button>
-            ))}
-          </div>
+          </Banner>
         </div>
+      )}
+      {success && (
+        <div style={{ marginBottom: "var(--ds-space-5)" }}>
+          <Banner tone="success" title={success} onDismiss={() => setSuccess("")} />
+        </div>
+      )}
 
-        {/* Requests List */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {filteredRequests.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="text-6xl mb-4">📭</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">No Requests Found</h3>
-              <p className="text-slate-600">
-                {filter === "pending"
-                  ? "No pending recovery requests at the moment"
-                  : `No ${filter} recovery requests`}
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-200">
-              {filteredRequests.map((request) => (
-                <div key={request.id} className="p-6 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-slate-900">
-                          {request.user.name || request.user.email}
-                        </h3>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            request.status === "pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : request.status === "approved"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                        </span>
-                      </div>
-
-                      <p className="text-sm text-slate-600 mb-3">{request.user.email}</p>
-
-                      <div className="grid md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-slate-500">Reason:</span>{" "}
-                          <span className="font-medium text-slate-900">
-                            {formatReason(request.reason)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500">Submitted:</span>{" "}
-                          <span className="font-medium text-slate-900">
-                            {formatDate(request.submittedAt)}
-                          </span>
-                        </div>
-                        {request.notes && (
-                          <div className="md:col-span-2">
-                            <span className="text-slate-500">User Notes:</span>{" "}
-                            <span className="text-slate-900">{request.notes}</span>
-                          </div>
-                        )}
-                        {request.rejectionReason && (
-                          <div className="md:col-span-2">
-                            <span className="text-slate-500">Rejection Reason:</span>{" "}
-                            <span className="text-red-700">{request.rejectionReason}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {request.status === "pending" && (
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => {
-                            setSelectedRequest(request);
-                            setShowApproveModal(true);
-                          }}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedRequest(request);
-                            setShowRejectModal(true);
-                          }}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+      <Card padded={false}>
+        <DataTable
+          caption="Account recovery requests"
+          columns={columns}
+          rows={filteredRequests}
+          rowKey={(r) => r.id}
+          toolbar={
+            <div style={{ display: "flex", gap: "var(--ds-space-1)" }} role="group" aria-label="Filter by status">
+              {FILTERS.map((status) => (
+                <Button
+                  key={status}
+                  size="sm"
+                  variant={filter === status ? "secondary" : "ghost"}
+                  aria-pressed={filter === status}
+                  onClick={() => setFilter(status)}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                  {status !== "all" &&
+                    ` (${requests.filter((r) => r.status === status).length})`}
+                </Button>
               ))}
             </div>
-          )}
+          }
+          emptyState={
+            <EmptyState
+              kind="no-results"
+              title={`No ${filter === "all" ? "" : filter + " "}requests`}
+              body={
+                filter === "all"
+                  ? "Recovery requests appear here when a locked-out user submits one."
+                  : `There are ${requests.length} requests in total. Switch the filter above to see them.`
+              }
+            />
+          }
+        />
+      </Card>
+
+      <Modal
+        open={showApproveModal && Boolean(selectedRequest)}
+        onClose={() => {
+          setShowApproveModal(false);
+          setApprovalNotes("");
+        }}
+        title="Approve recovery request"
+        description={
+          selectedRequest
+            ? `${selectedRequest.user.email} will be able to enrol a new passkey.`
+            : undefined
+        }
+        footer={
+          <>
+            <Button
+              variant="tertiary"
+              loading={processing}
+              onClick={() => {
+                setShowApproveModal(false);
+                setApprovalNotes("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              loading={processing}
+              loadingLabel="Approving…"
+              onClick={handleApprove}
+            >
+              Approve request
+            </Button>
+          </>
+        }
+      >
+        <Textarea
+          label="Notes"
+          optionalHint
+          value={approvalNotes}
+          onChange={(e) => setApprovalNotes(e.target.value)}
+          placeholder="How identity was verified, and by whom."
+          helper="Recorded on the request. Useful when this is audited later."
+        />
+      </Modal>
+
+      <Modal
+        open={showRejectModal && Boolean(selectedRequest)}
+        onClose={() => {
+          setShowRejectModal(false);
+          setRejectionReason("");
+          setRejectionNotes("");
+        }}
+        title="Reject recovery request"
+        description={
+          selectedRequest
+            ? `${selectedRequest.user.email} stays locked out and is told the request was declined.`
+            : undefined
+        }
+        footer={
+          <>
+            <Button
+              variant="tertiary"
+              loading={processing}
+              onClick={() => {
+                setShowRejectModal(false);
+                setRejectionReason("");
+                setRejectionNotes("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              loading={processing}
+              loadingLabel="Rejecting…"
+              disabled={!rejectionReason}
+              onClick={handleReject}
+            >
+              Reject request
+            </Button>
+          </>
+        }
+      >
+        <Select
+          label="Rejection reason"
+          required
+          value={rejectionReason}
+          onChange={(e) => setRejectionReason(e.target.value)}
+          helper="Shown to the user, so it should make sense without further context."
+        >
+          <option value="">Select a reason…</option>
+          <option value="Unable to verify identity">Unable to verify identity</option>
+          <option value="Insufficient documentation">Insufficient documentation</option>
+          <option value="Suspicious activity detected">Suspicious activity detected</option>
+          <option value="Account not found">Account not found</option>
+          <option value="Other">Other (specify in notes)</option>
+        </Select>
+
+        <div style={{ marginTop: "var(--ds-space-4)" }}>
+          <Textarea
+            label="Internal notes"
+            optionalHint
+            value={rejectionNotes}
+            onChange={(e) => setRejectionNotes(e.target.value)}
+            placeholder="Not shown to the user."
+          />
         </div>
-      </div>
-
-      {/* Approve Modal */}
-      {showApproveModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="approve-modal-title">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
-            <h2 id="approve-modal-title" className="text-2xl font-bold text-slate-900 mb-4">Approve Recovery Request</h2>
-            <p className="text-slate-600 mb-6">
-              You are about to approve the recovery request for{" "}
-              <strong>{selectedRequest.user.email}</strong>. This will:
-            </p>
-            <ul className="list-disc list-inside text-sm text-slate-600 mb-6 space-y-1">
-              <li>Revoke all active sessions</li>
-              <li>Reset two-factor authentication</li>
-              <li>Delete all passkeys</li>
-              <li>Send recovery email with 48-hour link</li>
-            </ul>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Admin Notes (Optional)
-              </label>
-              <textarea
-                value={approvalNotes}
-                onChange={(e) => setApprovalNotes(e.target.value)}
-                placeholder="Add any notes about this approval..."
-                rows={3}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-              />
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setShowApproveModal(false);
-                  setApprovalNotes("");
-                }}
-                disabled={processing}
-                className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleApprove}
-                disabled={processing}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
-              >
-                {processing ? "Approving..." : "Approve Request"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Reject Modal */}
-      {showRejectModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="reject-modal-title">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
-            <h2 id="reject-modal-title" className="text-2xl font-bold text-slate-900 mb-4">Reject Recovery Request</h2>
-            <p className="text-slate-600 mb-6">
-              You are about to reject the recovery request for{" "}
-              <strong>{selectedRequest.user.email}</strong>.
-            </p>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Rejection Reason <span className="text-red-600">*</span>
-              </label>
-              <select
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-              >
-                <option value="">Select a reason...</option>
-                <option value="Unable to verify identity">Unable to verify identity</option>
-                <option value="Insufficient documentation">Insufficient documentation</option>
-                <option value="Suspicious activity detected">Suspicious activity detected</option>
-                <option value="Account not found">Account not found</option>
-                <option value="Other">Other (specify in notes)</option>
-              </select>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Additional Notes (Optional)
-              </label>
-              <textarea
-                value={rejectionNotes}
-                onChange={(e) => setRejectionNotes(e.target.value)}
-                placeholder="Add any additional notes..."
-                rows={3}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-              />
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setShowRejectModal(false);
-                  setRejectionReason("");
-                  setRejectionNotes("");
-                }}
-                disabled={processing}
-                className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReject}
-                disabled={processing || !rejectionReason}
-                className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
-                {processing ? "Rejecting..." : "Reject Request"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </main>
+      </Modal>
+    </AppShell>
   );
 }

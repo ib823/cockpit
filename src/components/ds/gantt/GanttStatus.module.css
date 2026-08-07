@@ -1,0 +1,24 @@
+/* Visually hidden but present in the accessibility tree. Not display:none,
+   which would remove it from that tree entirely and silence every
+   announcement. */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.visible {
+  padding: var(--ds-space-2) var(--ds-space-3);
+  background: var(--ds-surface-sunken);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-sm);
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-primary);
+  min-height: 20px;
+}

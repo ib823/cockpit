@@ -3,6 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
+import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
+import { AuthShell, AuthStatus } from "@/components/ds/AuthShell";
+import { Tabs } from "@/components/ds/Tabs";
+import { Banner } from "@/components/ds/Banner";
 
 interface SecurityOverview {
   passwordChangedAt: string | null;
@@ -155,65 +159,51 @@ export default function SecuritySettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading security settings...</p>
-        </div>
-      </div>
+      <AuthShell title="Security">
+        <AuthStatus message="Loading security settings…" />
+      </AuthShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Security Settings</h1>
-          <p className="text-slate-600">Manage your account security and authentication methods</p>
-        </div>
+    <AppShell brand="Security">
+      <PageHeader
+        title="Security"
+        description="Your password, two-factor authentication, sessions and trusted devices."
+      />
 
-        {/* Error/Success Messages */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+      {error && (
+        <div style={{ marginBottom: "var(--ds-space-5)" }}>
+          <Banner tone="danger" title="Something went wrong" onDismiss={() => setError("")}>
             {error}
-          </div>
-        )}
+          </Banner>
+        </div>
+      )}
+      {success && (
+        <div style={{ marginBottom: "var(--ds-space-5)" }}>
+          <Banner tone="success" title={success} onDismiss={() => setSuccess("")} />
+        </div>
+      )}
 
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-            {success}
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="border-b border-slate-200">
-            <nav className="flex overflow-x-auto">
-              {[
-                { id: "overview", label: "Overview", icon: "🔒" },
-                { id: "password", label: "Password", icon: "🔑" },
-                { id: "totp", label: "2FA", icon: "📱" },
-                { id: "sessions", label: "Sessions", icon: "💻" },
-                { id: "devices", label: "Devices", icon: "🖥️" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as "overview" | "password" | "totp" | "sessions" | "devices")}
-                  className={`px-6 py-4 text-sm font-medium whitespace-nowrap transition-colors ${
-                    activeTab === tab.id
-                      ? "border-b-2 border-blue-600 text-blue-600"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          <div className="p-8">
+      <Card>
+        {/* The emoji that used to prefix each tab label are gone: a screen
+            reader announces them ("locked with key, Password"), and they were
+            carrying no information the word did not already carry. */}
+        <Tabs
+          label="Security settings"
+          activeId={activeTab}
+          onChange={(id) =>
+            setActiveTab(id as "overview" | "password" | "totp" | "sessions" | "devices")
+          }
+          tabs={[
+            { id: "overview", label: "Overview" },
+            { id: "password", label: "Password" },
+            { id: "totp", label: "Two-factor" },
+            { id: "sessions", label: "Sessions" },
+            { id: "devices", label: "Devices" },
+          ]}
+        >
+          <div>
             {/* Overview Tab */}
             {activeTab === "overview" && overview && (
               <div className="space-y-6">
@@ -557,8 +547,8 @@ export default function SecuritySettingsPage() {
               </div>
             )}
           </div>
-        </div>
-      </div>
-    </div>
+        </Tabs>
+      </Card>
+    </AppShell>
   );
 }

@@ -1,6 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
+import { DataTable, type Column } from "@/components/ds/DataTable";
+import { Button } from "@/components/ds/Button";
+import { Banner } from "@/components/ds/Banner";
+import { StatusPill } from "@/components/ds/Display";
+import { EmptyState } from "@/components/ds/Feedback";
+import { adminNav } from "../nav";
+import styles from "../admin.module.css";
 
 type Row = {
   email: string;
@@ -22,7 +30,11 @@ export default function AdminApprovalsPage() {
     logins24h: number;
     timelines24h: number;
   }>();
-  const [msg, setMsg] = useState("");
+  // The re-approve response contains a one-time access code. It used to be
+  // shown for three seconds and then vanish, which is not long enough to read,
+  // copy and paste a credential the user gets exactly one chance at. It now
+  // stays until dismissed.
+  const [code, setCode] = useState<{ email: string; value: string } | null>(null);
 
   async function refresh() {
     const [a, b] = await Promise.all([
@@ -41,8 +53,7 @@ export default function AdminApprovalsPage() {
       method: "POST",
       body: JSON.stringify({ email }),
     }).then((r) => r.json());
-    setMsg(`Code: ${r.code} (share once)`);
-    setTimeout(() => setMsg(""), 3000);
+    setCode({ email, value: r.code });
     refresh();
   }
   async function toggleException(email: string) {
@@ -64,117 +75,149 @@ export default function AdminApprovalsPage() {
       method: "PATCH",
       body: JSON.stringify({ email, action: "reapprove" }),
     }).then((r) => r.json());
-    setMsg(`Code: ${r.code} (share once)`);
-    setTimeout(() => setMsg(""), 3000);
+    setCode({ email, value: r.code });
     refresh();
   }
 
+  const columns: Column<Row>[] = [
+    { key: "email", header: "Email", render: (r) => r.email },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => (
+        <StatusPill
+          tone={
+            r.status === "enrolled"
+              ? "success"
+              : r.status === "approved"
+                ? "info"
+                : r.status === "expired"
+                  ? "danger"
+                  : "warning"
+          }
+        >
+          {r.status}
+        </StatusPill>
+      ),
+    },
+    {
+      key: "exception",
+      header: "Exception",
+      render: (r) => (
+        <Button
+          size="sm"
+          variant={r.exception ? "secondary" : "ghost"}
+          aria-pressed={r.exception}
+          aria-label={`Exception ${r.exception ? "enabled" : "disabled"} for ${r.email}`}
+          onClick={() => toggleException(r.email)}
+        >
+          {r.exception ? "Enabled" : "Disabled"}
+        </Button>
+      ),
+    },
+    {
+      key: "expiry",
+      header: "Expires",
+      render: (r) => (r.expiry ? new Date(r.expiry).toLocaleString() : "—"),
+    },
+    { key: "loginCount", header: "Logins", numeric: true, render: (r) => r.loginCount },
+    {
+      key: "lastLoginAt",
+      header: "Last login",
+      render: (r) => (r.lastLoginAt ? new Date(r.lastLoginAt).toLocaleString() : "—"),
+    },
+    {
+      key: "timelineRuns",
+      header: "Timelines",
+      numeric: true,
+      render: (r) => r.timelineRuns,
+    },
+    {
+      key: "lastTimelineAt",
+      header: "Last timeline",
+      render: (r) => (r.lastTimelineAt ? new Date(r.lastTimelineAt).toLocaleString() : "—"),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (r) => (
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-space-2)" }}>
+          {r.status === "pending" && (
+            <Button size="sm" variant="primary" onClick={() => approve(r.email)}>
+              Approve
+            </Button>
+          )}
+          {r.status === "approved" && (
+            <Button size="sm" variant="secondary" onClick={() => reapprove(r.email)}>
+              Re-approve
+            </Button>
+          )}
+          {r.status === "enrolled" && (
+            <Button size="sm" variant="danger" onClick={() => disable(r.email)}>
+              Disable
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const stats = kpi
+    ? [
+        { label: "Users", value: kpi.users },
+        { label: "Active", value: kpi.active },
+        { label: "Logins (24h)", value: kpi.logins24h },
+        { label: "Timelines (24h)", value: kpi.timelines24h },
+      ]
+    : [];
+
   return (
-    <main id="main-content" className="mx-auto max-w-5xl p-6">
-      <h1 className="text-xl font-semibold text-slate-900">Admin · Approvals & Audit</h1>
-      {kpi && (
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-          <K label="Users" v={kpi.users} />
-          <K label="Active" v={kpi.active} />
-          <K label="Logins (24h)" v={kpi.logins24h} />
-          <K label="Timelines (24h)" v={kpi.timelines24h} />
+    <AppShell brand="Admin" primaryNav={adminNav("/admin/approvals")}>
+      <PageHeader
+        title="Approvals and audit"
+        description="Access status, exceptions and activity for every non-admin user."
+      />
+
+      {code && (
+        <div style={{ marginBottom: "var(--ds-space-5)" }}>
+          <Banner
+            tone="success"
+            title={`Access code for ${code.email}`}
+            onDismiss={() => setCode(null)}
+          >
+            <span style={{ font: "var(--ds-type-mono)", fontSize: 18 }}>{code.value}</span>
+            <br />
+            Share this once. It is not shown again after you dismiss this message.
+          </Banner>
         </div>
       )}
 
-      <div className="relative mt-6 rounded-2xl border border-slate-200 bg-white/85 backdrop-blur p-4">
-        {msg && (
-          <p className="absolute -top-5 left-1/2 -translate-x-1/2 text-sm text-slate-700">{msg}</p>
-        )}
-        <table className="w-full text-left text-sm">
-          <caption className="sr-only">User approvals and audit data</caption>
-          <thead className="bg-slate-50 text-slate-700">
-            <tr>
-              <th scope="col" className="px-4 py-3">Email</th>
-              <th scope="col" className="px-4 py-3">Status</th>
-              <th scope="col" className="px-4 py-3">Exception</th>
-              <th scope="col" className="px-4 py-3">Expires</th>
-              <th scope="col" className="px-4 py-3">Logins</th>
-              <th scope="col" className="px-4 py-3">Last login</th>
-              <th scope="col" className="px-4 py-3">Timelines</th>
-              <th scope="col" className="px-4 py-3">Last timeline</th>
-              <th scope="col" className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {rows.map((r) => (
-              <tr key={r.email}>
-                <td className="px-4 py-3 font-medium text-slate-900">{r.email}</td>
-                <td className="px-4 py-3">{r.status}</td>
-                <td className="px-4 py-3">
-                  <button
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${r.exception ? "bg-slate-900 text-white" : "bg-slate-100"}`}
-                    onClick={() => toggleException(r.email)}
-                    aria-pressed={r.exception}
-                    aria-label={`Exception ${r.exception ? "enabled" : "disabled"} for ${r.email}`}
-                  >
-                    {r.exception ? "Enabled" : "Disabled"}
-                  </button>
-                </td>
-                <td className="px-4 py-3">
-                  {r.expiry ? new Date(r.expiry).toLocaleString() : "—"}
-                </td>
-                <td className="px-4 py-3">{r.loginCount}</td>
-                <td className="px-4 py-3">
-                  {r.lastLoginAt ? new Date(r.lastLoginAt).toLocaleString() : "—"}
-                </td>
-                <td className="px-4 py-3">{r.timelineRuns}</td>
-                <td className="px-4 py-3">
-                  {r.lastTimelineAt ? new Date(r.lastTimelineAt).toLocaleString() : "—"}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
-                    {r.status === "pending" && (
-                      <button
-                        className="rounded-xl bg-slate-100 px-3 py-2"
-                        onClick={() => approve(r.email)}
-                      >
-                        Approve
-                      </button>
-                    )}
-                    {r.status === "approved" && (
-                      <button
-                        className="rounded-xl bg-slate-100 px-3 py-2"
-                        onClick={() => reapprove(r.email)}
-                      >
-                        Re-approve
-                      </button>
-                    )}
-                    {r.status === "enrolled" && (
-                      <button
-                        className="rounded-xl bg-rose-50 px-3 py-2 text-rose-700 border border-rose-200"
-                        onClick={() => disable(r.email)}
-                      >
-                        Disable
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
-                  No data.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </main>
-  );
-}
+      {stats.length > 0 && (
+        <div className={styles.statGrid}>
+          {stats.map((s) => (
+            <Card key={s.label}>
+              <p className={styles.statLabel}>{s.label}</p>
+              <p className={styles.statValue}>{s.value.toLocaleString()}</p>
+            </Card>
+          ))}
+        </div>
+      )}
 
-function K({ label, v }: { label: string; v: number }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-slate-900">{v}</div>
-    </div>
+      <Card padded={false}>
+        <DataTable
+          caption="User approvals and audit data"
+          columns={columns}
+          rows={rows}
+          rowKey={(r) => r.email}
+          emptyState={
+            <EmptyState
+              kind="no-results"
+              title="No users yet"
+              body="Approved and enrolled users appear here once they exist."
+            />
+          }
+        />
+      </Card>
+    </AppShell>
   );
 }

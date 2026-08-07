@@ -1,0 +1,53 @@
+/* Account page — layout only. */
+
+.slot { margin-bottom: var(--ds-space-5); }
+
+.cardTitle {
+  font: var(--ds-type-heading-md);
+  letter-spacing: var(--ds-ls-heading-md);
+  color: var(--ds-content-primary);
+  margin: 0;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
+}
+
+.defList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--ds-space-4);
+  margin: var(--ds-space-4) 0 0;
+}
+
+.defRow { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.defRow dt {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-secondary);
+}
+
+.defRow dd {
+  font: var(--ds-type-body);
+  color: var(--ds-content-primary);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.nameRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-5);
+  flex-wrap: wrap;
+}
+
+.nameField { flex: 1 1 240px; }
+
+.rowActions { display: flex; justify-content: flex-end; }

@@ -129,7 +129,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       )}
       aria-disabled={disabled || undefined}
       aria-busy={loading || undefined}
-      aria-label={label}
+      // `label` only exists for icon-only buttons. Written as a fallback
+      // rather than an assignment because `aria-label={undefined}` placed
+      // after the prop spread silently deletes an aria-label the caller
+      // passed — which is how a text button given an explicit name ends up
+      // with none at all.
+      aria-label={label ?? rest["aria-label"]}
       aria-haspopup={menu ? "menu" : undefined}
       aria-expanded={menu ? Boolean(expanded) : undefined}
       onClick={(event) => {

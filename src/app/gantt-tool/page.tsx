@@ -39,6 +39,7 @@ import { HexLoader } from "@/components/ui/HexLoader";
 import { format } from "date-fns";
 import { getTotalResourceCount } from "@/lib/gantt-tool/resource-utils";
 import { getOrphanedResourceIds } from "@/lib/gantt-tool/resource-diagnostics";
+import { AuthShell, AuthStatus } from "@/components/ds/AuthShell";
 
 export default function GanttToolV3Page() {
   // ⚠️ IMPORTANT: All hooks must be called before any conditional returns
@@ -270,9 +271,12 @@ export default function GanttToolV3Page() {
   }, [currentProject, showAddPhaseModal, showAddTaskModal]);
 
   return showLoading ? (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <HexLoader size="xl" />
-    </div>
+    // The store hydrates from IndexedDB before a project exists, so this is a
+    // wait rather than an error. A live region, because silence followed by a
+    // fully-populated screen tells a screen-reader user nothing happened.
+    <AuthShell title="Timeline">
+      <AuthStatus message="Loading your project…" />
+    </AuthShell>
   ) : (
     <>
       {/* Global Navigation - Tier 1 */}

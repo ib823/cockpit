@@ -65,3 +65,52 @@ export type {
   ProgressProps,
   SkeletonProps,
 } from "./Display";
+
+/* Layer 4 — domain surfaces. Imported from their own paths in routes that
+ * need them; re-exported here for discoverability. */
+export { GanttBar } from "./gantt/GanttBar";
+export type { GanttBarProps, BarKind } from "./gantt/GanttBar";
+export { AllocationCell } from "./gantt/AllocationCell";
+export type { AllocationCellProps } from "./gantt/AllocationCell";
+export {
+  PX_PER_DAY,
+  DAYS_PER_TICK,
+  ROW_HEIGHT,
+  BAR_HEIGHT,
+  daysToPx,
+  pxToDays,
+  labelFitsInside,
+  showsDayShading,
+  nudgeDays,
+} from "./gantt/scale";
+export type { ZoomGrain } from "./gantt/scale";
+export { TimelineAxis } from "./gantt/TimelineAxis";
+export type { TimelineAxisProps, AxisTick, NonWorkingDay } from "./gantt/TimelineAxis";
+export { DependencyArrow, DependencyStub } from "./gantt/DependencyArrow";
+export type { DependencyArrowProps, LinkType } from "./gantt/DependencyArrow";
+export { GanttStatus } from "./gantt/GanttStatus";
+export { useMoveMode } from "./gantt/useMoveMode";
+export {
+  sayCursorMove,
+  sayMoveModeOn,
+  sayNudge,
+  sayCommit,
+  sayRevert,
+  sayExpand,
+  saySelection,
+  barAccessibleName,
+  describePredecessors,
+} from "./gantt/announce";
+export type { BarFacts } from "./gantt/announce";
+export {
+  flattenRows,
+  initialExpanded,
+  computeWindow,
+  moveCursor,
+  scrollToRow,
+  AUTO_EXPAND_ROW_LIMIT,
+} from "./gantt/rows";
+export type { FlatRow, GanttPhase, GanttTask, RowWindow } from "./gantt/rows";
+
+export { Tabs } from "./Tabs";
+export type { TabsProps, TabItem } from "./Tabs";

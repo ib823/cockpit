@@ -811,10 +811,39 @@ the *first* migrations look worse than the steady state, because there is
 nothing yet to amortise against. Each additional migrated route should add its
 own page code and little else.
 
-That is a prediction, and unlike the last one it is written down as a
-prediction: **check it when the third and fourth routes migrate.** If per-route
-JS keeps climbing by ~20kB each, this explanation is also wrong and the real
-cause is still unfound.
+That was written down as a prediction to check when more routes migrated.
+
+### The prediction was checked, and it was also wrong (2026-08-07)
+
+Three more routes migrated (`/admin`, `/admin/users`, `/admin/security`).
+`/login` was **not touched** by that change. It still grew:
+
+```
+/login    50.8kB -> 57.1kB
+/register 43.7kB -> 50.0kB
+```
+
+But `/login`'s own chunk measured **21.4kB before and 21.4kB after** — byte
+identical. Its code did not change and did not grow. The entire delta is
+shared code being re-attributed: once five routes used the design system,
+webpack re-split the chunks, and this metric sums *every* chunk a route loads.
+
+**The real finding is about the metric, not the bundle.** A route's measured
+size here changes when *unrelated* routes change. That makes it a genuine
+regression detector only with enough headroom to absorb re-splitting — an
+exact-fit budget will go red on a commit that never touched the route.
+
+That is now the third explanation of these numbers, and the first two were
+stated too confidently:
+
+1. "Field.tsx is the remaining weight" — measured, wrong (0.1kB)
+2. "shared code amortises, so per-route stays flat" — measured, wrong (+6.3kB)
+3. "the metric re-attributes shared chunks" — supported by the identical 21.4kB
+   own-chunk measurement, but it should be treated as the current best
+   explanation rather than settled
+
+The lesson worth keeping: measure before asserting, and when an explanation is
+not yet measured, write it down as a question rather than a finding.
 
 ### The rule applied
 
@@ -824,3 +853,50 @@ not. These pages genuinely changed composition — from hand-rolled markup with
 nothing reusable to a shared design system whose cost every subsequent route
 amortises. First-load budgets were unaffected and still pass at their existing
 values.
+
+## 0d. The bundle budgets were measuring the wrong thing (2026-08-07)
+
+Sections 0c above record a sequence of budget re-baselines during the
+design-system migration, each with a plausible explanation. **They were all
+wrong**, and the real cause was in `tests/performance/bundle-budgets.test.ts`:
+
+1. `sharedChunks` intersected across **every** manifest entry — including API
+   routes, `/layout` and `/error`. Those carry no stylesheet, so a CSS file
+   could never qualify as "shared", and the app's entire global stylesheet
+   (66.2kB) was billed to every route.
+2. `routeKb` counted `.css` files as "route JS".
+
+Together, every CSS module added anywhere inflated **every** route's number by
+the same 66.2kB — on commits that touched neither the route nor its JavaScript.
+`/settings`, a redirect page whose own code is 4.3kB, measured 70.4kB against a
+6kB budget.
+
+### How it was found
+
+By measuring instead of reasoning, after three failed hypotheses:
+
+| Hypothesis | Verdict |
+|---|---|
+| `Field.tsx` is the remaining weight | measured — wrong (0.1kB) |
+| Shared code amortises, per-route stays flat | measured — wrong (+6.3kB) |
+| The Gantt canvas is pulling into the shared chunk | measured — wrong (~1kB) |
+| **CSS billed to every route as JS** | **measured — correct (66.2kB, exactly)** |
+
+The tell was that eight unrelated routes each moved by an *identical* amount.
+Identical deltas across unrelated things point at the measurement, not the
+thing measured. I should have decomposed the chunks on the first re-baseline
+rather than the fifth.
+
+### The fix
+
+Intersect across pages only, and measure JavaScript. Every budget re-baselined
+**downward** to its real measurement plus ~15% — several now tighter than the
+values this file originally shipped with, because those were inflated by the
+same bug.
+
+### Still to do
+
+**CSS is no longer measured at all.** It should be, as its own budget. A
+stylesheet measured as script is neither honest nor actionable: the two have
+different costs, different caching behaviour and different fixes. The global
+stylesheet is currently 66.2kB and every route loads all of it.
