@@ -242,18 +242,39 @@ The design is a specification, not an implementation. Building it into the app
 is a substantial programme, and the Gantt and org chart remain bespoke
 engineering regardless of how well they are specified.
 
+### Tenth batch — delta task persistence FIXED (2026-08-07)
+
+The top data-integrity defect is closed. Renaming one task destroyed its
+siblings; `delta.tasks` was accepted by the schema and read by nothing, so task
+edits could only reach the database through the phase path, which deleted every
+task in the phase and recreated whatever the payload held.
+
+Both causes fixed: there is now a real task-level branch, and the phase path
+diffs instead of replacing.
+
+**The decision worth remembering:** making the phase path a tidy diff was NOT
+enough. It still treated an omitted task as a deletion, so a partial payload
+still destroyed data — the integration test caught that in my own fix. A phase
+payload cannot distinguish "the user deleted this" from "the client did not send
+it", and in a local-first app the client may hold a partial or stale copy. So
+absence now means unchanged: the phase path only creates and updates, and
+deletion happens solely via `delta.tasks.deleted`.
+
+Consequence handled: assignments used to be swept away by cascade when their
+task was deleted and recreated. Surviving tasks keep them, so they are now
+reconciled explicitly — and only for tasks that actually supplied
+`resourceAssignments`, since undefined means "not specified", not "empty".
+
+Verified by 7 tests calling the REAL route against real Postgres 16. The test
+previously re-implemented the route's logic, which would only ever have proven
+the re-implementation.
+
 ### Remaining known issues (audited, NOT fixed)
 
 Ranked, with the reason each was deferred rather than attempted here:
 
-1. **`delta.tasks` is accepted by `DeltaSaveSchema` and silently discarded** —
-   there is no `if (delta.tasks)` branch in the transaction. Task edits persist
-   only via the phase path, which **deletes and recreates every task in the
-   phase**, cascading `GanttTaskResourceAssignment` rows. Editing one task name
-   rewrites its whole phase subtree. Fixing this correctly means true task-level
-   diffing on both client serialisers and the server, and it is the single
-   riskiest edit in the save path — it needs DB-backed integration tests, which
-   this environment cannot run (no live Postgres). Do not attempt it blind.
+1. ~~`delta.tasks` silently discarded~~ — FIXED 2026-08-07, see the tenth batch
+   above. Verified against real Postgres.
 2. **Background sync re-fetches the full project every 5s** to compute a delta
    baseline (`background-sync.ts:307`), a full-document read for a partial
    write, started as a module import side-effect that cannot be stopped.
