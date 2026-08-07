@@ -18,18 +18,30 @@
  */
 
 import { describe, test, expect, beforeEach, afterAll, vi } from "vitest";
-import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 
 const describeDb = process.env.RUN_DB_E2E ? describe : describe.skip;
 
 // A real client, replacing the global in-memory mock from tests/setup.ts.
-const db = new PrismaClient();
+/**
+ * A REAL client, obtained through `vi.importActual`.
+ *
+ * `tests/setup.ts` mocks `@prisma/client` itself, not merely `@/lib/db`. So a
+ * plain `new PrismaClient()` here — and a plain `import("@prisma/client")`
+ * inside the mock factory below — both return the in-memory mock, and the
+ * whole suite passes without ever opening a connection.
+ *
+ * That is exactly what happened when this file was first written: it asserted
+ * real database behaviour, passed, and touched no database. `importActual` is
+ * what makes the word "integration" true here.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let db: any;
 
 vi.mock("@/lib/db", async () => {
-  const { PrismaClient: PC } = await import("@prisma/client");
-  return { prisma: new PC() };
+  const actual = await vi.importActual<typeof import("@prisma/client")>("@prisma/client");
+  return { prisma: new actual.PrismaClient() };
 });
 
 // The caller legitimately owns the project; object-level authorization is
@@ -46,7 +58,13 @@ let taskBId = "";
 let resourceId = "";
 let assignmentId = "";
 
+async function realClient() {
+  const actual = await vi.importActual<typeof import("@prisma/client")>("@prisma/client");
+  return new actual.PrismaClient();
+}
+
 async function seed() {
+  if (!db) db = await realClient();
   userId = randomUUID();
   projectId = randomUUID();
   phaseId = randomUUID();
@@ -70,6 +88,9 @@ async function seed() {
       userId,
       name: `QA delta ${projectId.slice(0, 8)}`,
       startDate: new Date("2026-01-01"),
+      // Required and non-nullable. The in-memory mock never enforced it, which
+      // is one way these tests looked correct while touching no database.
+      viewSettings: {},
     },
   });
   await db.ganttResource.create({
@@ -79,6 +100,7 @@ async function seed() {
       name: "QA Resource",
       category: "Functional",
       designation: "Consultant",
+      description: "Seed resource",
     },
   });
   await db.ganttPhase.create({
@@ -86,6 +108,8 @@ async function seed() {
       id: phaseId,
       projectId,
       name: "Realize",
+      // Required by the real schema; the mock let it through as undefined.
+      color: "#0B57D0",
       startDate: new Date("2026-01-01"),
       endDate: new Date("2026-06-30"),
       order: 0,
@@ -107,11 +131,18 @@ async function seed() {
     });
   }
   await db.ganttTaskResourceAssignment.create({
-    data: { id: assignmentId, taskId: taskAId, resourceId, allocationPercentage: 50 },
+    data: {
+      id: assignmentId,
+      taskId: taskAId,
+      resourceId,
+      allocationPercentage: 50,
+      assignmentNotes: "",
+    },
   });
 }
 
 async function cleanup() {
+  if (!db) return;
   if (projectId) await db.ganttProject.deleteMany({ where: { id: projectId } });
   if (userId) await db.users.deleteMany({ where: { id: userId } });
 }
@@ -134,8 +165,10 @@ const DATES = { startDate: "2026-01-01T00:00:00.000Z", endDate: "2026-02-01T00:0
 const PHASE_DATES = { startDate: "2026-01-01T00:00:00.000Z", endDate: "2026-06-30T00:00:00.000Z" };
 
 afterAll(async () => {
-  await cleanup();
-  await db.$disconnect();
+  if (db) {
+    await cleanup();
+    await db.$disconnect();
+  }
 });
 
 describeDb("delta save — task persistence via the real route", () => {

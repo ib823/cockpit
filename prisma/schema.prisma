@@ -675,6 +675,10 @@ model GanttPhase {
   collapsed                Boolean                        @default(false)
   order                    Int                            @default(0)
   dependencies             String[]
+  /// Optimistic-lock counter. A delta write supplies the version it read and
+  /// the update is scoped to it, so two clients editing the same phase cannot
+  /// silently overwrite each other. Incremented on every successful write.
+  version                  Int                            @default(0)
   project                  GanttProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   phaseResourceAssignments GanttPhaseResourceAssignment[]
   tasks                    GanttTask[]
@@ -699,6 +703,8 @@ model GanttTask {
   collapsed           Boolean                       @default(false)
   isParent            Boolean                       @default(false)
   level               Int                           @default(0)
+  /// Optimistic-lock counter. See GanttPhase.version.
+  version             Int                           @default(0)
   parentTaskId        String?
   parentTask          GanttTask?                    @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
   childTasks          GanttTask[]                   @relation("TaskHierarchy")

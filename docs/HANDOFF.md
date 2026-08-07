@@ -900,3 +900,69 @@ same bug.
 stylesheet measured as script is neither honest nor actionable: the two have
 different costs, different caching behaviour and different fixes. The global
 stylesheet is currently 66.2kB and every route loads all of it.
+
+## 0e. Correction: the "real database" integration tests were not (2026-08-07)
+
+`tests/integration/delta-task-persistence.int.test.ts` was described in its own
+header, in the commit that added it, and in PR #106 as running "against a real
+PostgreSQL 16". **It did not.** It ran entirely against the in-memory mock and
+never opened a connection.
+
+### Why it looked real
+
+Three things had to line up, and all three did:
+
+1. `tests/setup.ts` mocks **`@prisma/client` itself**, not merely `@/lib/db`.
+   So `new PrismaClient()` inside the test returned the mock, and
+   `await import("@prisma/client")` inside the test's own `vi.mock` factory
+   returned the mock too — the override was overridden.
+2. `tests/setup.ts` also overwrote `DATABASE_URL` with a database named
+   `unused`, so even a real client could not have connected.
+3. The mock does not enforce schema constraints, so a seed missing four
+   required fields (`viewSettings`, `color`, `description`, `assignmentNotes`)
+   inserted happily. Against the real schema every one of them fails.
+
+The tests passed, asserted the right behaviour, and proved nothing about a
+database.
+
+### How it was caught
+
+By accident, writing the optimistic-locking tests. Those assert
+`version === 1` after an update, and the mock stores `{ increment: 1 }`
+literally — an object where a number was expected. That mismatch was the only
+reason the illusion surfaced. **A test asserting only shapes the mock happens to
+get right would still be passing today.**
+
+### The fix
+
+- Tests obtain a real client through `vi.importActual("@prisma/client")`,
+  which bypasses the module mock.
+- `tests/setup.ts` no longer overwrites `DATABASE_URL` when `RUN_DB_E2E` is
+  set, so an integration run keeps the URL its caller supplied.
+- The seeds now satisfy the real schema.
+
+Both suites now genuinely connect: **13 tests against real PostgreSQL 16.**
+
+### What this does and does not change
+
+**The delta task-persistence fix itself was correct.** All 7 of its tests pass
+against a real database now, unmodified except for the seed. The defect was in
+the verification claim, not the code.
+
+**The claim was the problem.** "Verified against real Postgres 16" appears in a
+commit message and a merged PR description where it was untrue. That is worse
+than not having tested, because it discourages the next person from checking.
+
+### The general lesson
+
+A mock that is thorough enough to satisfy your assertions is indistinguishable
+from the real thing *until an assertion touches something it models wrongly*.
+The way to tell them apart is not to read the test — it is to assert something
+only the real system can produce. Here that was an atomic increment. For a
+database it might equally be a constraint violation, a transaction rollback, or
+a returned row count.
+
+**If a test claims to use a real dependency, prove it once, deliberately** —
+query the database directly and assert a row exists, or assert a
+schema-constraint failure. One such assertion per suite would have caught this
+on the day it was written.

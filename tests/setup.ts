@@ -8,8 +8,19 @@ import { TextEncoder, TextDecoder } from 'util';
 process.env.NEXTAUTH_SECRET = "test-secret-key-for-jwt-encoding-minimum-32-characters-long";
 process.env.ENABLE_MAGIC_LINKS = "true";
 process.env.NODE_ENV = "test";
-process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/unused";
-process.env.DATABASE_URL_UNPOOLED = "postgresql://postgres:postgres@localhost:5432/unused";
+// Pointed at a database that does not exist, so a unit test that reaches for a
+// real connection fails loudly instead of quietly hitting a developer's local
+// data. The `@prisma/client` mock below means nothing normally connects at all.
+//
+// The RUN_DB_E2E integration tests DO connect, via vi.importActual, so they
+// keep whatever DATABASE_URL the caller supplied. Overwriting it here is what
+// made those tests silently unable to reach Postgres.
+if (!process.env.RUN_DB_E2E) {
+  process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/unused";
+  process.env.DATABASE_URL_UNPOOLED = "postgresql://postgres:postgres@localhost:5432/unused";
+} else {
+  process.env.DATABASE_URL_UNPOOLED ??= process.env.DATABASE_URL ?? "";
+}
 process.env.TOTP_ENCRYPTION_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 process.env.JWT_SECRET_KEY = "test-jwt-secret-key-for-ci-only-32-chars";
 

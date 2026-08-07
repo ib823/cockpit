@@ -104,6 +104,53 @@ async function assertDeltaOwnership(
 }
 
 // Validation schema for delta updates
+/**
+ * One entity whose write was rejected because someone else had already changed
+ * it. Reported rather than thrown — see `applyVersioned` below.
+ */
+interface WriteConflict {
+  entity: "phase" | "task";
+  id: string;
+  /** The version the client believed it was editing. */
+  expectedVersion: number;
+}
+
+/**
+ * Applies an update under an optimistic lock and reports, rather than throws,
+ * when it loses.
+ *
+ * Two decisions here, both deliberate:
+ *
+ * **An absent version means an unconditional write.** Existing clients do not
+ * send one, and requiring it would break every one of them on deploy. A client
+ * opts into locking by starting to send the version it read; until then it
+ * behaves exactly as before. The capability ships ahead of its adoption.
+ *
+ * **A conflict is collected, not thrown.** Throwing would roll the whole
+ * transaction back, discarding every other change in the same batch — and a
+ * local-first client batches an entire offline session. Losing forty good edits
+ * because the forty-first collided is worse than the collision. The caller gets
+ * a 200 with the list of ids that did not apply, and can re-read and merge
+ * exactly those.
+ */
+async function applyVersioned(
+  entity: "phase" | "task",
+  id: string,
+  clientVersion: unknown,
+  conflicts: WriteConflict[],
+  run: (versionGuard: { version: number } | Record<string, never>) => Promise<{ count: number }>
+): Promise<void> {
+  const expected = typeof clientVersion === "number" ? clientVersion : undefined;
+  const { count } = await run(expected === undefined ? {} : { version: expected });
+
+  // count === 0 with a supplied version means the guard did not match. Without
+  // a version it means the id is not in this project, which ownership checks
+  // have already rejected — so this can only be a genuine conflict.
+  if (count === 0 && expected !== undefined) {
+    conflicts.push({ entity, id, expectedVersion: expected });
+  }
+}
+
 const DeltaSaveSchema = z.object({
   projectUpdates: z
     .object({
@@ -179,6 +226,10 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
     }
 
     const delta = DeltaSaveSchema.parse(body);
+
+    // Collected inside the transaction, reported after it commits. See
+    // applyVersioned for why a conflict does not abort the batch.
+    const conflicts: WriteConflict[] = [];
 
     // Check for duplicate project name if name is being updated
     if (delta.projectUpdates?.name) {
@@ -395,19 +446,27 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
 
           // Phase rows carry distinct data, so update them individually.
           for (const phase of updatedPhases) {
-            await tx.ganttPhase.updateMany({
-              where: { id: phase.id, projectId },
-              data: {
-                name: phase.name,
-                description: phase.description,
-                color: phase.color,
-                startDate: new Date(phase.startDate),
-                endDate: new Date(phase.endDate),
-                collapsed: phase.collapsed || false,
-                order: phase.order || 0,
-                dependencies: phase.dependencies || [],
-              },
-            });
+            await applyVersioned(
+              "phase",
+              phase.id,
+              (phase as unknown as { version?: unknown }).version,
+              conflicts,
+              (versionGuard) =>
+                tx.ganttPhase.updateMany({
+                  where: { id: phase.id, projectId, ...versionGuard },
+                  data: {
+                    name: phase.name,
+                    description: phase.description,
+                    color: phase.color,
+                    startDate: new Date(phase.startDate),
+                    endDate: new Date(phase.endDate),
+                    collapsed: phase.collapsed || false,
+                    order: phase.order || 0,
+                    dependencies: phase.dependencies || [],
+                    version: { increment: 1 },
+                  },
+                })
+            );
           }
 
           // Re-sync tasks for phases that provided a `tasks` array.
@@ -591,21 +650,29 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
 
         if (delta.tasks.updated && delta.tasks.updated.length > 0) {
           for (const t of delta.tasks.updated as unknown as GanttTask[]) {
-            await tx.ganttTask.updateMany({
-              // Scoped through the phase relation, so a foreign task id cannot
-              // be written even though the caller owns this project.
-              where: { id: t.id, phase: { projectId } },
-              data: {
-                name: t.name,
-                description: t.description,
-                startDate: new Date(t.startDate),
-                endDate: new Date(t.endDate),
-                progress: t.progress || 0,
-                assignee: t.assignee,
-                ...(t.order !== undefined ? { order: t.order } : {}),
-                dependencies: t.dependencies || [],
-              },
-            });
+            await applyVersioned(
+              "task",
+              t.id,
+              (t as unknown as { version?: unknown }).version,
+              conflicts,
+              (versionGuard) =>
+                tx.ganttTask.updateMany({
+                  // Scoped through the phase relation, so a foreign task id
+                  // cannot be written even though the caller owns this project.
+                  where: { id: t.id, phase: { projectId }, ...versionGuard },
+                  data: {
+                    name: t.name,
+                    description: t.description,
+                    startDate: new Date(t.startDate),
+                    endDate: new Date(t.endDate),
+                    progress: t.progress || 0,
+                    assignee: t.assignee,
+                    ...(t.order !== undefined ? { order: t.order } : {}),
+                    dependencies: t.dependencies || [],
+                    version: { increment: 1 },
+                  },
+                })
+            );
           }
         }
       }
@@ -722,6 +789,9 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
     return NextResponse.json(
       {
         success: true,
+        // Present and empty when nothing collided, so a client can branch on
+        // `length` without first checking for undefined.
+        conflicts,
         project: {
           id: projectId,
           updatedAt: updatedProject.updatedAt.toISOString(),
