@@ -24,6 +24,17 @@ export type {
 export { Checkbox, Radio, Toggle, ChoiceGroup } from "./Choice";
 export type { CheckboxProps, RadioProps, ToggleProps, ChoiceGroupProps } from "./Choice";
 
+export { Modal, Drawer } from "./Modal";
+export type { ModalProps, DrawerProps } from "./Modal";
+
+export { EmptyState, Banner, ToastProvider, useToast } from "./Feedback";
+export type {
+  EmptyStateProps,
+  BannerProps,
+  BannerTone,
+  ToastOptions,
+} from "./Feedback";
+
 export { StatusPill, Badge, Chip, Avatar, Progress, Skeleton } from "./Display";
 export type {
   StatusPillProps,

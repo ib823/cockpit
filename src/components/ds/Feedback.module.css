@@ -1,0 +1,255 @@
+/* Design system — feedback composites (layer 3)
+ *
+ * EmptyState, Banner, Toast. */
+
+/* ---------------------------------------------------------------------------
+ * EmptyState
+ *
+ * Four kinds, two alignments. First-run and no-results are centred because
+ * they own the whole region; error and no-permission are left-aligned because
+ * they are statements about the data, and centring a paragraph of explanation
+ * makes it harder to read.
+ * -------------------------------------------------------------------------*/
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-8) var(--ds-space-6);
+  max-width: 520px;
+}
+
+.emptyCentered {
+  align-items: center;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.emptyLeft {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.emptyGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ds-radius-lg);
+  border: var(--ds-border-hairline) solid;
+}
+
+.emptyTitle {
+  font: var(--ds-type-heading-md);
+  letter-spacing: var(--ds-ls-heading-md);
+  color: var(--ds-content-primary);
+  margin: 0;
+}
+
+.emptyBody {
+  font: var(--ds-type-body);
+  color: var(--ds-content-secondary);
+  margin: 0;
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-1);
+}
+
+/* Support reference — a project code and a timestamp, in mono so it can be
+ * read aloud over a phone without ambiguity. */
+.emptyReference {
+  font: var(--ds-type-mono);
+  color: var(--ds-content-tertiary);
+}
+
+.toneFirstRun {
+  color: var(--ds-accent-default);
+  background: var(--ds-accent-subtle);
+  border-color: var(--ds-accent-border);
+}
+
+.toneNeutral {
+  color: var(--ds-content-secondary);
+  background: var(--ds-surface-sunken);
+  border-color: var(--ds-border-default);
+}
+
+.toneError {
+  color: var(--ds-danger-default);
+  background: var(--ds-danger-subtle);
+  border-color: var(--ds-danger-border);
+}
+
+.toneLocked {
+  color: var(--ds-content-secondary);
+  background: var(--ds-surface-sunken);
+  border-color: var(--ds-border-strong);
+}
+
+/* ---------------------------------------------------------------------------
+ * Banner — inline, persistent, tied to the region it sits in
+ * -------------------------------------------------------------------------*/
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border: var(--ds-border-hairline) solid;
+  border-radius: var(--ds-radius-md);
+  font: var(--ds-type-body-sm);
+}
+
+.bannerGlyph {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+
+.bannerContent {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+}
+
+.bannerTitle {
+  font: var(--ds-type-heading-md);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0;
+  margin: 0;
+  color: inherit;
+}
+
+.bannerBody {
+  margin: 0;
+  color: var(--ds-content-secondary);
+}
+
+.bannerActions {
+  display: flex;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-1);
+}
+
+.bannerInfo {
+  color: var(--ds-info-default);
+  background: var(--ds-info-subtle);
+  border-color: var(--ds-info-border);
+}
+
+.bannerSuccess {
+  color: var(--ds-success-default);
+  background: var(--ds-success-subtle);
+  border-color: var(--ds-success-border);
+}
+
+.bannerWarning {
+  color: var(--ds-warning-default);
+  background: var(--ds-warning-subtle);
+  border-color: var(--ds-warning-border);
+}
+
+.bannerDanger {
+  color: var(--ds-danger-default);
+  background: var(--ds-danger-subtle);
+  border-color: var(--ds-danger-border);
+}
+
+.bannerDismiss {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--ds-radius-sm);
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.bannerDismiss:hover {
+  opacity: 1;
+}
+
+.bannerDismiss:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: 1px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Toast — transient, bottom-right, max 3 visible
+ * -------------------------------------------------------------------------*/
+.toastRegion {
+  position: fixed;
+  right: var(--ds-space-4);
+  bottom: var(--ds-space-4);
+  z-index: var(--ds-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  width: min(380px, calc(100vw - var(--ds-space-8)));
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-elevation-4);
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-primary);
+  animation: ds-toast-in var(--ds-duration-base) var(--ds-easing-standard);
+}
+
+/* A 3px edge rather than a tinted fill: a toast sits over arbitrary content,
+ * and a full tint would fight whatever is behind it. */
+.toastSuccess {
+  border-left: 3px solid var(--ds-success-default);
+}
+.toastWarning {
+  border-left: 3px solid var(--ds-warning-default);
+}
+.toastDanger {
+  border-left: 3px solid var(--ds-danger-default);
+}
+.toastInfo {
+  border-left: 3px solid var(--ds-info-default);
+}
+
+.toastContent {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.toastAction {
+  flex: none;
+}
+
+@keyframes ds-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
