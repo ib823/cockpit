@@ -1,4 +1,12 @@
 @import "./tokens.css";
+/* Design-system foundation tokens (layer 1). Every name is `--ds-` prefixed
+ * and additive: this import cannot alter the legacy UI. See the header of
+ * foundations.css for why the prefix is mandatory rather than stylistic.
+ *
+ * Deliberately second: tokens.css must stay the first @import because it
+ * bridges into apple-design-system.css, an ordering the visual suite guards.
+ * This layer shares no names with it, so its position is free. */
+@import "../styles/foundations.css";
 @import "../styles/motion.css";
 @import "../styles/button-normalize.css";
 @import "../styles/accessibility.css";

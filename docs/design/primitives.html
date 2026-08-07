@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; text-decoration:underline; text-underline-offset:2px; }
+  a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  input, textarea, select { font-family:inherit; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity:.55 } 50% { opacity:1 } }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:1ms !important; animation-iteration-count:1 !important; transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1360px;margin:0 auto;padding:72px 40px 40px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 2 of 5</div>
+  <h1 style="margin:14px 0 0;font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.025em;max-width:22ch;text-wrap:pretty">Primitives: every variant, every state</h1>
+  <p style="margin:20px 0 0;max-width:70ch;font-size:16px;line-height:26px;color:#4B5563;text-wrap:pretty">Twenty-nine primitives, each with anatomy, sizes, all variants and the full state set — default, hover, focus-visible, active, disabled, loading, error, read-only and empty where they apply. Every value is a token from Foundations; no primitive introduces a new one. Light matrices are complete; each group closes with the same component authored on dark surfaces.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:24px">
+    <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#E8F0FE;color:#0B57D0;font-size:12px;font-weight:500;border:1px solid #BBD0F6">Focus ring 2px / offset 2px on every focusable</span>
+    <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#FFFFFF;color:#4B5563;font-size:12px;font-weight:500;border:1px solid #CBD2DC">Pointer target ≥ 24px, touch ≥ 44px</span>
+    <span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#FFFFFF;color:#4B5563;font-size:12px;font-weight:500;border:1px solid #CBD2DC">Live controls marked ⌁</span>
+  </div>
+</header>
+
+<section style="max-width:1360px;margin:0 auto;padding:16px 40px 0">
+  <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+    <div>
+      <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Reading the matrices</div>
+      <p style="margin:8px 0 0;font-size:13px;line-height:20px;color:#4B5563">Columns are states. A state that is visually identical to another is still listed, with the reason it is identical, so an engineer never has to guess.</p>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Anatomy notation</div>
+      <p style="margin:8px 0 0;font-size:13px;line-height:20px;color:#4B5563"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">h36 · px-space/3 · gap-space/2 · r-md</span> reads: height 36, horizontal padding 12, internal gap 8, radius/md.</p>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Accessibility line</div>
+      <p style="margin:8px 0 0;font-size:13px;line-height:20px;color:#4B5563">Each group ends with role, accessible name and ARIA relationships. Anything not stated there is a plain semantic element with no ARIA at all — which is the preferred outcome.</p>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1360px;margin:0 auto;padding:56px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">A — Actions</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Button</h2>
+  <p style="margin:12px 0 0;max-width:72ch;font-size:14px;line-height:22px;color:#4B5563">Anatomy: <span style="font-family:'IBM Plex Mono',monospace;font-size:13px">[focus ring] → [container: bg, 1px border, radius/md] → [leading icon 16px] → gap → [label type/body 500] → gap → [trailing icon 16px]</span>. Label is sentence case, verb-first, and never wraps — a button that cannot fit its label gets the next size down, not two lines. One primary button per view region.</p>
+
+  <div style="margin-top:24px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;overflow:hidden">
+    <div style="display:grid;grid-template-columns:118px repeat(6,minmax(0,1fr));gap:12px;padding:10px 20px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563">
+      <div>Variant</div><div>Default</div><div>Hover</div><div>Focus-visible</div><div>Active</div><div>Disabled</div><div>Loading</div>
+    </div>
+    <sc-for list="{{ btnLight }}" as="row" hint-placeholder-count="5">
+      <div style="display:grid;grid-template-columns:118px repeat(6,minmax(0,1fr));gap:12px;padding:16px 20px;border-bottom:1px solid #E4E7EC;align-items:center">
+        <div>
+          <div style="font-size:13px;line-height:18px;font-weight:600;color:#101720">{{ row.name }}</div>
+          <div style="font-size:12px;line-height:17px;color:#667085;text-wrap:pretty">{{ row.use }}</div>
+        </div>
+        <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="6">
+          <div>
+            <button style="display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;font-size:14px;line-height:20px;font-weight:500;white-space:nowrap;cursor:{{ c.cursor }};background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};box-shadow:{{ c.ring }};text-decoration:{{ c.deco }}">
+              <sc-if value="{{ c.loading }}" hint-placeholder-val="{{ false }}"><span style="width:14px;height:14px;border-radius:999px;border:2px solid {{ c.spinTrack }};border-top-color:{{ c.fg }};animation:spin 700ms linear infinite"></span></sc-if>
+              {{ c.label }}
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 4px;font-size:16px;line-height:22px;font-weight:600">Sizes and content shapes</h3>
+      <p style="margin:0 0 18px;font-size:13px;line-height:20px;color:#4B5563">sm is for table row actions and toolbars only. md is the default. lg is reserved for auth screens and empty-state calls to action, where it also satisfies the 44px touch minimum.</p>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <sc-for list="{{ btnSizes }}" as="s" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div style="width:150px;flex:none">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:17px;color:#101720">{{ s.token }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:16px;color:#667085">{{ s.spec }}</div>
+            </div>
+            <button style="display:inline-flex;align-items:center;justify-content:center;gap:{{ s.gap }};height:{{ s.h }};padding:0 {{ s.px }};border-radius:6px;background:#0B57D0;color:#FFFFFF;border:1px solid #0B57D0;font-size:{{ s.fs }};line-height:{{ s.lh }};font-weight:500;cursor:pointer">Save plan</button>
+            <button style="display:inline-flex;align-items:center;justify-content:center;gap:{{ s.gap }};height:{{ s.h }};padding:0 {{ s.px }};border-radius:6px;background:#FFFFFF;color:#101720;border:1px solid #7D8799;font-size:{{ s.fs }};line-height:{{ s.lh }};font-weight:500;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace">+</span>Add phase</button>
+            <button aria-label="More actions" style="display:inline-flex;align-items:center;justify-content:center;width:{{ s.h }};height:{{ s.h }};border-radius:6px;background:#FFFFFF;color:#101720;border:1px solid #7D8799;font-size:{{ s.fs }};cursor:pointer">⋯</button>
+          </div>
+        </sc-for>
+        <div style="border-top:1px solid #E4E7EC;padding-top:16px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#667085;margin-bottom:8px">full-width — drawer footers and mobile only</div>
+          <button style="display:flex;align-items:center;justify-content:center;width:100%;height:44px;border-radius:6px;background:#0B57D0;color:#FFFFFF;border:1px solid #0B57D0;font-size:15px;font-weight:500;cursor:pointer">Generate proposal</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 4px;font-size:16px;line-height:22px;font-weight:600">Rules an engineer needs</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+        <sc-for list="{{ btnRules }}" as="r" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:16px 1fr;gap:10px;align-items:start">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#0B57D0;line-height:20px">§</span>
+            <div style="font-size:13px;line-height:20px;color:#4B5563;text-wrap:pretty">{{ r }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:24px">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px">
+      <h3 style="margin:0;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Button — dark</h3>
+      <span style="font-size:12px;color:#8592A6">authored, not inverted: accent lightens and carries dark text at 8.52:1; secondary sits on surface/raised, not on the canvas</span>
+    </div>
+    <div style="margin-top:16px;display:grid;grid-template-columns:118px repeat(6,minmax(0,1fr));gap:12px;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#AFBACA;padding-bottom:10px;border-bottom:1px solid #333C4A">
+      <div>Variant</div><div>Default</div><div>Hover</div><div>Focus-visible</div><div>Active</div><div>Disabled</div><div>Loading</div>
+    </div>
+    <sc-for list="{{ btnDark }}" as="row" hint-placeholder-count="5">
+      <div style="display:grid;grid-template-columns:118px repeat(6,minmax(0,1fr));gap:12px;padding:14px 0;border-bottom:1px solid #232A35;align-items:center">
+        <div style="font-size:13px;line-height:18px;font-weight:600;color:#E9EEF6">{{ row.name }}</div>
+        <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="6">
+          <div>
+            <button style="display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;font-size:14px;line-height:20px;font-weight:500;white-space:nowrap;cursor:{{ c.cursor }};background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};box-shadow:{{ c.ring }};text-decoration:{{ c.deco }}">
+              <sc-if value="{{ c.loading }}" hint-placeholder-val="{{ false }}"><span style="width:14px;height:14px;border-radius:999px;border:2px solid {{ c.spinTrack }};border-top-color:{{ c.fg }};animation:spin 700ms linear infinite"></span></sc-if>
+              {{ c.label }}
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 4px;font-size:16px;line-height:22px;font-weight:600">Icon button</h3>
+      <p style="margin:0 0 16px;font-size:13px;line-height:20px;color:#4B5563">Square, radius/md, always with an <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">aria-label</span> and a tooltip carrying the same string. sm (28px) is allowed only inside a 32px-or-taller row and must keep 8px clear space so the composite pointer target reaches 36px; on touch it grows to 44px.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        <sc-for list="{{ iconBtns }}" as="i" hint-placeholder-count="7">
+          <div style="text-align:center;width:82px">
+            <button aria-label="{{ i.name }}" style="display:inline-flex;align-items:center;justify-content:center;width:{{ i.size }};height:{{ i.size }};border-radius:6px;background:{{ i.bg }};color:{{ i.fg }};border:1px solid {{ i.bd }};box-shadow:{{ i.ring }};cursor:{{ i.cursor }};font-size:15px;font-family:'IBM Plex Mono',monospace">{{ i.glyph }}</button>
+            <div style="font-size:11px;line-height:15px;color:#667085;margin-top:6px">{{ i.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 4px;font-size:16px;line-height:22px;font-weight:600">Link, Kbd, Divider</h3>
+      <p style="margin:0 0 16px;font-size:13px;line-height:20px;color:#4B5563">Links are underlined at all times inside body text — in a table full of blue figures, colour alone would not distinguish a link from a value.</p>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:14px;line-height:22px;color:#101720">Inline: the phase inherits its calendar from <a href="#" style="color:#0B57D0">Malaysia (MY) public holidays</a>, hover <span style="color:#08429E;text-decoration:underline;text-underline-offset:2px">Malaysia (MY) public holidays</span>, visited <span style="color:#06337A;text-decoration:underline;text-underline-offset:2px">Malaysia (MY)</span>, focus <span style="color:#0B57D0;text-decoration:underline;text-underline-offset:2px;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0;border-radius:2px">Malaysia (MY)</span>.</div>
+        <div style="font-size:14px;line-height:22px;color:#101720">Standalone link (no underline until hover, has a trailing chevron): <span style="color:#0B57D0;font-weight:500">Open rate card ›</span></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:#4B5563">Keyboard hints:
+          <sc-for list="{{ kbds }}" as="k" hint-placeholder-count="5">
+            <kbd style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;border-radius:4px;background:#F1F3F7;border:1px solid #CBD2DC;border-bottom-width:2px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ k }}</kbd>
+          </sc-for>
+        </div>
+        <div>
+          <div style="height:1px;background:#E4E7EC"></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085;margin-top:6px">divider/subtle — inside a card</div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:12px"><div style="height:1px;background:#CBD2DC;flex:1"></div><span style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Subcontractors</span><div style="height:1px;background:#CBD2DC;flex:1"></div></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085;margin-top:6px">divider/labelled — separates groups in a menu or list</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085;margin-bottom:10px">Accessibility — actions</div>
+    <sc-for list="{{ a11yActions }}" as="a" hint-placeholder-count="5">
+      <div style="display:grid;grid-template-columns:170px 1fr;gap:16px;padding:8px 0;border-top:1px solid #E4E7EC;font-size:13px;line-height:20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ a.k }}</div>
+        <div style="color:#4B5563;text-wrap:pretty">{{ a.v }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="max-width:1360px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">B — Text entry</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Input, Textarea, Number, Search</h2>
+  <p style="margin:12px 0 0;max-width:72ch;font-size:14px;line-height:22px;color:#4B5563">Anatomy: <span style="font-family:'IBM Plex Mono',monospace;font-size:13px">[label type/label, space/1 below] → [container h36, 1px border/strong, radius/md, px space/3] → [prefix] → [value type/body] → [suffix / clear / status icon] → [helper type/label, space/1 above]</span>. The helper slot is reserved at all times so validation never shifts the form.</p>
+
+  <div style="margin-top:24px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px">
+    <sc-for list="{{ fieldsLight }}" as="f" hint-placeholder-count="8">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:15px;color:#667085;margin-bottom:8px">{{ f.state }}</div>
+        <label style="display:block;font-size:12px;line-height:16px;font-weight:500;letter-spacing:0.005em;color:{{ f.labelColor }};margin-bottom:4px">{{ f.label }}</label>
+        <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;background:{{ f.bg }};border:1px solid {{ f.bd }};box-shadow:{{ f.ring }};cursor:{{ f.cursor }}">
+          <sc-if value="{{ f.icon }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:500;color:{{ f.iconColor }};font-variant-numeric:tabular-nums">{{ f.icon }}</span></sc-if>
+          <span style="flex:1;font-size:14px;line-height:20px;color:{{ f.fg }};overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ f.value }}{{ f.placeholder }}</span>
+        </div>
+        <div style="min-height:32px;margin-top:4px;font-size:12px;line-height:16px;color:{{ f.helperColor }};text-wrap:pretty">{{ f.helper }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600">Sizes</h3>
+      <sc-for list="{{ fieldSizes }}" as="s" hint-placeholder-count="3">
+        <div style="display:grid;grid-template-columns:110px 1fr;gap:12px;padding:7px 0;border-bottom:1px solid #E4E7EC">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ s.token }}</div>
+          <div style="font-size:12px;line-height:18px;color:#4B5563">{{ s.spec }}</div>
+        </div>
+      </sc-for>
+      <h3 style="margin:22px 0 10px;font-size:16px;line-height:22px;font-weight:600">Textarea</h3>
+      <label style="display:block;font-size:12px;font-weight:500;color:#101720;margin-bottom:4px">Assumption</label>
+      <div style="border:1px solid #7D8799;border-radius:6px;background:#FFFFFF;padding:8px 12px;min-height:88px;font-size:14px;line-height:20px;color:#101720;position:relative">Client provides a cleansed vendor master by 30 Sep 2026. Any slippage moves Realize start day-for-day.
+        <span style="position:absolute;right:10px;bottom:6px;font-size:11px;color:#667085;font-variant-numeric:tabular-nums">128 / 500</span>
+      </div>
+      <div style="font-size:12px;line-height:16px;color:#667085;margin-top:6px">Resizes vertically only, 3 rows minimum, 12 rows maximum, then scrolls. The counter turns status/warning at 90% and status/danger at 100%; it is aria-live="polite" but only announces at those two thresholds.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 4px;font-size:16px;line-height:22px;font-weight:600">Number &amp; currency</h3>
+      <p style="margin:0 0 16px;font-size:13px;line-height:20px;color:#4B5563">All figures right-aligned with tabular numerals so a column of rates reads as a column.</p>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <sc-for list="{{ numericFields }}" as="n" hint-placeholder-count="4">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#101720;margin-bottom:4px">{{ n.label }}</label>
+            <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799">
+              <span style="font-size:12px;font-weight:500;color:#667085">{{ n.prefix }}</span>
+              <span style="flex:1;text-align:right;font-size:14px;line-height:20px;font-weight:500;color:#101720;font-variant-numeric:tabular-nums">{{ n.value }}</span>
+              <span style="font-size:12px;color:#667085">{{ n.suffix }}</span>
+              <span style="display:flex;flex-direction:column;gap:1px;margin-left:2px">
+                <span style="display:flex;align-items:center;justify-content:center;width:18px;height:13px;border:1px solid #CBD2DC;border-radius:3px 3px 0 0;font-size:8px;color:#4B5563">▲</span>
+                <span style="display:flex;align-items:center;justify-content:center;width:18px;height:13px;border:1px solid #CBD2DC;border-radius:0 0 3px 3px;font-size:8px;color:#4B5563">▼</span>
+              </span>
+            </div>
+            <div style="font-size:12px;line-height:17px;color:#667085;margin-top:5px;text-wrap:pretty">{{ n.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600">Select — trigger states</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <sc-for list="{{ selects }}" as="s" hint-placeholder-count="4">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085;margin-bottom:6px">{{ s.state }}</div>
+            <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;background:{{ s.bg }};border:1px solid {{ s.bd }};box-shadow:{{ s.ring }}">
+              <span style="flex:1;font-size:14px;color:{{ s.fg }};overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ s.value }}</span>
+              <span style="font-size:10px;color:{{ s.fg }}">▼</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <h3 style="margin:22px 0 10px;font-size:16px;line-height:22px;font-weight:600">Listbox</h3>
+      <div style="border:1px solid #CBD2DC;border-radius:6px;background:#FFFFFF;box-shadow:0 4px 12px rgba(16,23,32,0.10);overflow:hidden">
+        <sc-for list="{{ selectOptions }}" as="o" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #E4E7EC;background:{{ o.bg }}">
+            <span style="width:14px;font-size:12px;color:#0B57D0">{{ o.tick }}</span>
+            <span style="flex:1;font-size:14px;line-height:20px;color:#101720">{{ o.label }}</span>
+            <span style="font-size:12px;color:#667085;font-variant-numeric:tabular-nums">{{ o.meta }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;line-height:17px;color:#667085;margin-top:8px">Row 3 shows hover/active-descendant: surface/sunken fill plus a 2px accent bar on the leading edge, so the pointer position is not carried by colour alone. Max height 320px, then scrolls; the selected option is scrolled into view on open.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <h3 style="margin:0;font-size:16px;line-height:22px;font-weight:600">Combobox, async</h3>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0">⌁ live</span>
+      </div>
+      <p style="margin:0 0 14px;font-size:13px;line-height:20px;color:#4B5563">Type to search the delivery roster. 450ms simulated latency; try “ar”, “lead”, or something with no match.</p>
+      <label for="cb" style="display:block;font-size:12px;font-weight:500;color:#101720;margin-bottom:4px">Assign resource</label>
+      <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">⌕</span>
+        <input id="cb" type="text" value="{{ cbQuery }}" onInput="{{ cbOnInput }}" placeholder="Search by name or role" style="flex:1;border:none;outline:none;background:transparent;font-size:14px;line-height:20px;color:#101720" />
+        <sc-if value="{{ cbLoading }}" hint-placeholder-val="{{ false }}"><span style="width:14px;height:14px;border-radius:999px;border:2px solid #CBD2DC;border-top-color:#0B57D0;animation:spin 700ms linear infinite"></span></sc-if>
+      </div>
+      <div aria-live="polite" style="font-size:12px;line-height:16px;color:#667085;margin-top:5px">{{ cbStatus }}</div>
+      <div style="margin-top:8px;border:1px solid #CBD2DC;border-radius:6px;overflow:hidden;max-height:232px;overflow-y:auto">
+        <sc-for list="{{ cbResults }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #E4E7EC">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:#E8F0FE;color:#0B57D0;font-size:11px;font-weight:600">{{ r.initials }}</span>
+            <span style="flex:1;min-width:0">
+              <span style="display:block;font-size:13px;line-height:18px;color:#101720;font-weight:500">{{ r.name }}</span>
+              <span style="display:block;font-size:12px;line-height:16px;color:#667085">{{ r.role }} · {{ r.region }}</span>
+            </span>
+            <span style="font-size:13px;color:#101720;font-variant-numeric:tabular-nums;font-weight:500">{{ r.rate }}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{ cbEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 16px;text-align:center">
+            <div style="font-size:13px;line-height:19px;color:#101720;font-weight:500">No resource matches “{{ cbQuery }}”</div>
+            <div style="font-size:12px;line-height:18px;color:#4B5563;margin-top:4px">Search covers name and role across the MY, SG, IN and VN rosters. Try a role such as “Basis”, or invite an external contributor.</div>
+            <button style="margin-top:12px;height:32px;padding:0 12px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:13px;font-weight:500;color:#101720;cursor:pointer">Invite by email</button>
+          </div>
+        </sc-if>
+      </div>
+      <h3 style="margin:22px 0 10px;font-size:16px;line-height:22px;font-weight:600">Multi-select &amp; Search field</h3>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-height:36px;padding:4px 8px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF">
+        <sc-for list="{{ multiChips }}" as="c" hint-placeholder-count="3">
+          <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 4px 0 8px;border-radius:4px;background:#E8F0FE;border:1px solid #BBD0F6;font-size:12px;font-weight:500;color:#0B57D0">{{ c.label }}<span style="color:#4B5563;font-variant-numeric:tabular-nums">{{ c.n }}</span><span aria-label="Remove" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;background:#D6E4FD;font-size:10px;cursor:pointer">×</span></span>
+        </sc-for>
+        <span style="font-size:14px;color:#667085">Add workstream…</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;margin-top:12px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">⌕</span>
+        <span style="flex:1;font-size:14px;color:#101720">cutover</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#E4E7EC;font-size:10px;color:#4B5563;cursor:pointer">×</span>
+        <kbd style="display:inline-flex;align-items:center;height:20px;padding:0 5px;border-radius:3px;background:#F1F3F7;border:1px solid #CBD2DC;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563">⌘K</kbd>
+      </div>
+      <div style="font-size:12px;line-height:17px;color:#667085;margin-top:6px">Search debounces at 250ms, shows the clear affordance only when non-empty, and Escape clears before it closes.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:24px">
+    <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Text entry — dark</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px">
+      <sc-for list="{{ fieldsDark }}" as="f" hint-placeholder-count="5">
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:15px;color:#8592A6;margin-bottom:8px">{{ f.state }}</div>
+          <label style="display:block;font-size:12px;line-height:16px;font-weight:500;color:{{ f.labelColor }};margin-bottom:4px">{{ f.label }}</label>
+          <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;background:{{ f.bg }};border:1px solid {{ f.bd }};box-shadow:{{ f.ring }}">
+            <sc-if value="{{ f.icon }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:500;color:{{ f.iconColor }}">{{ f.icon }}</span></sc-if>
+            <span style="flex:1;font-size:14px;line-height:20px;color:{{ f.fg }};overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ f.value }}{{ f.placeholder }}</span>
+          </div>
+          <div style="min-height:32px;margin-top:4px;font-size:12px;line-height:16px;color:{{ f.helperColor }};text-wrap:pretty">{{ f.helper }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085;margin-bottom:10px">Accessibility — text entry</div>
+    <sc-for list="{{ a11yFields }}" as="a" hint-placeholder-count="7">
+      <div style="display:grid;grid-template-columns:170px 1fr;gap:16px;padding:8px 0;border-top:1px solid #E4E7EC;font-size:13px;line-height:20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ a.k }}</div>
+        <div style="color:#4B5563;text-wrap:pretty">{{ a.v }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="max-width:1360px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">C — Choice</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Checkbox, Radio, Toggle, Segmented, Slider</h2>
+  <p style="margin:12px 0 0;max-width:72ch;font-size:14px;line-height:22px;color:#4B5563">Control boxes are 18px with a 44px touch target achieved by padding the label row, never by growing the box. A toggle commits immediately and is used only for settings that take effect at once; anything needing Save is a checkbox.</p>
+
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:24px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600">Checkbox</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px">
+        <sc-for list="{{ checksLight }}" as="c" hint-placeholder-count="9">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085;margin-bottom:6px">{{ c.state }}</div>
+            <div style="display:flex;align-items:center;gap:10px;min-height:28px">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;flex:none;border-radius:2px;background:{{ c.bg }};border:1px solid {{ c.bd }};box-shadow:{{ c.ring }};color:{{ c.gfg }};font-size:12px;font-weight:600">{{ c.glyph }}</span>
+              <span style="font-size:14px;line-height:20px;color:{{ c.lfg }}">{{ c.label }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h3 style="margin:24px 0 12px;font-size:16px;line-height:22px;font-weight:600">Radio group</h3>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <sc-for list="{{ radios }}" as="r" hint-placeholder-count="4">
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;flex:none;margin-top:1px;border-radius:999px;background:{{ r.bg }};border:1px solid {{ r.bd }};box-shadow:{{ r.ring }}"><span style="width:8px;height:8px;border-radius:999px;background:{{ r.dot }}"></span></span>
+            <span>
+              <span style="display:block;font-size:14px;line-height:20px;color:#101720">{{ r.label }}</span>
+              <span style="display:block;font-size:12px;line-height:17px;color:#667085">{{ r.desc }}</span>
+            </span>
+            <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085">{{ r.state }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#667085;margin-top:10px;text-wrap:pretty">A radio group is a <span style="font-family:'IBM Plex Mono',monospace">fieldset</span> with a <span style="font-family:'IBM Plex Mono',monospace">legend</span>; Tab enters the group once and arrows move within it. Radios never appear without a pre-selected default unless “no choice” is a valid submission.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+        <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600">Toggle</h3>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="position:relative;display:inline-flex;align-items:center;width:40px;height:24px;flex:none;border-radius:999px;background:{{ t.bg }};border:1px solid {{ t.bd }};box-shadow:{{ t.ring }}"><span style="position:absolute;left:{{ t.x }};width:18px;height:18px;border-radius:999px;background:{{ t.knob }};box-shadow:0 1px 2px rgba(16,23,32,.2)"></span></span>
+              <span style="font-size:13px;color:#4B5563">{{ t.state }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid #E4E7EC;display:flex;align-items:center;gap:12px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0">⌁ live</span>
+          <button role="switch" onClick="{{ toggleCrit }}" style="position:relative;display:inline-flex;align-items:center;width:40px;height:24px;flex:none;border-radius:999px;border:1px solid #7D8799;background:{{ critBg }};cursor:pointer;padding:0"><span style="position:absolute;left:{{ critX }};width:18px;height:18px;border-radius:999px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,23,32,.2);transition:left 120ms cubic-bezier(.2,0,0,1)"></span></button>
+          <span style="font-size:14px;color:#101720">Highlight critical path</span>
+          <span style="margin-left:auto;font-size:12px;font-weight:500;color:#4B5563;font-variant-numeric:tabular-nums">{{ critLabel }}</span>
+        </div>
+        <div style="font-size:12px;line-height:17px;color:#667085;margin-top:8px">The state word beside the toggle is not decoration: it is the non-colour carrier of on/off, and it is what a screen reader announces via role="switch".</div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><h3 style="margin:0;font-size:16px;line-height:22px;font-weight:600">Segmented control</h3><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0">⌁ live</span></div>
+        <div role="radiogroup" style="display:inline-flex;gap:2px;padding:2px;border-radius:6px;background:#F1F3F7;border:1px solid #CBD2DC">
+          <sc-for list="{{ zoomCells }}" as="z" hint-placeholder-count="4">
+            <button onClick="{{ z.on }}" style="height:28px;padding:0 14px;border-radius:4px;font-size:13px;font-weight:500;cursor:pointer;background:{{ z.bg }};color:{{ z.fg }};border:1px solid {{ z.bd }};box-shadow:{{ z.sh }}">{{ z.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-size:12px;line-height:17px;color:#667085;margin-top:10px">Two to five segments, equal width when used as a filter, content width when used as a zoom. Selected carries a raised surface <em>and</em> a border — on a projector the fill alone disappears. Arrow keys move selection; Tab leaves the group.</div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><h3 style="margin:0;font-size:16px;line-height:22px;font-weight:600">Slider</h3><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0">⌁ live</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <label for="alloc" style="font-size:12px;font-weight:500;color:#101720">Allocation — Aisyah Rahman, Realize</label>
+          <span style="font-size:14px;font-weight:500;color:#101720;font-variant-numeric:tabular-nums">{{ allocPct }}</span>
+        </div>
+        <div style="position:relative;height:24px;display:flex;align-items:center">
+          <div style="position:absolute;left:0;right:0;height:6px;border-radius:999px;background:#E4E7EC;border:1px solid #CBD2DC"></div>
+          <div style="position:absolute;left:0;height:6px;border-radius:999px;background:#0B57D0;width:{{ allocFill }}"></div>
+          <div style="position:absolute;left:66.6%;top:0;bottom:0;width:1px;background:#7D8799"></div>
+          <div style="position:absolute;left:{{ allocKnob }};width:18px;height:18px;border-radius:999px;background:#FFFFFF;border:1.5px solid #0B57D0;box-shadow:0 1px 2px rgba(16,23,32,.2)"></div>
+          <input id="alloc" type="range" min="0" max="150" step="5" value="{{ alloc }}" onInput="{{ onAlloc }}" style="position:absolute;left:0;right:0;width:100%;opacity:0;height:24px;cursor:pointer;margin:0" />
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#667085;font-variant-numeric:tabular-nums;margin-top:4px"><span>0%</span><span>100% capacity</span><span>150%</span></div>
+        <div style="font-size:12px;line-height:17px;color:#4B5563;margin-top:8px">{{ allocNote }} Sliders always pair with a numeric input; the slider is the coarse gesture and the field is the authoritative value.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:24px">
+    <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Choice — dark</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px">
+      <sc-for list="{{ checksDark }}" as="c" hint-placeholder-count="5">
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8592A6;margin-bottom:6px">{{ c.state }}</div>
+          <div style="display:flex;align-items:center;gap:10px;min-height:28px">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;flex:none;border-radius:2px;background:{{ c.bg }};border:1px solid {{ c.bd }};box-shadow:{{ c.ring }};color:{{ c.gfg }};font-size:12px;font-weight:600">{{ c.glyph }}</span>
+            <span style="font-size:14px;line-height:20px;color:{{ c.lfg }}">{{ c.label }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:center;margin-top:20px;padding-top:20px;border-top:1px solid #232A35">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="position:relative;display:inline-flex;align-items:center;width:40px;height:24px;border-radius:999px;background:#7FB0FF;border:1px solid #7FB0FF"><span style="position:absolute;left:20px;width:18px;height:18px;border-radius:999px;background:#0B1220"></span></span>
+        <span style="font-size:13px;color:#E9EEF6">Toggle on — knob is content/inverse, not white</span>
+      </div>
+      <div style="display:inline-flex;gap:2px;padding:2px;border-radius:6px;background:#0A0D12;border:1px solid #333C4A">
+        <span style="height:28px;padding:0 14px;display:inline-flex;align-items:center;border-radius:4px;background:#232A35;color:#E9EEF6;border:1px solid #748196;font-size:13px;font-weight:500">Week</span>
+        <span style="height:28px;padding:0 14px;display:inline-flex;align-items:center;border-radius:4px;color:#AFBACA;font-size:13px;font-weight:500">Month</span>
+        <span style="height:28px;padding:0 14px;display:inline-flex;align-items:center;border-radius:4px;color:#AFBACA;font-size:13px;font-weight:500">Quarter</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;min-width:220px;flex:1">
+        <div style="position:relative;flex:1;height:6px;border-radius:999px;background:#232A35;border:1px solid #333C4A"><div style="position:absolute;left:0;top:-1px;height:6px;border-radius:999px;background:#7FB0FF;width:53%"></div><div style="position:absolute;left:calc(53% - 9px);top:-7px;width:18px;height:18px;border-radius:999px;background:#171C24;border:1.5px solid #7FB0FF"></div></div>
+        <span style="font-size:13px;color:#E9EEF6;font-variant-numeric:tabular-nums">80%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1360px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">D — Dates</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Date picker with a working calendar</h2>
+  <p style="margin:12px 0 0;max-width:72ch;font-size:14px;line-height:22px;color:#4B5563">In an SAP programme a date is never just a date — it is a working day in a named region. The picker therefore renders weekends and that region’s public holidays, and states which calendar it is using.</p>
+
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;margin-top:24px;align-items:start">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px;width:328px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <button aria-label="Previous month" style="width:28px;height:28px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;color:#101720;cursor:pointer">‹</button>
+        <div style="font-size:14px;font-weight:600;color:#101720">September 2026</div>
+        <button aria-label="Next month" style="width:28px;height:28px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;color:#101720;cursor:pointer">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
+        <sc-for list="{{ weekDays }}" as="d" hint-placeholder-count="7">
+          <div style="text-align:center;font-size:11px;font-weight:600;letter-spacing:0.04em;color:#667085">{{ d }}</div>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+        <sc-for list="{{ calendar }}" as="c" hint-placeholder-count="35">
+          <div title="{{ c.title }}" style="position:relative;height:36px;display:flex;align-items:center;justify-content:center;border-radius:4px;background:{{ c.bg }};color:{{ c.fg }};font-size:13px;font-variant-numeric:tabular-nums;font-weight:500">{{ c.n }}<span style="position:absolute;bottom:3px;font-size:7px;color:#8A5200;line-height:1">{{ c.mark }}</span></div>
+        </sc-for>
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid #E4E7EC;display:flex;flex-direction:column;gap:6px;font-size:11px;line-height:16px;color:#4B5563">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;background:#F1F3F7;border:1px solid #CBD2DC"></span>Weekend — non-working</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;background:#FBF0DC;border:1px solid #E0C089;display:inline-flex;align-items:end;justify-content:center;font-size:7px;color:#8A5200">●</span>Public holiday (MY) — 15 Sep, Malaysia Day</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:3px;background:#E8F0FE;border:1px solid #BBD0F6"></span>Selected range — 7 to 18 Sep, 8 working days</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Date and range fields</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#101720;margin-bottom:4px">Start</label>
+            <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799"><span style="flex:1;font-size:14px;color:#101720;font-variant-numeric:tabular-nums">07 Sep 2026</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">▦</span></div>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:500;color:#101720;margin-bottom:4px">Finish</label>
+            <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;background:#FFFFFF;border:1px solid #0B57D0;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0"><span style="flex:1;font-size:14px;color:#101720;font-variant-numeric:tabular-nums">18 Sep 2026</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">▦</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid #E4E7EC;font-size:13px;line-height:20px;color:#4B5563">
+          <span><span style="font-weight:600;color:#101720">8</span> working days</span>
+          <span><span style="font-weight:600;color:#101720">12</span> calendar days</span>
+          <span style="color:#8A5200">1 public holiday excluded (15 Sep)</span>
+          <span>Calendar: Malaysia (MY)</span>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Rules</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ dateRules }}" as="r" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:16px 1fr;gap:10px;align-items:start">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#0B57D0;line-height:20px">§</span>
+              <div style="font-size:13px;line-height:20px;color:#4B5563;text-wrap:pretty">{{ r }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:20px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+        <div style="font-size:13px;color:#AFBACA;max-width:36ch;line-height:20px">Dark: the holiday tint drops to status/warning/subtle <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">#33240B</span> with <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">#E9B45A</span> numerals at 7.97:1, and the selected range uses accent/subtle <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">#16294A</span>.</div>
+        <div style="display:grid;grid-template-columns:repeat(7,32px);gap:2px">
+          <sc-for list="{{ darkWeek }}" as="d" hint-placeholder-count="14">
+            <div style="height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;background:{{ d.bg }};color:{{ d.fg }};font-size:13px;font-variant-numeric:tabular-nums;font-weight:500">{{ d.n }}</div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1360px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">E — Display &amp; feedback</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Identity, status, progress, waiting</h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600">Avatar &amp; avatar group</h3>
+      <div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap">
+        <sc-for list="{{ avatars }}" as="a" hint-placeholder-count="5">
+          <div style="text-align:center">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:{{ a.size }};height:{{ a.size }};border-radius:999px;background:{{ a.bg }};color:{{ a.fg }};font-size:{{ a.fs }};font-weight:600;border:1px solid rgba(16,23,32,.08)">{{ a.i }}</span>
+            <div style="font-size:11px;line-height:15px;color:#667085;margin-top:6px;max-width:88px">{{ a.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #E4E7EC;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="display:flex">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;background:#E8F0FE;color:#0B57D0;font-size:12px;font-weight:600;border:2px solid #FFFFFF">RM</span>
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;background:#E3F5EB;color:#0A7A47;font-size:12px;font-weight:600;border:2px solid #FFFFFF;margin-left:-8px">AR</span>
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;background:#FBF0DC;color:#8A5200;font-size:12px;font-weight:600;border:2px solid #FFFFFF;margin-left:-8px">CW</span>
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;background:#F1F3F7;color:#4B5563;font-size:12px;font-weight:600;border:2px solid #FFFFFF;margin-left:-8px">+6</span>
+        </div>
+        <div style="font-size:12px;line-height:18px;color:#4B5563;flex:1;min-width:200px">Max 3 faces then a counter. Presence is a 8px dot at the lower-right with a 2px surface ring — <span style="color:#0A7A47;font-weight:500">● editing now</span>, <span style="color:#4B5563;font-weight:500">● viewing</span>, and it is always accompanied by the state word in the collaborator popover.</div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600">Tag / Chip</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ chips }}" as="c" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 4px 0 8px;border-radius:4px;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};font-size:12px;font-weight:500">{{ c.label }}<sc-if value="{{ c.x }}" hint-placeholder-val="{{ true }}"><span aria-label="Remove" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:3px;background:rgba(16,23,32,.06);font-size:10px;cursor:pointer">×</span></sc-if></span>
+            <span style="font-size:12px;color:#667085">{{ c.note }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <h3 style="margin:22px 0 12px;font-size:16px;line-height:22px;font-weight:600">Status pill</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{ pills }}" as="p" hint-placeholder-count="8">
+          <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:4px;background:{{ p.bg }};color:{{ p.fg }};border:1px solid {{ p.bd }};font-size:12px;font-weight:500"><span style="font-size:11px" aria-hidden="true">{{ p.g }}</span>{{ p.label }}</span>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;line-height:17px;color:#667085;margin-top:10px">Eight statuses, fixed vocabulary, glyph + word every time. “Blocked” takes a full-strength border so it survives a greyscale print of the plan.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600">Progress bar &amp; ring</h3>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <sc-for list="{{ progress }}" as="p" hint-placeholder-count="4">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+              <span style="font-size:13px;font-weight:500;color:#101720">{{ p.label }}</span>
+              <span style="font-size:12px;color:#4B5563;font-variant-numeric:tabular-nums">{{ p.note }}</span>
+            </div>
+            <div style="height:8px;border-radius:999px;background:{{ p.bg }};overflow:hidden"><div style="height:100%;border-radius:999px;background:{{ p.fill }};width:{{ p.w }}"></div></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:28px;margin-top:22px;padding-top:18px;border-top:1px solid #E4E7EC;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="width:64px;height:64px;border-radius:999px;background:conic-gradient(#0B57D0 0 62%, #E4E7EC 62% 100%);display:flex;align-items:center;justify-content:center"><div style="width:48px;height:48px;border-radius:999px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#101720;font-variant-numeric:tabular-nums">62%</div></div>
+          <div style="font-size:11px;color:#667085;margin-top:6px">ring/lg 64</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:40px;height:40px;border-radius:999px;background:conic-gradient(#0A7A47 0 100%, #E4E7EC 0);display:flex;align-items:center;justify-content:center"><div style="width:30px;height:30px;border-radius:999px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;color:#0A7A47">✓</div></div>
+          <div style="font-size:11px;color:#667085;margin-top:6px">ring/md complete</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:24px;height:24px;border-radius:999px;border:2px solid #CBD2DC;border-top-color:#0B57D0;animation:spin 700ms linear infinite;margin:8px auto"></div>
+          <div style="font-size:11px;color:#667085;margin-top:6px">spinner/md 24</div>
+        </div>
+        <div style="flex:1;min-width:200px;font-size:12px;line-height:18px;color:#4B5563">A spinner alone is never shown for longer than 1 second without accompanying text. Beyond 3 seconds it becomes a determinate bar with a count, because “how many left” is the only useful answer during a 1,200-task sync.</div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Skeletons</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:12px;background:#F6F7F9;border-radius:6px">
+        <div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:999px;background:#E4E7EC;animation:pulse 1400ms ease-in-out infinite"></div><div style="flex:1"><div style="height:13px;width:40%;border-radius:2px;background:#E4E7EC;animation:pulse 1400ms ease-in-out infinite"></div><div style="height:11px;width:22%;border-radius:2px;background:#EDEFF3;margin-top:6px;animation:pulse 1400ms ease-in-out infinite"></div></div><div style="height:13px;width:15%;border-radius:2px;background:#E4E7EC;animation:pulse 1400ms ease-in-out infinite"></div></div>
+        <div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:999px;background:#E4E7EC;animation:pulse 1400ms ease-in-out infinite"></div><div style="flex:1"><div style="height:13px;width:55%;border-radius:2px;background:#E4E7EC;animation:pulse 1400ms ease-in-out infinite"></div><div style="height:11px;width:30%;border-radius:2px;background:#EDEFF3;margin-top:6px;animation:pulse 1400ms ease-in-out infinite"></div></div><div style="height:13px;width:15%;border-radius:2px;background:#E4E7EC;animation:pulse 1400ms ease-in-out infinite"></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px">
+        <sc-for list="{{ skeletons }}" as="s" hint-placeholder-count="5">
+          <div style="font-size:12px;line-height:18px;color:#4B5563">— {{ s }}</div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#667085;margin-top:10px">Skeletons match the real row height exactly so nothing jumps on arrival. They appear only after 300ms of waiting; faster responses render nothing at all.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600">File upload</h3>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ uploadStates }}" as="u" hint-placeholder-count="3">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085;margin-bottom:6px">{{ u.state }}</div>
+            <div style="border:1.5px {{ u.dash }} {{ u.bd }};background:{{ u.bg }};border-radius:8px;padding:18px;text-align:center">
+              <div style="font-size:14px;font-weight:500;color:{{ u.fg }}">{{ u.title }}</div>
+              <div style="font-size:12px;line-height:18px;color:#4B5563;margin-top:4px">{{ u.sub }}</div>
+            </div>
+          </div>
+        </sc-for>
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085;margin-bottom:6px">Uploading</div>
+          <div style="border:1px solid #CBD2DC;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#4B5563">▤</span>
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#101720"><span>resource-plan-v4.xlsx</span><span style="font-variant-numeric:tabular-nums;color:#4B5563">2.4 MB · 68%</span></div>
+              <div style="height:6px;border-radius:999px;background:#E4E7EC;margin-top:6px;overflow:hidden"><div style="height:100%;width:68%;background:#0B57D0"></div></div>
+            </div>
+            <button aria-label="Cancel upload" style="width:28px;height:28px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;cursor:pointer;color:#4B5563">×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600">Tooltip</h3>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+        <div>
+          <div style="display:inline-block;background:#101720;color:#FFFFFF;border-radius:6px;padding:6px 10px;font-size:12px;line-height:17px;max-width:240px;box-shadow:0 4px 12px rgba(16,23,32,.10)">Finish-to-start, 2-day lag<br /><span style="color:#CBD2DC">Predecessor: Data cleansing sign-off</span></div>
+          <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #101720;margin-left:16px"></div>
+          <div style="font-size:11px;color:#667085;margin-top:4px">Light theme — inverse surface</div>
+        </div>
+        <div>
+          <div style="display:inline-block;background:#E9EEF6;color:#0B1220;border-radius:6px;padding:6px 10px;font-size:12px;line-height:17px;max-width:240px;box-shadow:0 4px 12px rgba(0,0,0,.5)">Finish-to-start, 2-day lag<br /><span style="color:#4B5563">Predecessor: Data cleansing sign-off</span></div>
+          <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #E9EEF6;margin-left:16px"></div>
+          <div style="font-size:11px;color:#667085;margin-top:4px">Dark theme — inverse again, so it still stands off the surface</div>
+        </div>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#4B5563;margin-top:14px">Two lines maximum, 240px maximum width, 400ms open / 0ms close, 8px offset from the trigger, flipping side rather than overflowing the viewport. A tooltip never contains an interactive element — that is a popover.</div>
+      <h3 style="margin:22px 0 10px;font-size:16px;line-height:22px;font-weight:600">Redacted value</h3>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1F3F7,#F1F3F7 4px,#E4E7EC 4px,#E4E7EC 8px);border:1px solid #7D8799;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#4B5563">🔒 ▪▪▪,▪▪▪</span>
+        <span style="font-size:12px;line-height:18px;color:#4B5563;flex:1;min-width:180px">Fixed-width mask, hatched fill, lock glyph, and on focus the reason: “Restricted — needs cost visibility level 2.” Any subtotal containing a masked line is masked too.</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:24px">
+    <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Display — dark</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px">
+      <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:4px;background:#0F2E22;color:#56D69A;border:1px solid #2C6B4E;font-size:12px;font-weight:500"><span aria-hidden="true">✓</span>On track</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:4px;background:#33240B;color:#E9B45A;border:1px solid #7A5A22;font-size:12px;font-weight:500"><span aria-hidden="true">⚠</span>At risk</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:4px;background:#3A1512;color:#FF8A80;border:1px solid #8A3A33;font-size:12px;font-weight:500"><span aria-hidden="true">✕</span>Late</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:4px;background:#1B222C;color:#AFBACA;border:1px solid #333C4A;font-size:12px;font-weight:500"><span aria-hidden="true">●</span>Not started</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:4px;background:#16294A;color:#7FB0FF;border:1px solid #2F4E82;font-size:12px;font-weight:500"><span aria-hidden="true">◐</span>In progress</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:4px;background:repeating-linear-gradient(135deg,#12161C,#12161C 4px,#1B222C 4px,#1B222C 8px);border:1px solid #748196;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#AFBACA">🔒 ▪▪▪,▪▪▪</span>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;background:#16294A;color:#7FB0FF;font-size:12px;font-weight:600;border:2px solid #0E1116">RM</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;background:#0F2E22;color:#56D69A;font-size:12px;font-weight:600;border:2px solid #0E1116;margin-left:-8px">AR</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;background:#1B222C;color:#AFBACA;font-size:12px;font-weight:600;border:2px solid #0E1116;margin-left:-8px">+6</span>
+      </div>
+      <div style="flex:1;min-width:240px"><div style="display:flex;justify-content:space-between;font-size:13px;color:#E9EEF6;margin-bottom:6px"><span>Realize — progress</span><span style="font-variant-numeric:tabular-nums;color:#AFBACA">62%</span></div><div style="height:8px;border-radius:999px;background:#232A35;overflow:hidden"><div style="height:100%;width:62%;background:#7FB0FF"></div></div></div>
+      <div style="width:24px;height:24px;border-radius:999px;border:2px solid #333C4A;border-top-color:#7FB0FF;animation:spin 700ms linear infinite"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085;margin-bottom:10px">Accessibility — display &amp; feedback</div>
+    <sc-for list="{{ a11yDisplay }}" as="a" hint-placeholder-count="8">
+      <div style="display:grid;grid-template-columns:170px 1fr;gap:16px;padding:8px 0;border-top:1px solid #E4E7EC;font-size:13px;line-height:20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ a.k }}</div>
+        <div style="color:#4B5563;text-wrap:pretty">{{ a.v }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="margin-top:16px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px;margin-bottom:96px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085;margin-bottom:10px">Implementation notes</div>
+    <sc-for list="{{ impl }}" as="a" hint-placeholder-count="5">
+      <div style="display:grid;grid-template-columns:170px 1fr;gap:16px;padding:8px 0;border-top:1px solid #E4E7EC;font-size:13px;line-height:20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ a.k }}</div>
+        <div style="color:#4B5563;text-wrap:pretty">{{ a.v }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+const ROSTER = [
+  { name: 'Aisyah Rahman', role: 'FI/CO Consultant', region: 'MY', rate: '2,400' },
+  { name: 'Arun Prakash', role: 'ABAP Developer', region: 'IN', rate: '1,100' },
+  { name: 'Chan Wei Ling', role: 'Delivery Manager', region: 'MY', rate: '2,900' },
+  { name: 'Daniel Okafor', role: 'Data Migration Lead', region: 'MY', rate: '2,700' },
+  { name: 'Farah Nasution', role: 'Change Manager', region: 'MY', rate: '2,100' },
+  { name: 'Goh Mei Yee', role: 'Integration Architect', region: 'SG', rate: '3,800' },
+  { name: 'Nguyen Thi Lan', role: 'Security Consultant (subcon)', region: 'VN', rate: '1,300' },
+  { name: 'Rajesh Menon', role: 'Solution Architect', region: 'MY', rate: '3,200' },
+  { name: 'Siti Nurhaliza', role: 'Test Lead', region: 'MY', rate: '2,200' }
+];
+
+class Component extends DCLogic {
+  state = { cbQuery: 'ra', cbLoading: false, cbResults: ROSTER.filter(r => /ra/i.test(r.name)), cbStatus: '3 resources found',
+    critOnly: true, zoom: 'Week', alloc: 80 };
+
+  search(q) {
+    this.setState({ cbQuery: q, cbLoading: true, cbStatus: 'Searching…' });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => {
+      const res = q.trim() ? ROSTER.filter(r => (r.name + ' ' + r.role).toLowerCase().includes(q.toLowerCase())) : [];
+      this.setState({ cbLoading: false, cbResults: res, cbStatus: q.trim() ? res.length + ' resources found' : 'Type to search the roster' });
+    }, 450);
+  }
+
+  renderVals() {
+    const mk = (label, bg, fg, bd, opts) => Object.assign({
+      label, bg, fg, bd, ring: 'none', cursor: 'pointer', deco: 'none', loading: false, spinTrack: 'rgba(255,255,255,.35)'
+    }, opts || {});
+
+    // ---- light buttons -------------------------------------------------
+    const ringL = (inner) => '0 0 0 2px ' + inner + ',0 0 0 4px #0B57D0';
+    const btnLight = [
+      { name: 'Primary', use: 'The one committing action in a region', cells: [
+        mk('Save plan', '#0B57D0', '#FFFFFF', '#0B57D0'),
+        mk('Save plan', '#08429E', '#FFFFFF', '#08429E'),
+        mk('Save plan', '#0B57D0', '#FFFFFF', '#0B57D0', { ring: ringL('#FFFFFF') }),
+        mk('Save plan', '#06337A', '#FFFFFF', '#06337A'),
+        mk('Save plan', '#F1F3F7', '#98A2B3', '#E4E7EC', { cursor: 'not-allowed' }),
+        mk('Saving…', '#0B57D0', '#FFFFFF', '#0B57D0', { loading: true, cursor: 'progress' })
+      ] },
+      { name: 'Secondary', use: 'Equal-weight alternatives; the default choice', cells: [
+        mk('Add phase', '#FFFFFF', '#101720', '#7D8799'),
+        mk('Add phase', '#F1F3F7', '#101720', '#6E7A8C'),
+        mk('Add phase', '#FFFFFF', '#101720', '#7D8799', { ring: ringL('#FFFFFF') }),
+        mk('Add phase', '#E4E7EC', '#101720', '#6E7A8C'),
+        mk('Add phase', '#F6F7F9', '#98A2B3', '#E4E7EC', { cursor: 'not-allowed' }),
+        mk('Adding…', '#FFFFFF', '#101720', '#7D8799', { loading: true, cursor: 'progress', spinTrack: '#CBD2DC' })
+      ] },
+      { name: 'Tertiary', use: 'Low-emphasis action beside a primary', cells: [
+        mk('Compare', 'transparent', '#0B57D0', 'transparent'),
+        mk('Compare', '#E8F0FE', '#08429E', 'transparent'),
+        mk('Compare', 'transparent', '#0B57D0', 'transparent', { ring: ringL('#FFFFFF') }),
+        mk('Compare', '#D6E4FD', '#06337A', 'transparent'),
+        mk('Compare', 'transparent', '#98A2B3', 'transparent', { cursor: 'not-allowed' }),
+        mk('Loading…', 'transparent', '#0B57D0', 'transparent', { loading: true, cursor: 'progress', spinTrack: '#BBD0F6' })
+      ] },
+      { name: 'Ghost', use: 'Toolbar and table-row actions; neutral text', cells: [
+        mk('Filter', 'transparent', '#4B5563', 'transparent'),
+        mk('Filter', '#F1F3F7', '#101720', 'transparent'),
+        mk('Filter', 'transparent', '#4B5563', 'transparent', { ring: ringL('#FFFFFF') }),
+        mk('Filter', '#E4E7EC', '#101720', 'transparent'),
+        mk('Filter', 'transparent', '#98A2B3', 'transparent', { cursor: 'not-allowed' }),
+        mk('Filtering…', 'transparent', '#4B5563', 'transparent', { loading: true, cursor: 'progress', spinTrack: '#CBD2DC' })
+      ] },
+      { name: 'Danger', use: 'Irreversible action; always behind a confirm', cells: [
+        mk('Delete phase', '#B3261E', '#FFFFFF', '#B3261E'),
+        mk('Delete phase', '#8F1D17', '#FFFFFF', '#8F1D17'),
+        mk('Delete phase', '#B3261E', '#FFFFFF', '#B3261E', { ring: '0 0 0 2px #FFFFFF,0 0 0 4px #B3261E' }),
+        mk('Delete phase', '#711511', '#FFFFFF', '#711511'),
+        mk('Delete phase', '#F1F3F7', '#98A2B3', '#E4E7EC', { cursor: 'not-allowed' }),
+        mk('Deleting…', '#B3261E', '#FFFFFF', '#B3261E', { loading: true, cursor: 'progress' })
+      ] }
+    ];
+
+    // ---- dark buttons --------------------------------------------------
+    const ringD = (inner) => '0 0 0 2px ' + inner + ',0 0 0 4px #8FC0FF';
+    const btnDark = [
+      { name: 'Primary', cells: [
+        mk('Save plan', '#7FB0FF', '#0B1220', '#7FB0FF', { spinTrack: 'rgba(11,18,32,.3)' }),
+        mk('Save plan', '#A6C8FF', '#0B1220', '#A6C8FF'),
+        mk('Save plan', '#7FB0FF', '#0B1220', '#7FB0FF', { ring: ringD('#0E1116') }),
+        mk('Save plan', '#5C97F5', '#0B1220', '#5C97F5'),
+        mk('Save plan', '#1B222C', '#5C6779', '#232A35', { cursor: 'not-allowed' }),
+        mk('Saving…', '#7FB0FF', '#0B1220', '#7FB0FF', { loading: true, cursor: 'progress', spinTrack: 'rgba(11,18,32,.3)' })
+      ] },
+      { name: 'Secondary', cells: [
+        mk('Add phase', '#171C24', '#E9EEF6', '#748196', { spinTrack: '#3D4757' }),
+        mk('Add phase', '#1D242E', '#E9EEF6', '#8894A8'),
+        mk('Add phase', '#171C24', '#E9EEF6', '#748196', { ring: ringD('#0E1116') }),
+        mk('Add phase', '#222A35', '#E9EEF6', '#8894A8'),
+        mk('Add phase', '#12161C', '#5C6779', '#232A35', { cursor: 'not-allowed' }),
+        mk('Adding…', '#171C24', '#E9EEF6', '#748196', { loading: true, cursor: 'progress', spinTrack: '#3D4757' })
+      ] },
+      { name: 'Tertiary', cells: [
+        mk('Compare', 'transparent', '#7FB0FF', 'transparent', { spinTrack: '#2F4E82' }),
+        mk('Compare', '#16294A', '#A6C8FF', 'transparent'),
+        mk('Compare', 'transparent', '#7FB0FF', 'transparent', { ring: ringD('#0E1116') }),
+        mk('Compare', '#1D3357', '#A6C8FF', 'transparent'),
+        mk('Compare', 'transparent', '#5C6779', 'transparent', { cursor: 'not-allowed' }),
+        mk('Loading…', 'transparent', '#7FB0FF', 'transparent', { loading: true, cursor: 'progress', spinTrack: '#2F4E82' })
+      ] },
+      { name: 'Ghost', cells: [
+        mk('Filter', 'transparent', '#AFBACA', 'transparent', { spinTrack: '#3D4757' }),
+        mk('Filter', '#1D242E', '#E9EEF6', 'transparent'),
+        mk('Filter', 'transparent', '#AFBACA', 'transparent', { ring: ringD('#0E1116') }),
+        mk('Filter', '#222A35', '#E9EEF6', 'transparent'),
+        mk('Filter', 'transparent', '#5C6779', 'transparent', { cursor: 'not-allowed' }),
+        mk('Filtering…', 'transparent', '#AFBACA', 'transparent', { loading: true, cursor: 'progress', spinTrack: '#3D4757' })
+      ] },
+      { name: 'Danger', cells: [
+        mk('Delete phase', '#FF8A80', '#2A0A07', '#FF8A80', { spinTrack: 'rgba(42,10,7,.3)' }),
+        mk('Delete phase', '#FFA9A1', '#2A0A07', '#FFA9A1'),
+        mk('Delete phase', '#FF8A80', '#2A0A07', '#FF8A80', { ring: '0 0 0 2px #0E1116,0 0 0 4px #FFC2BC' }),
+        mk('Delete phase', '#E8756B', '#2A0A07', '#E8756B'),
+        mk('Delete phase', '#1B222C', '#5C6779', '#232A35', { cursor: 'not-allowed' }),
+        mk('Deleting…', '#FF8A80', '#2A0A07', '#FF8A80', { loading: true, cursor: 'progress', spinTrack: 'rgba(42,10,7,.3)' })
+      ] }
+    ];
+
+    const btnSizes = [
+      { token: 'button/sm', spec: 'h28 · px10 · gap6 · 13/18', h: '28px', px: '10px', gap: '6px', fs: '13px', lh: '18px' },
+      { token: 'button/md', spec: 'h36 · px14 · gap8 · 14/20', h: '36px', px: '14px', gap: '8px', fs: '14px', lh: '20px' },
+      { token: 'button/lg', spec: 'h44 · px18 · gap8 · 15/22', h: '44px', px: '18px', gap: '8px', fs: '15px', lh: '22px' }
+    ];
+
+    const btnRules = [
+      'Loading replaces the leading icon with a 14px spinner and swaps the label to its progressive form (“Save plan” → “Saving…”). Width is locked to the resting width so the row does not reflow; aria-busy="true" and the label change are announced once.',
+      'Disabled is only for a state the user can fix in this view. If the reason is elsewhere — no permission, no cost visibility — the button stays enabled and explains on activation, because a disabled control cannot carry a tooltip reliably.',
+      'Danger never appears as the default focus target in a confirm dialog; focus lands on Cancel, and the destructive label always names the object.',
+      'Icon-only buttons are forbidden for destructive actions outside a table row, and every icon-only button repeats its label in a tooltip after 400ms.',
+      'A button that opens a menu carries aria-haspopup="menu" and aria-expanded, and shows a 12px chevron that rotates 180° over duration/fast.',
+      'Buttons never use type/label — 12px on a 36px control looks like a disabled chip. The smallest button text in Cockpit is 13px.'
+    ];
+
+    const iconBtns = [
+      { name: 'Add task', glyph: '+', label: 'default', size: '32px', bg: '#FFFFFF', fg: '#101720', bd: '#7D8799', ring: 'none', cursor: 'pointer' },
+      { name: 'Add task', glyph: '+', label: 'hover', size: '32px', bg: '#F1F3F7', fg: '#101720', bd: '#6E7A8C', ring: 'none', cursor: 'pointer' },
+      { name: 'Add task', glyph: '+', label: 'focus', size: '32px', bg: '#FFFFFF', fg: '#101720', bd: '#7D8799', ring: '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0', cursor: 'pointer' },
+      { name: 'Add task', glyph: '+', label: 'disabled', size: '32px', bg: '#F6F7F9', fg: '#98A2B3', bd: '#E4E7EC', ring: 'none', cursor: 'not-allowed' },
+      { name: 'Row menu', glyph: '⋯', label: 'ghost / sm 28', size: '28px', bg: 'transparent', fg: '#4B5563', bd: 'transparent', ring: 'none', cursor: 'pointer' },
+      { name: 'Filters', glyph: '≡', label: 'selected', size: '32px', bg: '#E8F0FE', fg: '#0B57D0', bd: '#0B57D0', ring: 'none', cursor: 'pointer' },
+      { name: 'Remove resource', glyph: '×', label: 'danger', size: '32px', bg: '#FDE9E7', fg: '#B3261E', bd: '#F0B5AF', ring: 'none', cursor: 'pointer' },
+      { name: 'Add task', glyph: '+', label: 'touch / 44', size: '44px', bg: '#FFFFFF', fg: '#101720', bd: '#7D8799', ring: 'none', cursor: 'pointer' }
+    ];
+
+    const kbds = ['⌘K', '⌥↑', '⇧', 'Esc', 'Enter', '⌘Z'];
+
+    const a11yActions = [
+      { k: 'Button', v: 'Native <button type="button">. Never a div with a click handler. Accessible name is the visible label; icon-only uses aria-label with the identical string that the tooltip shows.' },
+      { k: 'Loading button', v: 'aria-busy="true" on the button; the label text itself changes so screen readers announce progress without a separate live region. Activation is blocked, not disabled, so focus is retained.' },
+      { k: 'Menu button', v: 'aria-haspopup="menu", aria-expanded, aria-controls pointing at the menu id. Focus moves to the first item on open and returns to the button on Escape.' },
+      { k: 'Link', v: 'Native <a href>. Anything that does not navigate is a button. Standalone links append a visually hidden destination hint where the label is ambiguous ("Open rate card, EMEA").' },
+      { k: 'Kbd', v: 'Native <kbd>. Shortcut hints inside menu items are aria-hidden and the shortcut is instead appended to the item’s accessible name as "Command K".' },
+      { k: 'Divider', v: 'Decorative dividers are aria-hidden CSS borders. A labelled divider that groups menu items is role="separator" or a <fieldset>/<legend> in forms.' }
+    ];
+
+    // ---- B: text entry -------------------------------------------------
+    const F = (state, o) => Object.assign({
+      state, label: 'Task name', value: 'Chart of accounts workshop', placeholder: '',
+      bg: '#FFFFFF', bd: '#7D8799', fg: '#101720', ring: 'none', helper: '', helperColor: '#667085',
+      icon: '', iconColor: '#667085', labelColor: '#101720', cursor: 'text', req: false
+    }, o);
+
+    const fieldsLight = [
+      F('Default (empty)', { value: '', placeholder: 'e.g. Chart of accounts workshop', fg: '#667085', helper: 'Shown in the Gantt tree and in the proposal.' }),
+      F('Hover', { bd: '#6E7A8C', helper: 'Border steps one level darker; nothing else moves.' }),
+      F('Focus-visible', { bd: '#0B57D0', ring: '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0', helper: 'Ring is outside the border so the field does not resize.' }),
+      F('Filled / valid', { helper: 'No green tick — a valid field is simply not an error.' }),
+      F('Error', { bd: '#B3261E', bg: '#FDE9E7', value: '', placeholder: 'e.g. Chart of accounts workshop', fg: '#667085', icon: '✕', iconColor: '#B3261E', helper: 'Task name is required. Add a name so the task can be found in search and shown in the proposal.', helperColor: '#B3261E', req: true }),
+      F('Read-only', { bg: '#F1F3F7', bd: '#CBD2DC', helper: 'Set by the baseline. Read-only keeps text at content/primary — the value is real.', cursor: 'default' }),
+      F('Disabled', { bg: '#F6F7F9', bd: '#E4E7EC', fg: '#98A2B3', helper: 'Unavailable until a phase is selected.', cursor: 'not-allowed' }),
+      F('With prefix / suffix', { value: '2,400', icon: 'MYR', helper: 'Prefix is a static adornment inside the border, never a separate control.' })
+    ];
+
+    const fieldsDark = [
+      F('Default (empty)', { value: '', placeholder: 'e.g. Chart of accounts workshop', bg: '#171C24', bd: '#748196', fg: '#8592A6', labelColor: '#E9EEF6', helper: 'Fields sit on surface/raised in dark, never on the canvas.', helperColor: '#AFBACA' }),
+      F('Focus-visible', { bg: '#171C24', bd: '#8FC0FF', fg: '#E9EEF6', labelColor: '#E9EEF6', ring: '0 0 0 2px #0E1116,0 0 0 4px #8FC0FF', helper: 'Ring 10.04:1 against the canvas, 9.08:1 against the field.', helperColor: '#AFBACA' }),
+      F('Error', { bg: '#3A1512', bd: '#FF8A80', fg: '#8592A6', value: '', placeholder: 'e.g. Chart of accounts workshop', labelColor: '#E9EEF6', icon: '✕', iconColor: '#FF8A80', helper: 'Task name is required.', helperColor: '#FF8A80' }),
+      F('Read-only', { bg: '#0A0D12', bd: '#333C4A', fg: '#E9EEF6', labelColor: '#E9EEF6', helper: 'Sunken surface signals “not yours to change”.', helperColor: '#AFBACA', cursor: 'default' }),
+      F('Disabled', { bg: '#12161C', bd: '#232A35', fg: '#5C6779', labelColor: '#8592A6', helper: 'Unavailable until a phase is selected.', helperColor: '#8592A6', cursor: 'not-allowed' })
+    ];
+
+    const fieldSizes = [
+      { token: 'field/sm', spec: 'h32 · px10 · 13/18 — inline table edit, filter bar' },
+      { token: 'field/md', spec: 'h36 · px12 · 14/20 — the default, all forms' },
+      { token: 'field/lg', spec: 'h44 · px14 · 15/22 — auth screens and mobile' }
+    ];
+
+    const numericFields = [
+      { label: 'Day rate', value: '2,400.00', prefix: 'MYR', suffix: '/ day', note: 'Currency input: prefix is the ISO code, never a symbol — MYR, SGD and USD all use $ or RM ambiguously.' },
+      { label: 'Intercompany markup', value: '15.0', prefix: '', suffix: '%', note: 'Percent input: one decimal, step 0.5, clamped 0–100. Arrow keys step; Shift+Arrow steps ×10.' },
+      { label: 'Allocation', value: '80', prefix: '', suffix: '%', note: 'Allocation is integer-only and clamped 0–150; above 100 the field turns warning and the helper names the conflict.' },
+      { label: 'Duration', value: '15', prefix: '', suffix: 'working days', note: 'Duration excludes weekends and the region’s public holidays; the helper states which calendar was applied.' }
+    ];
+
+    const selects = [
+      { label: 'Region calendar', value: 'Malaysia (MY)', state: 'Closed', bg: '#FFFFFF', bd: '#7D8799', fg: '#101720', ring: 'none' },
+      { label: 'Region calendar', value: 'Malaysia (MY)', state: 'Focus', bg: '#FFFFFF', bd: '#0B57D0', fg: '#101720', ring: '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0' },
+      { label: 'Region calendar', value: 'Select a calendar', state: 'Empty', bg: '#FFFFFF', bd: '#7D8799', fg: '#667085', ring: 'none' },
+      { label: 'Region calendar', value: 'Malaysia (MY)', state: 'Disabled', bg: '#F6F7F9', bd: '#E4E7EC', fg: '#98A2B3', ring: 'none' }
+    ];
+
+    const selectOptions = [
+      { label: 'Malaysia (MY)', meta: '14 public holidays 2026', tick: '✓', bg: '#FFFFFF' },
+      { label: 'Singapore (SG)', meta: '11 public holidays 2026', tick: '', bg: '#FFFFFF' },
+      { label: 'India (IN)', meta: '17 public holidays 2026', tick: '', bg: '#F1F3F7' },
+      { label: 'Vietnam (VN)', meta: '11 public holidays 2026', tick: '', bg: '#FFFFFF' },
+      { label: 'Germany (DE) — Bavaria', meta: '13 public holidays 2026', tick: '', bg: '#FFFFFF' }
+    ];
+
+    const multiChips = [
+      { label: 'FI/CO', n: 4 }, { label: 'MM/SD', n: 6 }, { label: 'Basis', n: 2 }
+    ];
+
+    const a11yFields = [
+      { k: 'Input / Textarea', v: 'Native control with a real <label for>. Helper text is joined by aria-describedby; the error message replaces the helper in the same node so the description does not grow, and the field gets aria-invalid="true".' },
+      { k: 'Required', v: 'required + aria-required. The asterisk is aria-hidden and the legend “Required fields are marked *” appears once per form, above the first field.' },
+      { k: 'Error summary', v: 'On submit failure, focus moves to a role="alert" summary listing each failed field as a link to it. Individual errors are announced on blur, never on keystroke.' },
+      { k: 'Select', v: 'Native <select> wherever options are static and short. The custom listbox below is only for options that need a two-line row: role="combobox" + aria-expanded + aria-controls, listbox with role="option" and aria-selected.' },
+      { k: 'Combobox (async)', v: 'aria-autocomplete="list", aria-busy while fetching, and a polite live region announcing “7 resources found”. Results never steal focus; ↓ moves into the list, Esc closes and restores the typed text.' },
+      { k: 'Multi-select', v: 'Selected values render as removable chips before the input. Each chip’s remove button is aria-label="Remove FI/CO"; removing announces “FI/CO removed, 2 remaining” politely.' },
+      { k: 'Numeric', v: 'inputmode="decimal", a spinbutton role only when steppers are shown, and aria-valuemin/max/now on allocation so the 150% ceiling is discoverable without trial.' }
+    ];
+
+    // ---- C: choice -----------------------------------------------------
+    const CB = (state, o) => Object.assign({ state, bg: '#FFFFFF', bd: '#7D8799', glyph: '', gfg: '#FFFFFF', ring: 'none', label: 'Include in proposal', lfg: '#101720' }, o);
+    const checksLight = [
+      CB('Unchecked'), CB('Unchecked · hover', { bd: '#6E7A8C', bg: '#F1F3F7' }),
+      CB('Unchecked · focus', { ring: '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0' }),
+      CB('Checked', { bg: '#0B57D0', bd: '#0B57D0', glyph: '✓' }),
+      CB('Checked · hover', { bg: '#08429E', bd: '#08429E', glyph: '✓' }),
+      CB('Indeterminate', { bg: '#0B57D0', bd: '#0B57D0', glyph: '–', label: '3 of 12 tasks selected' }),
+      CB('Error', { bd: '#B3261E', bg: '#FDE9E7', label: 'Accept the rate card', lfg: '#B3261E' }),
+      CB('Disabled · checked', { bg: '#E4E7EC', bd: '#CBD2DC', glyph: '✓', gfg: '#98A2B3', lfg: '#98A2B3' }),
+      CB('Read-only · checked', { bg: '#F1F3F7', bd: '#CBD2DC', glyph: '✓', gfg: '#4B5563' })
+    ];
+    const checksDark = [
+      CB('Unchecked', { bg: '#171C24', bd: '#748196', lfg: '#E9EEF6' }),
+      CB('Checked', { bg: '#7FB0FF', bd: '#7FB0FF', glyph: '✓', gfg: '#0B1220', lfg: '#E9EEF6' }),
+      CB('Indeterminate', { bg: '#7FB0FF', bd: '#7FB0FF', glyph: '–', gfg: '#0B1220', label: '3 of 12 tasks selected', lfg: '#E9EEF6' }),
+      CB('Focus', { bg: '#171C24', bd: '#8FC0FF', ring: '0 0 0 2px #0E1116,0 0 0 4px #8FC0FF', lfg: '#E9EEF6' }),
+      CB('Disabled · checked', { bg: '#232A35', bd: '#333C4A', glyph: '✓', gfg: '#5C6779', lfg: '#5C6779' })
+    ];
+
+    const radios = [
+      { state: 'Unselected', bd: '#7D8799', dot: 'transparent', bg: '#FFFFFF', ring: 'none', label: 'Fixed price', desc: 'One agreed fee for the scope in this plan.' },
+      { state: 'Selected', bd: '#0B57D0', dot: '#0B57D0', bg: '#FFFFFF', ring: 'none', label: 'Time and materials', desc: 'Billed on actual effort against the rate card.' },
+      { state: 'Focus', bd: '#0B57D0', dot: 'transparent', bg: '#FFFFFF', ring: '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0', label: 'Capped T&M', desc: 'T&M up to an agreed ceiling, then fixed.' },
+      { state: 'Disabled', bd: '#E4E7EC', dot: 'transparent', bg: '#F6F7F9', ring: 'none', label: 'Outcome-based', desc: 'Requires a signed benefits baseline.' }
+    ];
+
+    const toggles = [
+      { state: 'Off', on: false, bg: '#CBD2DC', knob: '#FFFFFF', x: '2px', ring: 'none', bd: '#7D8799' },
+      { state: 'On', on: true, bg: '#0B57D0', knob: '#FFFFFF', x: '20px', ring: 'none', bd: '#0B57D0' },
+      { state: 'Focus', on: false, bg: '#CBD2DC', knob: '#FFFFFF', x: '2px', ring: '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0', bd: '#7D8799' },
+      { state: 'Disabled on', on: true, bg: '#E4E7EC', knob: '#F6F7F9', x: '20px', ring: 'none', bd: '#CBD2DC' },
+      { state: 'Pending', on: true, bg: '#98A2B3', knob: '#FFFFFF', x: '20px', ring: 'none', bd: '#7D8799' }
+    ];
+
+    const zoomOptions = ['Day', 'Week', 'Month', 'Quarter'];
+
+    // ---- D: dates ------------------------------------------------------
+    const weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    const holidays = { 15: 'Malaysia Day', 31: 'Merdeka observed' };
+    const calendar = [];
+    for (let i = -1; i <= 30; i++) {
+      const d = i + 1;
+      const inMonth = d >= 1 && d <= 30;
+      const dow = ((i + 1) % 7 + 7) % 7;
+      const weekend = dow === 5 || dow === 6;
+      const hol = holidays[d];
+      const inRange = inMonth && d >= 7 && d <= 18;
+      calendar.push({
+        n: inMonth ? String(d) : '',
+        fg: !inMonth ? 'transparent' : hol ? '#8A5200' : weekend ? '#98A2B3' : '#101720',
+        bg: !inMonth ? 'transparent' : d === 7 || d === 18 ? '#0B57D0' : inRange ? '#E8F0FE' : hol ? '#FBF0DC' : weekend ? '#F1F3F7' : '#FFFFFF',
+        end: d === 7 || d === 18,
+        mark: hol ? '●' : weekend ? '' : '',
+        title: hol || (weekend ? 'Weekend — non-working' : '')
+      });
+    }
+    calendar.forEach(c => { if (c.end) c.fg = '#FFFFFF'; });
+
+    const dateRules = [
+      'Non-working days are drawn on surface/sunken with content/tertiary text and carry aria-disabled plus the reason in their accessible name ("Saturday 12 September, weekend, non-working").',
+      'Public holidays add a status/warning dot and the holiday name in the cell’s accessible name. The legend under the grid names every marker in words.',
+      'The date field accepts typing in ISO (2026-09-14) and in the display format (14 Sep 2026); it echoes the parsed date under the field before commit.',
+      'Range picking uses two inputs, not one. Selecting a start beyond the end swaps them and announces "Dates swapped — 14 Sep to 2 Oct".',
+      'Arrow keys move one day, PageUp/PageDown one month, Shift+PageUp/Down one year, Home/End to week bounds. Enter commits, Escape reverts.'
+    ];
+
+    // ---- E: display ----------------------------------------------------
+    const avatars = [
+      { i: 'RM', bg: '#E8F0FE', fg: '#0B57D0', size: '24px', fs: '10px', label: 'xs 24 — table rows' },
+      { i: 'AR', bg: '#E3F5EB', fg: '#0A7A47', size: '28px', fs: '11px', label: 'sm 28 — lists' },
+      { i: 'CW', bg: '#FBF0DC', fg: '#8A5200', size: '32px', fs: '12px', label: 'md 32 — default' },
+      { i: 'GM', bg: '#FDE9E7', fg: '#B3261E', size: '40px', fs: '14px', label: 'lg 40 — org chart' },
+      { i: 'NL', bg: '#F1F3F7', fg: '#4B5563', size: '56px', fs: '18px', label: 'xl 56 — profile' }
+    ];
+
+    const chips = [
+      { label: 'Realize', bg: '#F1F3F7', fg: '#101720', bd: '#CBD2DC', x: true, note: 'neutral filter chip' },
+      { label: 'Region: MY', bg: '#E8F0FE', fg: '#0B57D0', bd: '#BBD0F6', x: true, note: 'active filter' },
+      { label: 'Over 100%', bg: '#FBF0DC', fg: '#8A5200', bd: '#E0C089', x: true, note: 'condition filter' },
+      { label: 'Subcontractor', bg: '#FFFFFF', fg: '#4B5563', bd: '#7D8799', x: false, note: 'static tag, not removable' },
+      { label: 'Draft', bg: '#F6F7F9', fg: '#98A2B3', bd: '#E4E7EC', x: false, note: 'disabled' }
+    ];
+
+    const pills = [
+      { g: '✓', label: 'On track', bg: '#E3F5EB', fg: '#0A7A47', bd: '#9AD9BB' },
+      { g: '⚠', label: 'At risk', bg: '#FBF0DC', fg: '#8A5200', bd: '#E0C089' },
+      { g: '✕', label: 'Late', bg: '#FDE9E7', fg: '#B3261E', bd: '#F0B5AF' },
+      { g: '●', label: 'Not started', bg: '#F1F3F7', fg: '#4B5563', bd: '#CBD2DC' },
+      { g: '◐', label: 'In progress', bg: '#E8F0FE', fg: '#0B57D0', bd: '#BBD0F6' },
+      { g: '✓', label: 'Complete', bg: '#FFFFFF', fg: '#4B5563', bd: '#CBD2DC' },
+      { g: '⛌', label: 'Blocked', bg: '#FDE9E7', fg: '#B3261E', bd: '#B3261E' },
+      { g: '🔒', label: 'Restricted', bg: '#F1F3F7', fg: '#4B5563', bd: '#7D8799' }
+    ];
+
+    const progress = [
+      { label: 'Realize — progress', pct: 62, w: '62%', fill: '#0B57D0', bg: '#E4E7EC', note: '62% of 184 tasks complete' },
+      { label: 'Data migration — at risk', pct: 34, w: '34%', fill: '#8A5200', bg: '#E4E7EC', note: '34% complete, 12 days behind baseline' },
+      { label: 'Proposal generation', pct: 100, w: '100%', fill: '#0A7A47', bg: '#E4E7EC', note: 'Determinate, complete' },
+      { label: 'Syncing 148 changes', pct: -1, w: '40%', fill: '#0B57D0', bg: '#E4E7EC', note: 'Indeterminate — a 40% band travels the track over 1.2s; reduced motion shows a static 40% band and relies on the text' }
+    ];
+
+    const skeletons = ['Table row — 3 bars at 40% / 22% / 15% width, 13px tall, radius/xs', 'Card — 1 title bar 60%, 2 body bars 100% / 80%', 'Gantt row — a 20px tree bar plus one 120px canvas bar at the row’s real height', 'Avatar — 32px circle', 'Chart — one 140px block with an axis line'];
+
+    const uploadStates = [
+      { state: 'Idle', bd: '#7D8799', bg: '#FFFFFF', dash: 'dashed', title: 'Drop a resource list here', sub: 'CSV or XLSX up to 10 MB · or browse', fg: '#101720' },
+      { state: 'Drag-over', bd: '#0B57D0', bg: '#E8F0FE', dash: 'solid', title: 'Release to upload', sub: 'resource-plan-v4.xlsx', fg: '#0B57D0' },
+      { state: 'Error', bd: '#B3261E', bg: '#FDE9E7', dash: 'solid', title: 'That file type is not supported', sub: 'resource-plan.pdf — use CSV or XLSX. Nothing was uploaded.', fg: '#B3261E' }
+    ];
+
+    const a11yDisplay = [
+      { k: 'Avatar', v: 'The image has alt="" and the name is rendered as text beside it. A lone avatar is a <span> with aria-hidden plus a visually hidden name; initials are never the accessible name.' },
+      { k: 'Avatar group', v: 'role="list" with the overflow counter as a real list item: "and 6 more". The full roster is reachable from a popover, not only a tooltip.' },
+      { k: 'Chip (removable)', v: 'The chip is not focusable; its remove button is, with aria-label "Remove filter Region MY". After removal focus moves to the next chip, or to the filter bar when the last one goes.' },
+      { k: 'Status pill', v: 'Plain text — no ARIA. The glyph is aria-hidden because the word already carries the meaning. When a pill changes as a result of a background event, the change is announced by the owning live region, not the pill.' },
+      { k: 'Tooltip', v: 'aria-describedby, 400ms open delay, 0ms close, dismissible with Escape, and hoverable so a pointer can travel into it. Never the only place a piece of information exists.' },
+      { k: 'Progress', v: 'role="progressbar" with aria-valuenow/min/max and a visible percentage. Indeterminate omits aria-valuenow and states the phase in words ("Syncing 148 changes").' },
+      { k: 'Skeleton', v: 'The region is aria-busy="true" with aria-live="polite" carrying "Loading resource plan". Skeletons are aria-hidden shapes; on completion the live region announces "Resource plan loaded, 42 rows".' },
+      { k: 'File upload', v: 'A real <input type="file"> is the accessible name holder; the drop zone is a label for it. Drag-and-drop always has the Browse button as its keyboard equivalent; upload results are announced politely, failures assertively.' }
+    ];
+
+    const impl = [
+      { k: 'Composed from', v: 'Combobox = Input + Listbox + Spinner + Avatar. Multi-select = Combobox + Chip. Date-range = 2 × Date field + Calendar. Filter bar = Search + Chip + Dropdown menu. Every composite in layer 3 names its primitives this way.' },
+      { k: 'Naming', v: 'Component/Variant/Size/State, e.g. Button/Primary/md/Loading. Tokens are role-based paths, never appearance: accent/default, not blue-600.' },
+      { k: 'Size discipline', v: 'Three sizes exist product-wide: sm 28–32, md 36, lg 44. A fourth size is a design bug, not a request.' },
+      { k: 'Density', v: 'Compact mode reduces row height only — 36 → 28 — and never reduces type size below 13px or removes padding from a hit target.' },
+      { k: 'Iconography', v: '16px stroke icons at 1.5px, on a 24px box, currentColor only. Icons never carry status colour on their own; the status pill does.' }
+    ];
+
+    return { btnLight, btnDark, btnSizes, btnRules, iconBtns, kbds, a11yActions,
+      avatars, chips, pills, progress, skeletons, uploadStates, a11yDisplay, impl,
+      checksLight, checksDark, radios, toggles, zoomOptions, weekDays, calendar, dateRules,
+      darkWeek: [7, 8, 9, 10, 11, 12, 13].concat([14, 15, 16, 17, 18, 19, 20]).map(n => ({
+        n: String(n),
+        bg: n === 7 || n === 18 ? '#7FB0FF' : n === 15 ? '#33240B' : (n === 12 || n === 13 || n === 19 || n === 20) ? '#0A0D12' : (n > 7 && n < 18) ? '#16294A' : '#171C24',
+        fg: n === 7 || n === 18 ? '#0B1220' : n === 15 ? '#E9B45A' : (n === 12 || n === 13 || n === 19 || n === 20) ? '#8592A6' : '#E9EEF6'
+      })),
+      critOnly: this.state.critOnly, zoom: this.state.zoom, alloc: this.state.alloc,
+      allocPct: this.state.alloc + '%',
+      allocFill: (this.state.alloc / 150 * 100) + '%',
+      allocKnob: 'calc(' + (this.state.alloc / 150 * 100) + '% - 9px)',
+      allocOver: this.state.alloc > 100,
+      allocNote: this.state.alloc > 100 ? 'Over-allocated by ' + (this.state.alloc - 100) + ' points in this window.' : 'Within capacity.',
+      toggleCrit: () => this.setState(s => ({ critOnly: !s.critOnly })),
+      setZoom: (z) => () => this.setState({ zoom: z }),
+      zoomIs: (z) => this.state.zoom === z,
+      onAlloc: (e) => this.setState({ alloc: Number(e.target.value) }),
+      critBg: this.state.critOnly ? '#0B57D0' : '#CBD2DC',
+      critX: this.state.critOnly ? '20px' : '2px',
+      critLabel: this.state.critOnly ? 'On' : 'Off',
+      zoomCells: zoomOptions.map(z => ({
+        label: z,
+        bg: this.state.zoom === z ? '#FFFFFF' : 'transparent',
+        fg: this.state.zoom === z ? '#101720' : '#4B5563',
+        bd: this.state.zoom === z ? '#7D8799' : 'transparent',
+        sh: this.state.zoom === z ? '0 1px 2px rgba(16,23,32,.06)' : 'none',
+        on: () => this.setState({ zoom: z })
+      })),
+      fieldsLight, fieldsDark, fieldSizes, numericFields, selects, selectOptions, multiChips, a11yFields,
+      cbQuery: this.state.cbQuery, cbLoading: this.state.cbLoading,
+      cbResults: this.state.cbResults.map(r => Object.assign({ initials: r.name.split(' ').map(w => w[0]).slice(0, 2).join('') }, r)),
+      cbEmpty: !this.state.cbLoading && this.state.cbQuery.trim().length > 0 && this.state.cbResults.length === 0,
+      cbOnInput: (e) => this.search(e.target.value), cbStatus: this.state.cbStatus };
+  }
+}
+</script>
+</body>
+</html>

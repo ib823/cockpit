@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; } a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1560px;margin:0 auto;padding:56px 32px 28px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 4a of 5</div>
+  <h1 style="margin:14px 0 0;font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em">Gantt timeline — working prototype</h1>
+  <p style="margin:16px 0 0;max-width:76ch;font-size:15px;line-height:24px;color:#4B5563;text-wrap:pretty">Loaded with the real shape of the problem: <span style="font-weight:600;color:#101720">{{ phaseCount }} phases</span> and <span style="font-weight:600;color:#101720">{{ taskCount }} tasks</span> across SAP Activate stages and ten workstreams. Rows are windowed — only the ~{{ windowSize }} rows in view exist in the DOM. Click a row to select, press <kbd style="font-family:'IBM Plex Mono',monospace;background:#F1F3F7;border:1px solid #CBD2DC;border-radius:3px;padding:1px 5px;font-size:12px">M</kbd> for Move mode, then arrow keys to nudge at the current zoom grain.</p>
+</header>
+
+<section style="max-width:1560px;margin:0 auto;padding:0 32px">
+  <div style="border:1px solid #CBD2DC;border-radius:8px;overflow:hidden;background:#FFFFFF">
+
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #CBD2DC;background:#FFFFFF;flex-wrap:wrap">
+      <div role="radiogroup" aria-label="Zoom" style="display:inline-flex;gap:2px;padding:2px;border-radius:6px;background:#F1F3F7;border:1px solid #CBD2DC">
+        <sc-for list="{{ zoomCells }}" as="z" hint-placeholder-count="4">
+          <button onClick="{{ z.on }}" style="height:26px;padding:0 12px;border-radius:4px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ z.bg }};color:{{ z.fg }};border:1px solid {{ z.bd }};box-shadow:{{ z.sh }}">{{ z.label }}</button>
+        </sc-for>
+      </div>
+      <div style="width:1px;height:20px;background:#CBD2DC"></div>
+      <sc-for list="{{ layerToggles }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.on }}" style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ t.bg }};color:{{ t.fg }};border:1px solid {{ t.bd }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px">{{ t.mark }}</span>{{ t.label }}</button>
+      </sc-for>
+      <div style="width:1px;height:20px;background:#CBD2DC"></div>
+      <button onClick="{{ collapseAll }}" style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Collapse all</button>
+      <button onClick="{{ expandStage }}" style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Expand Realize</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:#4B5563">
+        <span style="font-variant-numeric:tabular-nums">{{ rowTotal }} rows · {{ windowLabel }} rendered</span>
+        <span style="width:1px;height:16px;background:#CBD2DC"></span>
+        <span style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:999px;background:#E3F5EB;border:1px solid #9AD9BB;color:#0A7A47;font-size:12px;font-weight:500"><span aria-hidden="true">✓</span>Synced</span>
+      </div>
+    </div>
+
+    <div style="display:flex;border-bottom:1px solid #CBD2DC;background:#F1F3F7">
+      <div style="width:392px;flex:none;border-right:1px solid #CBD2DC;display:flex;align-items:center;padding:0 12px;height:56px;gap:8px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#4B5563">Phase / task</span>
+        <span style="margin-left:auto;font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#4B5563">Dates</span>
+      </div>
+      <div style="flex:1;overflow:hidden;position:relative;height:56px">
+        <div style="position:absolute;top:0;left:0;height:56px;width:{{ canvasWidth }};transform:translateX({{ axisShift }})">
+          <sc-for list="{{ axisMajor }}" as="a" hint-placeholder-count="8">
+            <div style="position:absolute;top:0;left:{{ a.left }};width:{{ a.width }};height:28px;border-left:1px solid #CBD2DC;display:flex;align-items:center;padding-left:6px;font-size:11.5px;font-weight:600;color:#101720;overflow:hidden;white-space:nowrap">{{ a.label }}</div>
+          </sc-for>
+          <sc-for list="{{ axisMinor }}" as="a" hint-placeholder-count="20">
+            <div style="position:absolute;top:28px;left:{{ a.left }};width:{{ a.width }};height:28px;border-left:1px solid #E4E7EC;background:{{ a.bg }};display:flex;align-items:center;justify-content:center;font-size:10.5px;color:{{ a.fg }};font-variant-numeric:tabular-nums;overflow:hidden">{{ a.label }}</div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div role="treegrid" aria-label="Programme timeline" tabindex="0" onKeyDown="{{ onKey }}" style="display:flex;height:560px;outline:none">
+      <div style="width:392px;flex:none;border-right:1px solid #CBD2DC;overflow:hidden;position:relative;background:#FFFFFF">
+        <div style="position:absolute;top:0;left:0;right:0;transform:translateY({{ treeShift }})">
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="18">
+            <div role="row" aria-level="{{ r.level }}" aria-selected="{{ r.sel }}" aria-rowindex="{{ r.rowIndex }}" tabindex="{{ r.tab }}" onClick="{{ r.select }}" style="position:absolute;top:{{ r.top }};left:0;right:0;height:32px;display:flex;align-items:center;gap:6px;padding-left:{{ r.indent }};padding-right:10px;background:{{ r.bg }};box-shadow:{{ r.selBar }};border-bottom:1px solid #F1F3F7;cursor:pointer">
+              <span onClick="{{ r.toggle }}" style="width:16px;flex:none;text-align:center;font-size:9px;color:{{ r.chevFg }};cursor:pointer">{{ r.chev }}</span>
+              <span style="font-size:{{ r.fs }};font-weight:{{ r.fw }};color:{{ r.fg }};overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ r.name }}</span>
+              <sc-if value="{{ r.critical }}" hint-placeholder-val="{{ false }}"><span title="On the critical path" style="flex:none;font-size:10px;color:#B3261E;font-weight:600">▲CP</span></sc-if>
+              <span style="margin-left:auto;flex:none;font-size:11.5px;color:#667085;font-variant-numeric:tabular-nums">{{ r.dates }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div ref="{{ canvasRef }}" onScroll="{{ onScroll }}" style="flex:1;overflow:auto;position:relative;background:#FFFFFF">
+        <div style="position:relative;width:{{ canvasWidth }};height:{{ canvasHeight }}">
+          <sc-for list="{{ shading }}" as="s" hint-placeholder-count="12">
+            <div title="{{ s.title }}" style="position:absolute;top:0;bottom:0;left:{{ s.left }};width:{{ s.width }};background:{{ s.bg }};border-left:{{ s.bd }}"></div>
+          </sc-for>
+          <div style="position:absolute;top:0;bottom:0;left:{{ todayLeft }};width:2px;background:#0B57D0"></div>
+          <div style="position:absolute;top:{{ todayLabelTop }};left:{{ todayLeft }};transform:translateX(-50%);background:#0B57D0;color:#FFFFFF;font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;white-space:nowrap">Today</div>
+
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="18">
+            <div style="position:absolute;top:{{ b.top }};left:0;right:0;height:32px;background:{{ b.rowBg }};border-bottom:1px solid #F1F3F7"></div>
+          </sc-for>
+
+          <sc-for list="{{ segs }}" as="a" hint-placeholder-count="12">
+            <div style="position:absolute;left:{{ a.left }};top:{{ a.top }};width:{{ a.w }};height:{{ a.h }};background:{{ a.color }}"></div>
+          </sc-for>
+          <sc-for list="{{ arrowHeads }}" as="a" hint-placeholder-count="6">
+            <div style="position:absolute;left:{{ a.left }};top:{{ a.top }};width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid {{ a.color }}"></div>
+          </sc-for>
+          <sc-for list="{{ stubs }}" as="a" hint-placeholder-count="4">
+            <div title="{{ a.title }}" tabindex="-1" style="position:absolute;left:{{ a.left }};top:{{ a.top }};width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-right:6px solid {{ a.color }}"></div>
+          </sc-for>
+
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="18">
+            <div>
+              <sc-if value="{{ b.hasBaseline }}" hint-placeholder-val="{{ false }}">
+                <div title="Baseline v3" style="position:absolute;top:{{ b.baseTop }};left:{{ b.baseLeft }};width:{{ b.baseWidth }};height:4px;border-radius:2px;background:#98A2B3"></div>
+              </sc-if>
+              <sc-if value="{{ b.isMilestone }}" hint-placeholder-val="{{ false }}">
+                <div title="{{ b.label }}" style="position:absolute;top:{{ b.msTop }};left:{{ b.left }};width:12px;height:12px;background:{{ b.msFill }};border:1.5px solid #101720;transform:rotate(45deg)"></div>
+              </sc-if>
+              <sc-if value="{{ b.isBar }}" hint-placeholder-val="{{ true }}">
+                <div title="{{ b.title }}" style="position:absolute;top:{{ b.barTop }};left:{{ b.left }};width:{{ b.width }};height:{{ b.h }};border-radius:{{ b.radius }};background:{{ b.bg }};border:{{ b.border }};overflow:hidden;box-shadow:{{ b.glow }}">
+                  <div style="position:absolute;top:0;bottom:0;left:0;width:{{ b.progress }};background:{{ b.progressBg }}"></div>
+                  <sc-if value="{{ b.hot }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(16,23,32,0) 0 3px,rgba(16,23,32,.45) 3px 6px)"></div>
+                  </sc-if>
+                  <span style="position:absolute;inset:0;display:flex;align-items:center;padding:0 6px;font-size:11px;font-weight:500;color:{{ b.labelFg }};white-space:nowrap;overflow:hidden">{{ b.innerLabel }}</span>
+                  <span aria-hidden="true" style="position:absolute;top:0;left:0;bottom:0;width:{{ b.progress }};overflow:hidden"><span style="position:absolute;top:0;left:0;height:100%;width:{{ b.width }};display:flex;align-items:center;padding:0 6px;font-size:11px;font-weight:500;color:{{ b.labelFgFilled }};white-space:nowrap;box-sizing:border-box">{{ b.innerLabel }}</span></span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ b.outsideLabel }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:{{ b.barTop }};left:{{ b.labelLeft }};height:{{ b.h }};display:flex;align-items:center;font-size:11px;color:#101720;white-space:nowrap">{{ b.outsideLabel }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div id="gantt-status" role="status" aria-live="polite" aria-atomic="true" style="display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-top:1px solid #CBD2DC;background:#FFFFFF">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085;flex:none;padding-top:2px">Announced</span>
+      <span style="font-size:12.5px;line-height:19px;color:#101720">{{ announce }}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;padding:8px 14px;border-top:1px solid #CBD2DC;background:{{ statusBg }};flex-wrap:wrap">
+      <span style="font-size:12.5px;font-weight:600;color:{{ statusFg }}">{{ statusText }}</span>
+      <span style="font-size:12px;color:#4B5563">{{ statusHint }}</span>
+      <div style="margin-left:auto;display:flex;gap:12px;font-size:11.5px;color:#4B5563;flex-wrap:wrap">
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:8px;border-radius:2px;background:#101720"></span>Phase</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:10px;border-radius:2px;background:#E8F0FE;border:1px solid #0B57D0"></span>Task</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#FFFFFF;border:1.5px solid #101720;transform:rotate(45deg);display:inline-block"></span>Milestone</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:10px;border-radius:2px;border:1.5px solid #B3261E"></span>Critical ▲CP</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:4px;border-radius:2px;background:#98A2B3"></span>Baseline v3</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:10px;border-radius:2px;background:repeating-linear-gradient(135deg,#CBD2DC 0 3px,#4B5563 3px 6px)"></span>Over 100%</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:10px;border-radius:2px;background:#FBF0DC;border:1px solid #E0C089"></span>Public holiday</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:32px 32px 0">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Geometry</h3>
+      <sc-for list="{{ geometry }}" as="g" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:132px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ g.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ g.v }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Scale — 80 phases, 1,200 tasks</h3>
+      <sc-for list="{{ scaleRules }}" as="r" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:6px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0;line-height:19px">§</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Dependencies</h3>
+      <sc-for list="{{ depLegend }}" as="d" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:74px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ d.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ d.v }}</div></div>
+      </sc-for>
+      <h3 style="margin:20px 0 10px;font-size:16px;line-height:22px;font-weight:600">Announcements</h3>
+      <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">The strip above the legend is the Gantt’s <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">#gantt-status</span> region — <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">role="status" aria-live="polite" aria-atomic="true"</span> — shown visibly here so the announcement can be reviewed. In the product it is visually hidden and the sync chip owns everything about sync, exactly as Layer 3 specifies. It is written on cursor movement, expand/collapse, Move-mode entry and exit, each nudge, commit and revert.</div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ sayExamples }}" as="s" hint-placeholder-count="5">
+          <div style="font-size:12px;line-height:18px;color:#101720;background:#F1F3F7;border:1px solid #E4E7EC;border-radius:4px;padding:6px 8px"><span style="font-family:'IBM Plex Mono',monospace;color:#0B57D0">{{ s.k }}</span> — “{{ s.v }}”</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Keyboard &amp; drag equivalence</h3>
+      <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-bottom:10px">Keys are bound to the <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">role="treegrid"</span> element, not the window, so M types an M inside a text field and the timeline only responds when it holds focus. One tab stop enters the grid; the row cursor is a roving tabindex.</div>
+      <sc-for list="{{ keys }}" as="k" hint-placeholder-count="10">
+        <div style="display:grid;grid-template-columns:104px 1fr;gap:12px;padding:6px 0;border-top:1px solid #E4E7EC;align-items:baseline"><kbd style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:#F1F3F7;border:1px solid #CBD2DC;border-bottom-width:2px;border-radius:4px;padding:2px 6px;justify-self:start">{{ k.k }}</kbd><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ k.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:16px 32px 96px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Dark canvas</h3>
+      <div style="border:1px solid #333C4A;border-radius:6px;overflow:hidden;background:#0E1116">
+        <div style="display:flex;height:32px;align-items:center;background:#0A0D12;border-bottom:1px solid #232A35;font-size:11px;color:#AFBACA;padding:0 10px;gap:16px"><span>W41</span><span>W42</span><span>W43</span><span>W44</span></div>
+        <sc-for list="{{ darkBars }}" as="d" hint-placeholder-count="4">
+          <div style="position:relative;height:32px;border-bottom:1px solid #232A35;background:{{ d.rowBg }}">
+            <div style="position:absolute;top:9px;left:{{ d.left }};width:{{ d.w }};height:14px;border-radius:3px;background:{{ d.bg }};border:{{ d.border }};overflow:hidden"><div style="position:absolute;inset:0 auto 0 0;width:{{ d.prog }};background:{{ d.progBg }}"></div><span style="position:absolute;inset:0;display:flex;align-items:center;padding:0 6px;font-size:11px;color:{{ d.fg }};white-space:nowrap">{{ d.label }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#8592A6;margin-top:10px">Weekend shading in dark is surface/sunken <span style="font-family:'IBM Plex Mono',monospace">#0A0D12</span> — darker than the canvas rather than lighter, because a lighter band reads as a highlight. Task bars invert: accent/subtle fill with an accent border, progress in full accent carrying content/inverse text.</div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Collapsed summary &amp; mobile read-only</h3>
+      <div style="border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+        <sc-for list="{{ summaryRows }}" as="s" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:1fr 84px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #E4E7EC">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:500">{{ s.name }}</span><span style="display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px 0 5px;border-radius:4px;background:{{ s.pillBg }};color:{{ s.pillFg }};border:1px solid {{ s.pillBd }};font-size:11px;font-weight:500"><span aria-hidden="true">{{ s.pillG }}</span>{{ s.pill }}</span></div>
+              <div style="height:8px;border-radius:999px;background:#E4E7EC;margin-top:6px;overflow:hidden"><div style="height:100%;width:{{ s.pct }};background:{{ s.fill }}"></div></div>
+            </div>
+            <div style="text-align:right;font-size:12px;color:#4B5563;font-variant-numeric:tabular-nums">{{ s.dates }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:12px;text-wrap:pretty">This is the mobile experience, and it is deliberate rather than a shrunken canvas: a stage-level list with progress, status and window. Tapping a stage opens its phases in the same form; tapping a phase opens a read-only task list. Editing, drag and dependency work do not exist below 768px — the six phone jobs are read timeline, update % complete, see who is on what this week, approve a request, read health, accept an invite. A single “Open on desktop for editing” link states the boundary instead of hiding it.</div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Accessibility contract</h3>
+      <sc-for list="{{ a11y }}" as="a" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:118px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ a.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ a.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560,&quot;height&quot;:980}}">
+const STAGES = [
+  { name: 'Prepare', s: 0, e: 62 },
+  { name: 'Explore', s: 48, e: 186 },
+  { name: 'Realize', s: 160, e: 452 },
+  { name: 'Deploy', s: 430, e: 568 },
+  { name: 'Run', s: 556, e: 720 }
+];
+const STREAMS = ['Finance (FI/CO)', 'Logistics (MM/SD/PP)', 'Human Capital', 'Technical (Basis/ABAP)', 'Data Migration', 'Integration', 'Change Management', 'Testing', 'Cutover', 'PMO', 'Analytics', 'Security', 'Training', 'Wave 1', 'Wave 2', 'Hypercare'];
+const TASK_VERBS = ['Workshop', 'Design', 'Build', 'Unit test', 'Config', 'Fit-gap', 'Review', 'Sign-off', 'Load', 'Rehearsal', 'Runbook', 'Handover', 'Audit', 'Dry run', 'Playback'];
+const HOLIDAYS = [
+  { d: 25, n: 'Thaipusam (MY)' }, { d: 48, n: 'Chinese New Year (MY, SG)' }, { d: 49, n: 'Chinese New Year day 2 (MY, SG)' },
+  { d: 86, n: 'Nyepi (ID) / Holi (IN)' }, { d: 116, n: 'Labour Day (MY, SG, VN, IN)' }, { d: 121, n: 'Wesak Day (MY, SG)' },
+  { d: 176, n: 'Hari Raya Haji (MY, SG)' }, { d: 238, n: 'Merdeka Day (MY)' }, { d: 253, n: 'Malaysia Day (MY)' },
+  { d: 282, n: 'Deepavali (MY, SG, IN)' }, { d: 313, n: 'National Day (VN)' }, { d: 359, n: 'Christmas Day (MY, SG, VN)' },
+  { d: 390, n: 'New Year (all regions)' }, { d: 433, n: 'Chinese New Year 2027 (MY, SG)' }, { d: 481, n: 'Labour Day 2027' },
+  { d: 603, n: 'Merdeka Day 2027 (MY)' }, { d: 647, n: 'Deepavali 2027 (MY, SG, IN)' }, { d: 724, n: 'Christmas 2027' }
+];
+const PX = { Day: 26, Week: 8.4, Month: 2.9, Quarter: 1.15 };
+const GRAIN = { Day: 1, Week: 7, Month: 30, Quarter: 90 };
+const DAYS = 730;
+const ROW_H = 32;
+const TODAY = 268;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function seed(n) { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); }
+function dayLabel(d) {
+  const base = new Date(2026, 0, 5).getTime() + d * 86400000;
+  const dt = new Date(base);
+  return dt.getDate() + ' ' + MONTHS[dt.getMonth()] + ' ' + String(dt.getFullYear()).slice(2);
+}
+function dow(d) { return (d + 0) % 7; }
+
+function buildData() {
+  const phases = [];
+  let taskId = 0;
+  for (let i = 0; i < 80; i++) {
+    const st = STAGES[Math.floor(i / 16)];
+    const k = i % 16;
+    const span = st.e - st.s;
+    const start = Math.round(st.s + (k / 16) * span * 0.45);
+    const dur = Math.round(span * (0.4 + seed(i) * 0.35));
+    const tasks = [];
+    for (let j = 0; j < 15; j++) {
+      const r = seed(i * 31 + j * 7);
+      const tStart = Math.round(start + (j / 15) * dur * 0.8 + r * 4);
+      const tDur = Math.max(2, Math.round(3 + seed(i + j * 3) * 17));
+      const done = tStart + tDur < TODAY ? 100 : tStart > TODAY ? 0 : Math.round(seed(i * 5 + j) * 90);
+      taskId++;
+      const deps = [];
+      if (j > 0) deps.push({ id: 'p' + i + '_t' + (j - 1), type: 'FS', lag: (i + j) % 7 === 0 ? 2 : 0 });
+      if (j === 0 && i > 0) deps.push({ id: 'p' + (i - 1) + '_t14', type: 'FS', lag: 0, cross: true });
+      if (j === 7 && i % 3 === 0 && i > 2) deps.push({ id: 'p' + (i - 3) + '_t9', type: 'SS', lag: 0, cross: true });
+      tasks.push({
+        id: 'p' + i + '_t' + j, deps,
+        name: TASK_VERBS[j % TASK_VERBS.length] + ' — ' + STREAMS[i % STREAMS.length].split(' ')[0] + ' ' + (j + 1),
+        start: tStart, dur: tDur, done,
+        alloc: 60 + Math.round(seed(i * 9 + j * 11) * 80),
+        critical: (i * 7 + j * 3) % 29 === 0,
+        milestone: j === 14 && i % 4 === 0,
+        baseline: (i + j) % 5 === 0 ? Math.round(seed(i + j) * 8) - 4 : 0
+      });
+    }
+    phases.push({
+      id: 'p' + i, stage: st.name, name: st.name + ' · ' + STREAMS[i % STREAMS.length],
+      start, dur, tasks,
+      done: Math.round(tasks.reduce((a, t) => a + t.done, 0) / tasks.length)
+    });
+  }
+  return phases;
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.data = buildData();
+    this.state = {
+      zoom: 'Week', scrollTop: 0, scrollLeft: 0, viewportW: 900,
+      expanded: { p32: true, p33: true },
+      selected: 'p32', cursor: 32, moveMode: false, nudge: {}, pending: 0,
+      announce: 'Timeline ready. 80 phases, 1,200 tasks. Use up and down arrows to move the row cursor, M to move the selected bar.', preMove: null,
+      showCritical: true, showBaseline: true, showHeat: true, showHolidays: true
+    };
+  }
+
+  say(msg) { this.setState({ announce: msg }); }
+
+  scrollRowIntoView(idx) {
+    const el = this._el;
+    if (!el) return;
+    const top = idx * ROW_H;
+    if (top < el.scrollTop) el.scrollTop = top;
+    else if (top + ROW_H > el.scrollTop + el.clientHeight) el.scrollTop = top + ROW_H - el.clientHeight;
+    this.setState({ scrollTop: el.scrollTop, scrollLeft: el.scrollLeft, viewportW: el.clientWidth });
+  }
+
+  moveCursor(delta) {
+    const flat = this.flat();
+    const next = Math.max(0, Math.min(flat.length - 1, this.state.cursor + delta));
+    const n = flat[next];
+    this.setState({ cursor: next, selected: n.o.id }, () => this.scrollRowIntoView(next));
+    const st = n.o.start + (this.state.nudge[n.o.id] || 0);
+    this.say(n.o.name + ', ' + (n.kind === 'phase' ? 'phase, ' + (this.state.expanded[n.o.id] ? 'expanded' : 'collapsed') : 'task, level 2') +
+      ', ' + dayLabel(st) + ' to ' + dayLabel(st + n.o.dur) + ', row ' + (next + 1) + ' of ' + flat.length + '.');
+  }
+
+  onKey(e) {
+    const k = e.key;
+    const flat = this.flat();
+    const cur = flat[Math.min(this.state.cursor, flat.length - 1)];
+    if (!cur) return;
+    const S = this.state;
+    if (k === 'ArrowDown') { e.preventDefault(); this.moveCursor(1); return; }
+    if (k === 'ArrowUp') { e.preventDefault(); this.moveCursor(-1); return; }
+    if (k === 'm' || k === 'M') {
+      e.preventDefault();
+      if (!S.moveMode) {
+        this.setState({ moveMode: true, preMove: S.nudge[cur.o.id] || 0 });
+        this.say('Move mode on. ' + cur.o.name + '. Left and right arrows move by one ' + S.zoom.toLowerCase() + '. Enter commits, Escape reverts.');
+      } else {
+        this.setState({ moveMode: false });
+        this.say('Move mode off.');
+      }
+      return;
+    }
+    if (S.moveMode) {
+      if (k === 'ArrowRight' || k === 'ArrowLeft') {
+        e.preventDefault();
+        const g = GRAIN[S.zoom] * (e.shiftKey ? 4 : 1);
+        const d = (k === 'ArrowRight' ? 1 : -1) * g;
+        const n = Object.assign({}, S.nudge);
+        n[cur.o.id] = (n[cur.o.id] || 0) + d;
+        const st = cur.o.start + n[cur.o.id];
+        this.setState({ nudge: n, pending: S.pending + 1 });
+        this.say('Start ' + dayLabel(st) + ', finish ' + dayLabel(st + cur.o.dur) + '.');
+        return;
+      }
+      if (k === 'Enter') {
+        e.preventDefault();
+        const moved = (S.nudge[cur.o.id] || 0) - (S.preMove || 0);
+        this.setState({ moveMode: false, preMove: null });
+        this.say('Moved ' + cur.o.name + ' by ' + Math.abs(moved) + ' days ' + (moved >= 0 ? 'later' : 'earlier') + '. Saved locally, ' + (S.pending + 1) + ' changes pending sync.');
+        return;
+      }
+      if (k === 'Escape') {
+        e.preventDefault();
+        const n = Object.assign({}, S.nudge);
+        if (S.preMove) n[cur.o.id] = S.preMove; else delete n[cur.o.id];
+        this.setState({ nudge: n, moveMode: false, preMove: null });
+        this.say('Move cancelled. ' + cur.o.name + ' returned to ' + dayLabel(cur.o.start + (S.preMove || 0)) + '.');
+        return;
+      }
+      return;
+    }
+    if (k === 'ArrowRight' || k === 'ArrowLeft') {
+      e.preventDefault();
+      if (cur.kind === 'phase') {
+        const open = k === 'ArrowRight';
+        const x = Object.assign({}, S.expanded);
+        if (open) x[cur.o.id] = true; else delete x[cur.o.id];
+        this.setState({ expanded: x });
+        this.say(cur.o.name + ' ' + (open ? 'expanded, 15 tasks' : 'collapsed') + '.');
+      } else if (k === 'ArrowLeft' && cur.o.deps && cur.o.deps.length) {
+        const pid = cur.o.deps[0].id;
+        const idx = flat.findIndex(f => f.o.id === pid);
+        if (idx >= 0) { this.setState({ cursor: idx, selected: pid }, () => this.scrollRowIntoView(idx)); this.say('Predecessor: ' + flat[idx].o.name + '.'); }
+        else this.say('Predecessor is inside a collapsed phase. Press Left again on the phase row to reveal it.');
+      }
+      return;
+    }
+    if (k === 't' || k === 'T') {
+      e.preventDefault();
+      if (this._el) { this._el.scrollLeft = Math.max(0, TODAY * PX[S.zoom] - 200); this.setState({ scrollLeft: this._el.scrollLeft }); }
+      this.say('Scrolled to today, ' + dayLabel(TODAY) + '.');
+    }
+  }
+
+  flat() {
+    const out = [];
+    this.data.forEach(p => {
+      out.push({ kind: 'phase', o: p });
+      if (this.state.expanded[p.id]) p.tasks.forEach(t => out.push({ kind: 'task', o: t, parent: p }));
+    });
+    return out;
+  }
+
+  renderVals() {
+    const S = this.state;
+    const px = PX[S.zoom];
+    const canvasW = DAYS * px;
+    const flat = this.flat();
+    const first = Math.max(0, Math.floor(S.scrollTop / ROW_H) - 4);
+    const count = Math.ceil(560 / ROW_H) + 8;
+    const win = flat.slice(first, first + count);
+    const nudgeOf = (id) => S.nudge[id] || 0;
+
+    const rows = win.map((n, idx) => {
+      const i = first + idx;
+      const isPhase = n.kind === 'phase';
+      const o = n.o;
+      const sel = S.selected === o.id;
+      const st = o.start + nudgeOf(o.id);
+      return {
+        top: (i * ROW_H) + 'px', indent: isPhase ? '8px' : '32px',
+        level: isPhase ? 1 : 2, sel: sel ? 'true' : 'false', rowIndex: i + 1, tab: sel ? 0 : -1,
+        name: o.name, fs: isPhase ? '13px' : '12.5px', fw: isPhase ? 600 : 400,
+        fg: isPhase ? '#101720' : '#4B5563',
+        chev: isPhase ? (S.expanded[o.id] ? '▼' : '▶') : '',
+        chevFg: '#4B5563',
+        bg: sel ? '#E8F0FE' : (isPhase ? '#F6F7F9' : '#FFFFFF'),
+        selBar: sel ? 'inset 2px 0 0 #0B57D0' : 'none',
+        critical: !isPhase && o.critical && S.showCritical,
+        dates: dayLabel(st) + ' → ' + dayLabel(st + o.dur),
+        select: () => this.setState({ selected: o.id }),
+        toggle: isPhase ? (e) => { e.stopPropagation(); this.setState(s => { const x = Object.assign({}, s.expanded); x[o.id] = !x[o.id]; return { expanded: x, selected: o.id }; }); } : () => {}
+      };
+    });
+
+    const minBar = 4;
+    const bars = win.map((n, idx) => {
+      const i = first + idx;
+      const isPhase = n.kind === 'phase';
+      const o = n.o;
+      const sel = S.selected === o.id;
+      const st = o.start + nudgeOf(o.id);
+      const left = st * px;
+      const w = Math.max(minBar, o.dur * px);
+      const label = o.name;
+      const fits = w > label.length * 6.2 + 14;
+      const crit = !isPhase && o.critical && S.showCritical;
+      const hot = !isPhase && S.showHeat && o.alloc > 100;
+      return {
+        top: (i * ROW_H) + 'px',
+        rowBg: sel ? 'rgba(11,87,208,.06)' : (isPhase ? 'rgba(241,243,247,.75)' : 'transparent'),
+        isMilestone: !isPhase && o.milestone,
+        msTop: (i * ROW_H + 10) + 'px', msFill: o.done === 100 ? '#101720' : '#FFFFFF',
+        isBar: !(!isPhase && o.milestone),
+        barTop: (i * ROW_H + (isPhase ? 11 : 9)) + 'px',
+        h: isPhase ? '10px' : '14px',
+        radius: isPhase ? '2px' : '3px',
+        left: left + 'px', width: w + 'px',
+        bg: isPhase ? '#4B5563' : '#E8F0FE',
+        border: isPhase ? '1px solid #101720' : (crit ? '1.5px solid #B3261E' : '1px solid #0B57D0'),
+        glow: sel && !isPhase ? '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0' : 'none',
+        progress: o.done + '%',
+        progressBg: isPhase ? '#101720' : '#0B57D0',
+        hot,
+        innerLabel: fits ? (crit ? '▲ ' + label : label) : '',
+        labelFg: isPhase ? '#FFFFFF' : '#101720',
+        labelFgFilled: '#FFFFFF',
+        outsideLabel: fits ? '' : (crit ? '▲ ' + label : label),
+        labelLeft: (left + w + 6) + 'px',
+        hasBaseline: !isPhase && S.showBaseline && o.baseline !== 0,
+        baseTop: (i * ROW_H + 25) + 'px',
+        baseLeft: ((st + o.baseline) * px) + 'px',
+        baseWidth: Math.max(minBar, o.dur * px) + 'px',
+        title: label + ' · ' + dayLabel(st) + ' → ' + dayLabel(st + o.dur) + (isPhase ? '' : ' · ' + o.done + '% complete · ' + o.alloc + '% allocated' + (o.critical ? ' · critical path' : '')),
+        label
+      };
+    });
+
+    const indexOf = {};
+    flat.forEach((f, i) => { indexOf[f.o.id] = i; });
+    const segs = [];
+    const arrowHeads = [];
+    const stubs = [];
+    const lastWin = first + win.length - 1;
+    win.forEach((n, idx) => {
+      if (n.kind !== 'task' || !n.o.deps) return;
+      const i = first + idx;
+      const b = n.o;
+      const bx = (b.start + nudgeOf(b.id)) * px;
+      const by = i * ROW_H + 16;
+      b.deps.forEach(dep => {
+        const pi = indexOf[dep.id];
+        const pf = pi === undefined ? null : flat[pi];
+        const color = (b.critical && pf && pf.o.critical && S.showCritical) ? '#B3261E' : '#7D8799';
+        if (pf === null || pi < first || pi > lastWin) {
+          stubs.push({ left: (bx - 14) + 'px', top: (i * ROW_H + 12) + 'px', color, title: 'Predecessor off screen — ' + dep.type + (dep.lag ? ', ' + dep.lag + '-day lag' : '') });
+          return;
+        }
+        const a = pf.o;
+        const ast = a.start + nudgeOf(a.id);
+        const ax = dep.type === 'SS' ? ast * px : (ast + a.dur) * px;
+        const ay = pi * ROW_H + 16;
+        const elbow = Math.max(ax + 10, bx - 12);
+        segs.push({ left: Math.min(ax, elbow) + 'px', top: ay + 'px', w: Math.abs(elbow - ax) + 'px', h: '1.5px', color });
+        segs.push({ left: elbow + 'px', top: Math.min(ay, by) + 'px', w: '1.5px', h: Math.abs(by - ay) + 'px', color });
+        segs.push({ left: Math.min(elbow, bx - 6) + 'px', top: by + 'px', w: Math.abs(bx - 6 - elbow) + 'px', h: '1.5px', color });
+        arrowHeads.push({ left: (bx - 6) + 'px', top: (by - 4) + 'px', color });
+      });
+    });
+
+    const visFrom = Math.floor(S.scrollLeft / px) - 2;
+    const visTo = visFrom + Math.ceil(S.viewportW / px) + 4;
+    const shading = [];
+    if (S.zoom === 'Day' || S.zoom === 'Week') {
+      for (let d = Math.max(0, visFrom); d < Math.min(DAYS, visTo); d++) {
+        const wd = dow(d);
+        const hol = HOLIDAYS.find(h => h.d === d);
+        if (hol && S.showHolidays) shading.push({ left: (d * px) + 'px', width: px + 'px', bg: '#FBF0DC', bd: '1px solid #E0C089', title: hol.n });
+        else if (wd === 5 || wd === 6) shading.push({ left: (d * px) + 'px', width: px + 'px', bg: '#F1F3F7', bd: 'none', title: 'Weekend — non-working' });
+      }
+    }
+
+    const axisMajor = [];
+    const axisMinor = [];
+    if (S.zoom === 'Day' || S.zoom === 'Week') {
+      for (let m = 0; m < 25; m++) {
+        const d0 = Math.round(m * 30.44);
+        axisMajor.push({ left: (d0 * px) + 'px', width: (30.44 * px) + 'px', label: MONTHS[(m) % 12] + ' ' + (2026 + Math.floor(m / 12)) });
+      }
+      const step = S.zoom === 'Day' ? 1 : 7;
+      for (let d = Math.max(0, Math.floor(visFrom / step) * step); d < Math.min(DAYS, visTo); d += step) {
+        const wd = dow(d);
+        const hol = HOLIDAYS.find(h => h.d >= d && h.d < d + step);
+        axisMinor.push({
+          left: (d * px) + 'px', width: (step * px) + 'px',
+          label: S.zoom === 'Day' ? String(new Date(new Date(2026, 0, 5).getTime() + d * 86400000).getDate()) : 'W' + (Math.floor(d / 7) % 53 + 1),
+          bg: hol && S.showHolidays ? '#FBF0DC' : (S.zoom === 'Day' && (wd === 5 || wd === 6) ? '#F1F3F7' : 'transparent'),
+          fg: hol && S.showHolidays ? '#8A5200' : '#4B5563'
+        });
+      }
+    } else {
+      for (let q = 0; q < 9; q++) {
+        const d0 = Math.round(q * 91.3);
+        axisMajor.push({ left: (d0 * px) + 'px', width: (91.3 * px) + 'px', label: 'Q' + (q % 4 + 1) + ' ' + (2026 + Math.floor(q / 4)) });
+      }
+      for (let m = 0; m < 25; m++) {
+        const d0 = Math.round(m * 30.44);
+        axisMinor.push({ left: (d0 * px) + 'px', width: (30.44 * px) + 'px', label: MONTHS[m % 12], bg: 'transparent', fg: '#4B5563' });
+      }
+    }
+
+    const selObj = flat.find(f => f.o.id === S.selected);
+    const nudged = nudgeOf(S.selected);
+    const statusText = S.moveMode
+      ? 'Move mode — ' + (selObj ? selObj.o.name : 'nothing selected')
+      : (selObj ? 'Selected: ' + selObj.o.name : 'Nothing selected');
+    const statusHint = S.moveMode
+      ? '← → nudge by 1 ' + S.zoom.toLowerCase() + (nudged ? ' · moved ' + (nudged > 0 ? '+' : '') + nudged + ' days' : '') + ' · Shift+arrow ×4 · Enter commits · Esc reverts'
+      : 'Press M to move · ' + S.pending + ' change' + (S.pending === 1 ? '' : 's') + ' pending sync';
+
+    return {
+      phaseCount: '80', taskCount: '1,200', windowSize: String(count),
+      rowTotal: flat.length.toLocaleString(),
+      windowLabel: win.length + ' rows',
+      canvasWidth: canvasW + 'px',
+      canvasHeight: (flat.length * ROW_H) + 'px',
+      treeShift: (-S.scrollTop) + 'px',
+      axisShift: (-S.scrollLeft) + 'px',
+      todayLeft: (TODAY * px) + 'px',
+      todayLabelTop: (S.scrollTop + 4) + 'px',
+      rows, bars, segs, arrowHeads, stubs, shading, axisMajor, axisMinor,
+      announce: S.announce,
+      onKey: (e) => this.onKey(e),
+      sayExamples: [
+        { k: '↓', v: 'Fit-gap — Finance 6, task, level 2, 14 Jul 26 to 27 Jul 26, row 39 of 95.' },
+        { k: 'M', v: 'Move mode on. Fit-gap — Finance 6. Left and right arrows move by one week. Enter commits, Escape reverts.' },
+        { k: '→ (move)', v: 'Start 21 Jul 26, finish 03 Aug 26.' },
+        { k: 'Enter', v: 'Moved Fit-gap — Finance 6 by 7 days later. Saved locally, 3 changes pending sync.' },
+        { k: 'Esc', v: 'Move cancelled. Fit-gap — Finance 6 returned to 14 Jul 26.' },
+        { k: '→ on phase', v: 'Realize · Data Migration expanded, 15 tasks.' }
+      ],
+      depLegend: [
+        { k: 'FS', v: 'Finish-to-start, the default: the arrow leaves the predecessor’s right edge and enters the successor’s left edge.' },
+        { k: 'FS + lag', v: 'Same geometry; the lag is written on the successor’s tooltip and in its accessible name (“2-day lag”).' },
+        { k: 'SS', v: 'Start-to-start: the arrow leaves the predecessor’s left edge. Used for the cross-phase links every third phase carries here.' },
+        { k: '◀ stub', v: 'The predecessor is outside the rendered window or inside a collapsed phase. The stub is focusable and ← navigates to it, expanding the phase if needed.' }
+      ],
+      statusText, statusHint,
+      statusBg: S.moveMode ? '#E8F0FE' : '#F6F7F9',
+      statusFg: S.moveMode ? '#0B57D0' : '#101720',
+      onScroll: (e) => { this._el = e.target; this.setState({ scrollTop: e.target.scrollTop, scrollLeft: e.target.scrollLeft, viewportW: e.target.clientWidth }); },
+      canvasRef: (el) => { if (el) this._el = el; },
+      collapseAll: () => {
+        this.setState({ expanded: {} });
+        if (this._el) { this._el.scrollTop = 0; this.setState({ scrollTop: 0 }); }
+      },
+      expandStage: () => {
+        const x = {};
+        this.data.forEach(p => { if (p.stage === 'Realize') x[p.id] = true; });
+        this.setState({ expanded: x }, () => {
+          const flat2 = this.flat();
+          const idx = flat2.findIndex(f => f.kind === 'phase' && f.o.stage === 'Realize');
+          const startDay = idx >= 0 ? flat2[idx].o.start : 160;
+          const el = this._el;
+          if (el) {
+            el.scrollTop = Math.max(0, idx * ROW_H);
+            el.scrollLeft = Math.max(0, startDay * PX[this.state.zoom] - 80);
+            this.setState({ scrollTop: el.scrollTop, scrollLeft: el.scrollLeft, viewportW: el.clientWidth, selected: flat2[idx].o.id });
+          }
+        });
+      },
+      zoomCells: ['Day', 'Week', 'Month', 'Quarter'].map(z => ({
+        label: z,
+        bg: S.zoom === z ? '#FFFFFF' : 'transparent',
+        fg: S.zoom === z ? '#101720' : '#4B5563',
+        bd: S.zoom === z ? '#7D8799' : 'transparent',
+        sh: S.zoom === z ? '0 1px 2px rgba(16,23,32,.06)' : 'none',
+        on: () => this.setState({ zoom: z })
+      })),
+      layerToggles: [
+        { key: 'showCritical', label: 'Critical path' },
+        { key: 'showBaseline', label: 'Baseline v3' },
+        { key: 'showHeat', label: 'Allocation heat' },
+        { key: 'showHolidays', label: 'Holidays' }
+      ].map(t => ({
+        label: t.label,
+        mark: S[t.key] ? '✓' : '○',
+        bg: S[t.key] ? '#E8F0FE' : '#FFFFFF',
+        fg: S[t.key] ? '#0B57D0' : '#4B5563',
+        bd: S[t.key] ? '#BBD0F6' : '#CBD2DC',
+        on: () => this.setState(s => { const o = {}; o[t.key] = !s[t.key]; return o; })
+      })),
+
+      geometry: [
+        { k: 'Row height', v: '32px standard, 28px compact. Both keep 13px/12.5px text — density never comes from shrinking type.' },
+        { k: 'Bar heights', v: 'Phase 10px with square caps, task 14px, milestone a 12px diamond centred on the row, baseline a 4px bar 2px below the current bar.' },
+        { k: 'Minimum bar', v: '4px. Below that a bar is unclickable, so a sub-grain task renders at 4px with a 24px invisible hit area and its label always outside.' },
+        { k: 'Label overflow', v: 'A label needs width ≥ 6.2 × characters + 14px padding. Below that it moves outside the bar’s right edge in content/primary; below 60px of free canvas it becomes a tooltip only, and the tree column remains the reliable place to read the name.' },
+        { k: 'Label contrast', v: 'The label is drawn twice and clipped at the progress boundary: content/primary #101720 over the unfilled accent/subtle remainder at 15.72:1, and content/inverse #FFFFFF over the filled accent at 6.39:1. Phase bars keep white throughout — 7.56:1 on the unfilled #4B5563 body and 18.02:1 on the filled #101720. No label ever crosses a boundary at low contrast.' },
+        { k: 'Zoom grain', v: 'Day 26px, Week 8.4px, Month 2.9px, Quarter 1.15px per day. Weekend and holiday shading render at Day and Week only — at Month a single day is 2.9px and shading becomes noise.' },
+        { k: 'Sticky left', v: 'The 392px tree pane is a separate scroll-locked pane translated by the canvas scrollTop, so it never repaints on horizontal scroll and never detaches vertically.' },
+        { k: 'Today marker', v: '2px accent line spanning the full canvas height with a pinned label that follows the vertical scroll, so it is legible at row 800 as well as row 1.' },
+        { k: 'Dependency arrows', v: 'Orthogonal, 1.5px, border/strong; critical-path links inherit status/danger. Drawn only between rows currently in the window — off-window predecessors show a ◀ stub on the successor bar.' }
+      ],
+      scaleRules: [
+        'All 80 phases collapse by default. Nothing above 40 rows auto-expands, because a plan that opens 1,280 rows deep cannot be read and costs a second of layout.',
+        'Vertical windowing renders ~' + count + ' rows regardless of dataset size; the scroll container is sized by row count so the scrollbar stays honest.',
+        'Horizontal windowing: shading and axis ticks are generated only for the visible day range plus 2 days of bleed. At Quarter zoom the whole 730-day range is 840px, so nothing is windowed horizontally.',
+        'Bars are plain absolutely-positioned divs, not SVG — 30 divs beat one 1,200-node SVG for scroll performance, and each bar keeps a real DOM node for focus and ARIA.',
+        'Expand-all is deliberately absent. “Expand stage” is offered instead, because a stage is the largest unit a person can scan.',
+        'Filtering (workstream, region, status, resource) reduces the flat list before windowing, so a filtered plan of 40 rows scrolls like a 40-row plan.',
+        'The tree pane truncates names with an ellipsis and never wraps: a wrapped name would desynchronise the two panes’ row heights, which is the one failure a split Gantt cannot recover from.'
+      ],
+      keys: [
+        { k: '↑ ↓', v: 'Move the row cursor. Selection follows focus; the canvas scrolls to keep the row visible.' },
+        { k: '← →', v: 'Collapse / expand the focused phase. On a task, jump to its predecessor / successor.' },
+        { k: 'M', v: 'Toggle Move mode on the selected bar. The status bar turns accent and states the grain.' },
+        { k: '← → (move)', v: 'Nudge by one zoom grain — 1 day, 1 week, 1 month, 1 quarter. Shift multiplies by 4.' },
+        { k: '⌥ ← →', v: 'Resize: move the finish date only, leaving the start fixed.' },
+        { k: 'Enter', v: 'Commit the move. Escape reverts to the position before Move mode was entered.' },
+        { k: '⌥ ↑ ↓', v: 'Reorder the focused task within its phase — the keyboard equivalent of drag-reorder.' },
+        { k: 'Space', v: 'Add to multi-selection. Shift+↑↓ extends a contiguous selection.' },
+        { k: '+ / −', v: 'Zoom in / out one step, anchored on the selected bar rather than the viewport centre.' },
+        { k: 'T', v: 'Scroll to today. G then C opens the critical-path drawer.' }
+      ],
+      a11y: [
+        { k: 'Structure', v: 'The tree is role="treegrid" with aria-level, aria-expanded, aria-posinset and aria-setsize; the canvas row is the same row element extended, so the two panes are one grid to assistive tech, not two.' },
+        { k: 'Bar name', v: '“Unit test — Finance 4, task, Realize · Finance, 12 to 26 October 2026, 15 working days, 60% complete, 120% allocated, on critical path.” Everything the colour and hatch encode is in the name.' },
+        { k: 'Move mode', v: 'Entering announces “Move mode. Left and right arrows move by one week.” Each nudge announces the new start date only — not the whole name — so repeated nudging stays usable.' },
+        { k: 'Windowing', v: 'aria-rowcount is the full flat count (1,280 when everything is expanded), aria-rowindex is absolute, so a screen reader reports “row 812 of 1,280” correctly.' },
+        { k: 'Dependencies', v: 'aria-describedby on the successor references a hidden node listing its predecessors; ← and → navigate the dependency graph directly rather than requiring the user to find an arrow.' },
+        { k: 'Non-working days', v: 'Weekend and holiday shading is decorative in the canvas; the same information is in each bar’s accessible name as working-day counts and in the date-picker cell names.' },
+        { k: 'Reduced motion', v: 'Scroll-to-row becomes an instant jump, zoom re-scale drops its 300ms transition, and the today marker never pulses.' }
+      ],
+      darkBars: [
+        { rowBg: '#171C24', left: '12px', w: '150px', bg: '#3D4757', border: '1px solid #E9EEF6', prog: '62%', progBg: '#8592A6', fg: '#E9EEF6', label: 'Realize · Finance' },
+        { rowBg: '#171C24', left: '40px', w: '96px', bg: '#16294A', border: '1px solid #7FB0FF', prog: '80%', progBg: '#7FB0FF', fg: '#0B1220', label: 'Fit-gap 3' },
+        { rowBg: '#16294A', left: '96px', w: '120px', bg: '#16294A', border: '1.5px solid #FF8A80', prog: '35%', progBg: '#7FB0FF', fg: '#E9EEF6', label: '▲ Mock conversion 3' },
+        { rowBg: '#171C24', left: '150px', w: '64px', bg: '#16294A', border: '1px solid #7FB0FF', prog: '0%', progBg: '#7FB0FF', fg: '#E9EEF6', label: 'Sign-off' }
+      ],
+      summaryRows: [
+        { name: 'Prepare', pct: '100%', fill: '#0A7A47', dates: '05 Jan – 09 Mar', pill: 'Complete', pillG: '✓', pillBg: '#FFFFFF', pillFg: '#4B5563', pillBd: '#CBD2DC' },
+        { name: 'Explore', pct: '100%', fill: '#0A7A47', dates: '23 Feb – 13 Jul', pill: 'Complete', pillG: '✓', pillBg: '#FFFFFF', pillFg: '#4B5563', pillBd: '#CBD2DC' },
+        { name: 'Realize', pct: '62%', fill: '#0B57D0', dates: '14 Jun – 03 Apr 27', pill: 'At risk', pillG: '⚠', pillBg: '#FBF0DC', pillFg: '#8A5200', pillBd: '#E0C089' },
+        { name: 'Deploy', pct: '8%', fill: '#0B57D0', dates: '12 Mar – 27 Jul 27', pill: 'Not started', pillG: '●', pillBg: '#F1F3F7', pillFg: '#4B5563', pillBd: '#CBD2DC' },
+        { name: 'Run', pct: '0%', fill: '#0B57D0', dates: '15 Jul – 26 Dec 27', pill: 'Not started', pillG: '●', pillBg: '#F1F3F7', pillFg: '#4B5563', pillBd: '#CBD2DC' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

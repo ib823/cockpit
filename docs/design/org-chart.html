@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; } a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1560px;margin:0 auto;padding:56px 32px 26px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 4c of 5</div>
+  <h1 style="margin:14px 0 0;font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em">Delivery org chart</h1>
+  <p style="margin:16px 0 0;max-width:78ch;font-size:15px;line-height:24px;color:#4B5563;text-wrap:pretty">{{ nodeCount }} people in the delivery structure. Drag the canvas to pan, use the zoom control or <kbd style="font-family:'IBM Plex Mono',monospace;background:#F1F3F7;border:1px solid #CBD2DC;border-radius:3px;padding:1px 5px;font-size:12px">+ −</kbd>, click a card to select, <kbd style="font-family:'IBM Plex Mono',monospace;background:#F1F3F7;border:1px solid #CBD2DC;border-radius:3px;padding:1px 5px;font-size:12px">C</kbd> collapses a subtree and <kbd style="font-family:'IBM Plex Mono',monospace;background:#F1F3F7;border:1px solid #CBD2DC;border-radius:3px;padding:1px 5px;font-size:12px">R</kbd> starts a keyboard reparent — the equivalent of drag-to-reparent.</p>
+</header>
+
+<section style="max-width:1560px;margin:0 auto;padding:0 32px">
+  <div style="border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #CBD2DC;flex-wrap:wrap">
+      <div style="display:inline-flex;align-items:center;gap:6px">
+        <button onClick="{{ zoomOut }}" aria-label="Zoom out" style="width:28px;height:28px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:14px;cursor:pointer">−</button>
+        <span style="min-width:52px;text-align:center;font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums">{{ zoomPct }}</span>
+        <button onClick="{{ zoomIn }}" aria-label="Zoom in" style="width:28px;height:28px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:14px;cursor:pointer">+</button>
+        <button onClick="{{ fit }}" style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Fit</button>
+      </div>
+      <div style="width:1px;height:20px;background:#CBD2DC"></div>
+      <sc-if value="{{ showRate }}" hint-placeholder-val="{{ true }}"><span style="font-size:0"></span></sc-if>
+      <button onClick="{{ toggleRate }}" style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ rateBg }};color:{{ rateFg }};border:1px solid {{ rateBd }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px">{{ rateMark }}</span>Show day rates</button>
+      <button onClick="{{ collapseL3 }}" style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Collapse level 3</button>
+      <button onClick="{{ expandAll }}" style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Expand all</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:#4B5563">
+        <span style="font-variant-numeric:tabular-nums">{{ visibleCount }} of {{ nodeCount }} shown</span>
+        <span style="width:1px;height:16px;background:#CBD2DC"></span>
+        <span style="font-variant-numeric:tabular-nums">Blended rate MYR {{ blended }}/day</span>
+      </div>
+    </div>
+
+    <div ref="{{ canvasRef }}" role="tree" aria-label="Delivery organisation" aria-activedescendant="{{ activeId }}" tabindex="0" onKeyDown="{{ onKey }}" onMouseDown="{{ onDown }}" onMouseMove="{{ onMove }}" onMouseUp="{{ onUp }}" onMouseLeave="{{ onUp }}" style="position:relative;height:560px;overflow:hidden;background:#F6F7F9;cursor:{{ cursor }};outline:none">
+      <div style="position:absolute;inset:0;background-image:radial-gradient(#E4E7EC 1px,transparent 1px);background-size:24px 24px;opacity:.7"></div>
+      <div style="position:absolute;top:0;left:0;transform:translate({{ panX }},{{ panY }}) scale({{ scale }});transform-origin:0 0">
+        <sc-for list="{{ links }}" as="l" hint-placeholder-count="20">
+          <div style="position:absolute;left:{{ l.left }};top:{{ l.top }};width:{{ l.w }};height:{{ l.h }};border-left:{{ l.bl }};border-top:{{ l.bt }};border-color:{{ l.color }}"></div>
+        </sc-for>
+        <sc-for list="{{ nodes }}" as="n" hint-placeholder-count="24">
+          <div id="{{ n.domId }}" role="treeitem" aria-level="{{ n.level }}" aria-selected="{{ n.selAttr }}" aria-expanded="{{ n.expAttr }}" aria-label="{{ n.aria }}" onClick="{{ n.on }}" style="position:absolute;left:{{ n.x }};top:{{ n.y }};width:196px;background:{{ n.bg }};border:{{ n.border }};border-radius:8px;box-shadow:{{ n.shadow }};padding:10px 12px;min-height:{{ n.minH }};box-sizing:border-box;position:relative;cursor:pointer">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;border-radius:999px;background:{{ n.avBg }};color:{{ n.avFg }};font-size:11px;font-weight:600">{{ n.initials }}</span>
+              <span style="min-width:0;flex:1">
+                <span style="display:block;font-size:12.5px;line-height:17px;font-weight:600;color:#101720;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.name }}</span>
+                <span style="display:block;font-size:11px;line-height:15px;color:#4B5563;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.role }}</span>
+              </span>
+            </div>
+            <sc-if value="{{ n.full }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:6px;margin-top:8px">
+                <span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:3px;background:#F1F3F7;border:1px solid #CBD2DC;font-size:10px;font-weight:500;color:#4B5563">{{ n.region }}</span>
+                <span style="font-size:11px;color:#4B5563;font-variant-numeric:tabular-nums">{{ n.rateText }}</span>
+                <sc-if value="{{ n.kids }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ n.toggle }}" aria-label="{{ n.toggleLabel }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border-radius:999px;border:1px solid #7D8799;background:#FFFFFF;font-size:10px;font-weight:600;color:#101720;cursor:pointer;font-variant-numeric:tabular-nums">{{ n.chev }}{{ n.kids }}</button>
+                </sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ n.compact }}" hint-placeholder-val="{{ false }}">
+              <sc-if value="{{ n.kids }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ n.toggle }}" aria-label="{{ n.toggleLabel }}" style="position:absolute;right:8px;bottom:8px;display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border-radius:999px;border:1px solid #7D8799;background:#FFFFFF;font-size:10px;font-weight:600;color:#101720;cursor:pointer;font-variant-numeric:tabular-nums">{{ n.chev }}{{ n.kids }}</button>
+              </sc-if>
+            </sc-if>
+            <sc-if value="{{ n.isTarget }}" hint-placeholder-val="{{ false }}">
+              <span style="position:absolute;inset:-4px;border:2px dashed #0B57D0;border-radius:10px"></span>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ reparenting }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:14px;bottom:14px;right:14px;display:flex;align-items:center;gap:12px;background:#E8F0FE;border:1px solid #0B57D0;border-radius:8px;padding:10px 14px;box-shadow:0 8px 28px rgba(16,23,32,.14)">
+          <span style="font-size:12.5px;font-weight:600;color:#0B57D0">Reparent: {{ movingName }}</span>
+          <span style="font-size:12.5px;color:#4B5563">New manager → <span style="font-weight:600;color:#101720">{{ targetName }}</span></span>
+          <span style="margin-left:auto;font-size:12px;color:#4B5563">↑↓ choose · Enter commit · Esc cancel</span>
+        </div>
+      </sc-if>
+    </div>
+
+    <div id="org-status" role="status" aria-live="polite" aria-atomic="true" style="display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-top:1px solid #CBD2DC;background:{{ statusBg }}">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085;flex:none;padding-top:2px">Announced</span>
+      <span style="font-size:12.5px;line-height:19px;color:#101720">{{ announce }}</span>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:28px 32px 0">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Node card anatomy</h3>
+      <sc-for list="{{ anatomy }}" as="a" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:118px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ a.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ a.v }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Rules</h3>
+      <sc-for list="{{ rules }}" as="r" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:6px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0;line-height:19px">§</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Keyboard &amp; announcements</h3>
+      <sc-for list="{{ keys }}" as="k" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:96px 1fr;gap:12px;padding:6px 0;border-top:1px solid #E4E7EC;align-items:baseline"><kbd style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:#F1F3F7;border:1px solid #CBD2DC;border-bottom-width:2px;border-radius:4px;padding:2px 6px;justify-self:start">{{ k.k }}</kbd><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ k.v }}</div></div>
+      </sc-for>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ sayExamples }}" as="s" hint-placeholder-count="4">
+          <div style="font-size:12px;line-height:18px;color:#101720;background:#F1F3F7;border:1px solid #E4E7EC;border-radius:4px;padding:6px 8px"><span style="font-family:'IBM Plex Mono',monospace;color:#0B57D0">{{ s.k }}</span> — “{{ s.v }}”</div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:16px 32px 0">
+  <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <h3 style="margin:0;font-size:16px;line-height:22px;font-weight:600">Print layout — A4 landscape</h3>
+      <span style="font-size:12.5px;color:#4B5563">297 × 210 mm · shown at 38% · the same artefact the proposal pack embeds</span>
+    </div>
+    <div style="margin-top:16px;background:#F1F3F7;border:1px solid #CBD2DC;border-radius:6px;padding:20px;height:342px;overflow:hidden;display:flex;justify-content:center">
+      <div style="width:1122px;height:794px;flex:none;transform:scale(.38);transform-origin:top center;background:#FFFFFF;border:1px solid #CBD2DC;box-shadow:0 8px 28px rgba(16,23,32,.14);padding:40px 44px;box-sizing:border-box;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:flex-start;border-bottom:2px solid #101720;padding-bottom:12px">
+          <div>
+            <div style="font-size:22px;font-weight:600;letter-spacing:-0.015em">Delivery organisation — S/4HANA Migration</div>
+            <div style="font-size:13px;color:#4B5563;margin-top:4px">Sarawak Energy · Programme PRJ-2291 · Structure as at 07 Aug 2026</div>
+          </div>
+          <div style="margin-left:auto;text-align:right;font-size:12px;color:#4B5563;line-height:18px">
+            <div style="font-weight:600;color:#101720">ABeam Consulting</div>
+            <div>42 people · 4 regions</div>
+            <div>Blended rate MYR 2,312 / day</div>
+          </div>
+        </div>
+        <div style="flex:1;position:relative;margin-top:24px;transform:scale({{ printScale }});transform-origin:top left">
+          <sc-for list="{{ printLinks }}" as="l" hint-placeholder-count="16">
+            <div style="position:absolute;left:{{ l.left }};top:{{ l.top }};width:{{ l.w }};height:{{ l.h }};border-left:{{ l.bl }};border-top:{{ l.bt }};border-color:#7D8799"></div>
+          </sc-for>
+          <sc-for list="{{ printNodes }}" as="n" hint-placeholder-count="20">
+            <div style="position:absolute;left:{{ n.x }};top:{{ n.y }};width:168px;border:1px solid #101720;border-top:3px solid {{ n.accent }};border-radius:4px;padding:7px 9px;background:#FFFFFF">
+              <div style="font-size:12px;font-weight:600;line-height:16px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.name }}</div>
+              <div style="font-size:11px;color:#4B5563;line-height:15px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.role }}</div>
+              <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#101720;margin-top:4px;font-variant-numeric:tabular-nums"><span>{{ n.region }}</span><span>{{ n.rate }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;border-top:1px solid #CBD2DC;padding-top:10px;font-size:11px;color:#4B5563">
+          <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:22px;height:3px;background:#0B57D0"></span>Programme leadership</span>
+          <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:22px;height:3px;background:#0A7A47"></span>Workstream lead</span>
+          <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:22px;height:3px;background:#8A5200"></span>Subcontracted</span>
+          <span style="margin-left:auto">Page 1 of 2 · Levels 1–3. Level 4 continues on page 2, grouped by workstream.</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:20px">
+      <sc-for list="{{ printRules }}" as="p" hint-placeholder-count="4">
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty"><span style="font-weight:600;color:#101720">{{ p.k }} — </span>{{ p.v }}</div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:16px 32px 96px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Dark</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <sc-for list="{{ darkNodes }}" as="n" hint-placeholder-count="3">
+          <div style="width:196px;background:{{ n.bg }};border:{{ n.border }};border-radius:8px;padding:10px 12px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:{{ n.avBg }};color:{{ n.avFg }};font-size:11px;font-weight:600">{{ n.initials }}</span>
+              <span style="min-width:0"><span style="display:block;font-size:12.5px;font-weight:600;color:#E9EEF6">{{ n.name }}</span><span style="display:block;font-size:11px;color:#AFBACA">{{ n.role }}</span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px"><span style="height:18px;padding:0 6px;display:inline-flex;align-items:center;border-radius:3px;background:#0A0D12;border:1px solid #333C4A;font-size:10px;color:#AFBACA">{{ n.region }}</span><span style="font-size:11px;color:#AFBACA;font-variant-numeric:tabular-nums">{{ n.rate }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#8592A6;margin-top:12px">Cards are surface/raised on a surface/base canvas; the dot grid drops to <span style="font-family:'IBM Plex Mono',monospace">#232A35</span> at 1.31:1, deliberately below the boundary threshold because it is texture, not structure. Connector lines use border/strong at 4.79:1 — they <em>are</em> structure.</div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Reparent — pointer and keyboard</h3>
+      <div style="font-size:12.5px;line-height:20px;color:#4B5563;text-wrap:pretty">Dragging a card lifts it to elevation/3, dims its former connector to 40%, and outlines every legal drop target with a 2px dashed accent ring. Illegal targets — the node itself, its own descendants, and anyone outside the programme — get no ring and reject the drop with a shake of 4px over 120ms (suppressed under reduced motion, replaced by a status/danger border flash).</div>
+      <div style="font-size:12.5px;line-height:20px;color:#4B5563;margin-top:10px;text-wrap:pretty">The keyboard path is identical in outcome and announced at each step: <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">R</span> enters reparent mode with the current manager preselected, ↑↓ walks the legal-target list in tree order, Enter commits, Escape restores. No pointer-only capability exists in this surface.</div>
+      <h3 style="margin:18px 0 10px;font-size:16px;line-height:22px;font-weight:600">Accessibility contract</h3>
+      <sc-for list="{{ a11y }}" as="a" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:112px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ a.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ a.v }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Responsive</h3>
+      <sc-for list="{{ responsive }}" as="r" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:78px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ r.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560,&quot;height&quot;:980}}">
+const PEOPLE = [
+  { id: 'n1', p: null, name: 'Nurul Iman', role: 'Programme Director', region: 'MY', rate: 4000, kind: 'lead' },
+  { id: 'n2', p: 'n1', name: 'Chan Wei Ling', role: 'Delivery Manager', region: 'MY', rate: 2900, kind: 'lead' },
+  { id: 'n3', p: 'n1', name: 'Rajesh Menon', role: 'Solution Architect', region: 'MY', rate: 3200, kind: 'lead' },
+  { id: 'n4', p: 'n1', name: 'Wong Jia Hui', role: 'PMO Lead', region: 'MY', rate: 1400, kind: 'stream' },
+  { id: 'n5', p: 'n2', name: 'Aisyah Rahman', role: 'Finance Lead (FI/CO)', region: 'MY', rate: 2400, kind: 'stream' },
+  { id: 'n6', p: 'n2', name: 'Lim Siew Fong', role: 'Logistics Lead (MM/SD)', region: 'MY', rate: 2400, kind: 'stream' },
+  { id: 'n7', p: 'n2', name: 'Sharifah Aziz', role: 'Human Capital Lead', region: 'MY', rate: 2300, kind: 'stream' },
+  { id: 'n8', p: 'n3', name: 'Zulkifli Hassan', role: 'Basis Lead', region: 'MY', rate: 2600, kind: 'stream' },
+  { id: 'n9', p: 'n3', name: 'Goh Mei Yee', role: 'Integration Architect', region: 'SG', rate: 3800, kind: 'stream' },
+  { id: 'n10', p: 'n3', name: 'Daniel Okafor', role: 'Data Migration Lead', region: 'MY', rate: 2700, kind: 'stream' },
+  { id: 'n11', p: 'n2', name: 'Siti Nurhaliza', role: 'Test Lead', region: 'MY', rate: 2200, kind: 'stream' },
+  { id: 'n12', p: 'n2', name: 'Farah Nasution', role: 'Change Manager', region: 'MY', rate: 2100, kind: 'stream' },
+  { id: 'n13', p: 'n5', name: 'Tan Boon Hock', role: 'FI/CO Consultant', region: 'MY', rate: 2400, kind: 'member' },
+  { id: 'n14', p: 'n5', name: 'Cheryl Tan', role: 'FI/CO Consultant', region: 'SG', rate: 3200, kind: 'member' },
+  { id: 'n15', p: 'n5', name: 'Iskandar Zulkarnain', role: 'Business Analyst', region: 'MY', rate: 1800, kind: 'member' },
+  { id: 'n16', p: 'n6', name: 'Hafiz Kamarudin', role: 'MM/SD Consultant', region: 'MY', rate: 2400, kind: 'member' },
+  { id: 'n17', p: 'n6', name: 'Yeo Chin Wei', role: 'PP/QM Consultant', region: 'MY', rate: 2500, kind: 'member' },
+  { id: 'n18', p: 'n7', name: 'Devi Krishnan', role: 'HCM Consultant', region: 'MY', rate: 2300, kind: 'member' },
+  { id: 'n19', p: 'n8', name: 'Mohd Faizal', role: 'Basis Consultant', region: 'MY', rate: 2600, kind: 'member' },
+  { id: 'n20', p: 'n8', name: 'Arun Prakash', role: 'ABAP Developer', region: 'IN', rate: 1100, kind: 'member' },
+  { id: 'n21', p: 'n8', name: 'Priya Raghavan', role: 'ABAP Developer', region: 'IN', rate: 1100, kind: 'member' },
+  { id: 'n22', p: 'n9', name: 'Kavitha Nair', role: 'Integration Consultant', region: 'SG', rate: 3800, kind: 'member' },
+  { id: 'n23', p: 'n9', name: 'Nguyen Thi Lan', role: 'Security Consultant', region: 'VN', rate: 1300, kind: 'sub' },
+  { id: 'n24', p: 'n10', name: 'Ng Kah Seng', role: 'Data Migration Analyst', region: 'MY', rate: 2700, kind: 'member' },
+  { id: 'n25', p: 'n11', name: 'Ravi Subramaniam', role: 'Test Analyst', region: 'MY', rate: 2200, kind: 'member' },
+  { id: 'n26', p: 'n12', name: 'Suriani Bakar', role: 'Training Lead', region: 'MY', rate: 2100, kind: 'member' },
+  { id: 'n27', p: 'n4', name: 'Amirul Shah', role: 'PMO Analyst', region: 'MY', rate: 1400, kind: 'member' },
+  { id: 'n28', p: 'n4', name: 'Lee Kok Wai', role: 'Cutover Lead', region: 'MY', rate: 2900, kind: 'stream' },
+  { id: 'n29', p: 'n28', name: 'Firdaus Omar', role: 'Cutover Analyst', region: 'MY', rate: 2900, kind: 'member' },
+  { id: 'n30', p: 'n9', name: 'Tran Van Minh', role: 'Security Consultant', region: 'VN', rate: 1300, kind: 'sub' }
+];
+const NW = 196, NH = 74, GAPX = 22, GAPY = 104;
+const ACCENT = { lead: '#0B57D0', stream: '#0A7A47', member: '#4B5563', sub: '#8A5200' };
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      scale: 0.5, panX: 12, panY: 18, dragging: false, sx: 0, sy: 0, px: 0, py: 0,
+      collapsed: {}, selected: 'n1', showRate: true, parents: {},
+      reparenting: false, targetIdx: 0,
+      announce: 'Org chart ready. 30 people, 4 levels. Arrow keys move between cards, C collapses a subtree, R reparents.'
+    };
+  }
+
+  parentOf(id) { const o = PEOPLE.find(p => p.id === id); return this.state.parents[id] !== undefined ? this.state.parents[id] : (o ? o.p : null); }
+  childrenOf(id) { return PEOPLE.filter(p => this.parentOf(p.id) === id); }
+
+  layout() {
+    const S = this.state;
+    const pos = {};
+    let cursorX = 0;
+    const walk = (id, depth) => {
+      const kids = S.collapsed[id] ? [] : this.childrenOf(id);
+      if (!kids.length) {
+        pos[id] = { x: cursorX, y: depth * GAPY, depth };
+        cursorX += NW + GAPX;
+        return pos[id];
+      }
+      const childPos = kids.map(k => walk(k.id, depth + 1));
+      const minX = childPos[0].x, maxX = childPos[childPos.length - 1].x;
+      pos[id] = { x: (minX + maxX) / 2, y: depth * GAPY, depth };
+      return pos[id];
+    };
+    walk('n1', 0);
+    return pos;
+  }
+
+  visibleIds(pos) { return PEOPLE.filter(p => pos[p.id]).map(p => p.id); }
+
+  descendants(id) {
+    const out = [];
+    const walk = (i) => this.childrenOf(i).forEach(c => { out.push(c.id); walk(c.id); });
+    walk(id);
+    return out;
+  }
+
+  say(m) { this.setState({ announce: m }); }
+
+  extents(pos) {
+    let maxX = 0, maxY = 0;
+    Object.keys(pos).forEach(k => { maxX = Math.max(maxX, pos[k].x + NW); maxY = Math.max(maxY, pos[k].y + NH); });
+    return { w: maxX, h: maxY };
+  }
+
+  // Fit never goes below the 40% legibility floor. If the full tree cannot
+  // fit at 40%, collapse the deepest level that still can, and say so.
+  fitView(quiet) {
+    const el = this._canvas;
+    const cw = (el ? el.clientWidth : 1400) - 32;
+    const ch = (el ? el.clientHeight : 560) - 32;
+    const FLOOR = 0.4;
+    const ratio = (collapsed) => {
+      const saved = this.state.collapsed;
+      this.state.collapsed = collapsed;
+      const pos = this.layout();
+      this.state.collapsed = saved;
+      const ex = this.extents(pos);
+      return { r: Math.min(cw / ex.w, ch / ex.h, 1), ex, pos };
+    };
+    const collapseDepth = (d) => {
+      const c = {};
+      const pos = this.layout();
+      PEOPLE.forEach(p => { if (pos[p.id] && pos[p.id].depth >= d && this.childrenOf(p.id).length) c[p.id] = true; });
+      return c;
+    };
+    const attempts = [
+      { c: {}, label: 'all four levels' },
+      { c: collapseDepth(2), label: 'levels 1 to 3' },
+      { c: collapseDepth(1), label: 'levels 1 to 2' }
+    ];
+    let chosen = attempts[attempts.length - 1];
+    let res = ratio(chosen.c);
+    for (let i = 0; i < attempts.length; i++) {
+      const t = ratio(attempts[i].c);
+      if (t.r >= FLOOR) { chosen = attempts[i]; res = t; break; }
+    }
+    const scale = Math.max(FLOOR, Math.min(res.r, 1));
+    const root = res.pos['n1'];
+    const rootCentreX = root ? (root.x + NW / 2) * scale : 0;
+    this.setState({
+      collapsed: chosen.c,
+      scale,
+      panX: Math.round(cw / 2 - rootCentreX + 16),
+      panY: 16
+    });
+    if (!quiet) {
+      const hidden = PEOPLE.length - Object.keys(res.pos).length;
+      this.say('Fitted at ' + Math.round(scale * 100) + '%, showing ' + chosen.label +
+        (hidden > 0 ? '. ' + hidden + ' people are collapsed; press C on a card or Expand all to reveal them.' : '. Everyone is visible.'));
+    }
+  }
+
+  componentDidMount() { setTimeout(() => this.fitView(true), 0); }
+
+  legalTargets() {
+    const bad = [this.state.selected].concat(this.descendants(this.state.selected));
+    return PEOPLE.filter(p => bad.indexOf(p.id) < 0);
+  }
+
+  onKey(e) {
+    const k = e.key;
+    const S = this.state;
+    const pos = this.layout();
+    const vis = this.visibleIds(pos);
+    const cur = PEOPLE.find(p => p.id === S.selected);
+    if (S.reparenting) {
+      const targets = this.legalTargets();
+      if (k === 'ArrowDown' || k === 'ArrowUp') {
+        e.preventDefault();
+        const n = Math.max(0, Math.min(targets.length - 1, S.targetIdx + (k === 'ArrowDown' ? 1 : -1)));
+        this.setState({ targetIdx: n });
+        this.say('Target ' + targets[n].name + ', ' + targets[n].role + '. ' + (n + 1) + ' of ' + targets.length + '.');
+        return;
+      }
+      if (k === 'Enter') {
+        e.preventDefault();
+        const t = targets[S.targetIdx];
+        const par = Object.assign({}, S.parents); par[S.selected] = t.id;
+        this.setState({ parents: par, reparenting: false });
+        this.say(cur.name + ' now reports to ' + t.name + '. ' + (this.descendants(S.selected).length) + ' people moved with them. Saved locally, 1 change pending sync.');
+        return;
+      }
+      if (k === 'Escape') { e.preventDefault(); this.setState({ reparenting: false }); this.say('Reparent cancelled. ' + cur.name + ' still reports to ' + (PEOPLE.find(p => p.id === this.parentOf(cur.id)) || { name: 'no one' }).name + '.'); return; }
+      return;
+    }
+    if (k === 'ArrowDown' || k === 'ArrowUp' || k === 'ArrowLeft' || k === 'ArrowRight') {
+      e.preventDefault();
+      let next = S.selected;
+      if (k === 'ArrowDown') { const kids = S.collapsed[S.selected] ? [] : this.childrenOf(S.selected); if (kids.length) next = kids[0].id; }
+      if (k === 'ArrowUp') { const p = this.parentOf(S.selected); if (p) next = p; }
+      if (k === 'ArrowLeft' || k === 'ArrowRight') {
+        const p = this.parentOf(S.selected);
+        const sibs = p ? this.childrenOf(p) : [PEOPLE[0]];
+        const i = sibs.findIndex(s => s.id === S.selected);
+        const j = Math.max(0, Math.min(sibs.length - 1, i + (k === 'ArrowRight' ? 1 : -1)));
+        next = sibs[j].id;
+      }
+      const o = PEOPLE.find(p => p.id === next);
+      const kids = this.childrenOf(next).length;
+      this.setState({ selected: next });
+      this.say(o.name + ', ' + o.role + ', ' + o.region + ', MYR ' + o.rate.toLocaleString() + ' per day, level ' + (pos[next] ? pos[next].depth + 1 : 1) +
+        (kids ? ', ' + kids + ' direct report' + (kids === 1 ? '' : 's') + ', ' + (S.collapsed[next] ? 'collapsed' : 'expanded') : ', no direct reports') + '.');
+      return;
+    }
+    if (k === 'c' || k === 'C') {
+      e.preventDefault();
+      const kids = this.childrenOf(S.selected).length;
+      if (!kids) { this.say(cur.name + ' has no direct reports to collapse.'); return; }
+      const c = Object.assign({}, S.collapsed);
+      const now = !c[S.selected];
+      if (now) c[S.selected] = true; else delete c[S.selected];
+      this.setState({ collapsed: c });
+      this.say(cur.name + ' subtree ' + (now ? 'collapsed, ' + this.descendants(S.selected).length + ' people hidden' : 'expanded') + '.');
+      return;
+    }
+    if (k === 'r' || k === 'R') {
+      e.preventDefault();
+      if (S.selected === 'n1') { this.say('The programme director has no manager to change.'); return; }
+      const targets = this.legalTargets();
+      const idx = Math.max(0, targets.findIndex(t => t.id === this.parentOf(S.selected)));
+      this.setState({ reparenting: true, targetIdx: idx });
+      this.say('Reparent mode. Moving ' + cur.name + ' with ' + this.descendants(S.selected).length + ' people. Up and down arrows choose a new manager from ' + targets.length + ' legal targets. Enter commits, Escape cancels.');
+      return;
+    }
+    if (k === '+' || k === '=') { e.preventDefault(); this.setState(s => ({ scale: Math.min(1.6, s.scale + 0.1) })); }
+    if (k === '-' || k === '_') { e.preventDefault(); this.setState(s => ({ scale: Math.max(0.4, s.scale - 0.1) })); }
+  }
+
+  renderVals() {
+    const S = this.state;
+    const pos = this.layout();
+    const targets = this.legalTargets();
+    const targetId = S.reparenting && targets[S.targetIdx] ? targets[S.targetIdx].id : null;
+
+    const nodes = PEOPLE.filter(p => pos[p.id]).map(p => {
+      const sel = S.selected === p.id;
+      const kids = this.childrenOf(p.id).length;
+      const hidden = S.collapsed[p.id] ? this.descendants(p.id).length : 0;
+      return {
+        domId: 'org-' + p.id, x: pos[p.id].x + 'px', y: pos[p.id].y + 'px',
+        level: pos[p.id].depth + 1, selAttr: sel ? 'true' : 'false',
+        expAttr: kids ? (S.collapsed[p.id] ? 'false' : 'true') : undefined,
+        aria: p.name + ', ' + p.role + ', ' + p.region + ', MYR ' + p.rate.toLocaleString() + ' per day' + (kids ? ', ' + kids + ' direct reports' : ', no direct reports'),
+        name: p.name, role: p.role, region: p.region,
+        rateText: S.showRate ? p.rate.toLocaleString() + '/day' : '•••',
+        initials: p.name.split(' ').map(w => w[0]).slice(0, 2).join(''),
+        avBg: p.kind === 'lead' ? '#E8F0FE' : p.kind === 'stream' ? '#E3F5EB' : p.kind === 'sub' ? '#FBF0DC' : '#F1F3F7',
+        avFg: p.kind === 'lead' ? '#0B57D0' : p.kind === 'stream' ? '#0A7A47' : p.kind === 'sub' ? '#8A5200' : '#4B5563',
+        bg: sel ? '#E8F0FE' : '#FFFFFF',
+        border: sel ? '1.5px solid #0B57D0' : '1px solid #7D8799',
+        shadow: sel ? '0 4px 12px rgba(16,23,32,.10)' : '0 1px 2px rgba(16,23,32,.06)',
+        compact: S.scale < 0.6,
+        full: S.scale >= 0.6,
+        minH: S.scale < 0.6 ? '52px' : '74px',
+        kids: kids ? (S.collapsed[p.id] ? '+' + hidden : String(kids)) : '',
+        chev: kids ? (S.collapsed[p.id] ? '▸' : '▾') : '',
+        toggleLabel: (S.collapsed[p.id] ? 'Expand ' : 'Collapse ') + p.name + ' subtree',
+        isTarget: targetId === p.id,
+        on: () => { this.setState({ selected: p.id }); this.say(p.name + ', ' + p.role + ', ' + p.region + ', MYR ' + p.rate.toLocaleString() + ' per day.'); },
+        toggle: (e) => {
+          e.stopPropagation();
+          const c = Object.assign({}, S.collapsed);
+          const now = !c[p.id];
+          if (now) c[p.id] = true; else delete c[p.id];
+          this.setState({ collapsed: c, selected: p.id });
+          this.say(p.name + ' subtree ' + (now ? 'collapsed, ' + this.descendants(p.id).length + ' people hidden' : 'expanded') + '.');
+        }
+      };
+    });
+
+    const links = [];
+    PEOPLE.forEach(p => {
+      const par = this.parentOf(p.id);
+      if (!par || !pos[p.id] || !pos[par]) return;
+      const cx = pos[p.id].x + NW / 2, cy = pos[p.id].y;
+      const px = pos[par].x + NW / 2, py = pos[par].y + NH;
+      const midY = py + (GAPY - NH) / 2;
+      links.push({ left: (px - 0.5) + 'px', top: py + 'px', w: '1px', h: (midY - py) + 'px', bl: '1px solid', bt: 'none', color: '#7D8799' });
+      links.push({ left: Math.min(px, cx) + 'px', top: midY + 'px', w: Math.abs(cx - px) + 'px', h: '1px', bl: 'none', bt: '1px solid', color: '#7D8799' });
+      links.push({ left: (cx - 0.5) + 'px', top: midY + 'px', w: '1px', h: (cy - midY) + 'px', bl: '1px solid', bt: 'none', color: '#7D8799' });
+    });
+
+    const printPos = {};
+    const pw = 168, pgx = 14, pgy = 96;
+    let px2 = 0;
+    const walkP = (id, depth) => {
+      if (depth > 2) return null;
+      const kids = this.childrenOf(id).filter(k => depth < 2);
+      if (!kids.length) { printPos[id] = { x: px2, y: depth * pgy, depth }; px2 += pw + pgx; return printPos[id]; }
+      const cp = kids.map(k => walkP(k.id, depth + 1)).filter(Boolean);
+      printPos[id] = { x: (cp[0].x + cp[cp.length - 1].x) / 2, y: depth * pgy, depth };
+      return printPos[id];
+    };
+    walkP('n1', 0);
+    const printNodes = PEOPLE.filter(p => printPos[p.id]).map(p => ({
+      x: printPos[p.id].x + 'px', y: printPos[p.id].y + 'px',
+      name: p.name, role: p.role, region: p.region, rate: 'MYR ' + p.rate.toLocaleString(),
+      accent: ACCENT[p.kind]
+    }));
+    const printLinks = [];
+    PEOPLE.forEach(p => {
+      const par = this.parentOf(p.id);
+      if (!par || !printPos[p.id] || !printPos[par]) return;
+      const cx = printPos[p.id].x + pw / 2, cy = printPos[p.id].y;
+      const ppx = printPos[par].x + pw / 2, ppy = printPos[par].y + 62;
+      const midY = ppy + 16;
+      printLinks.push({ left: (ppx - 0.5) + 'px', top: ppy + 'px', w: '1px', h: (midY - ppy) + 'px', bl: '1px solid', bt: 'none' });
+      printLinks.push({ left: Math.min(ppx, cx) + 'px', top: midY + 'px', w: Math.abs(cx - ppx) + 'px', h: '1px', bl: 'none', bt: '1px solid' });
+      printLinks.push({ left: (cx - 0.5) + 'px', top: midY + 'px', w: '1px', h: (cy - midY) + 'px', bl: '1px solid', bt: 'none' });
+    });
+
+    let pMaxX = 0, pMaxY = 0;
+    Object.keys(printPos).forEach(k => { pMaxX = Math.max(pMaxX, printPos[k].x + pw); pMaxY = Math.max(pMaxY, printPos[k].y + 62); });
+    const printScale = Math.min(1034 / pMaxX, 1);
+
+    const cur = PEOPLE.find(p => p.id === S.selected) || PEOPLE[0];
+    const blended = Math.round(PEOPLE.reduce((a, p) => a + p.rate, 0) / PEOPLE.length).toLocaleString();
+
+    return {
+      printScale: String(printScale), printScalePct: Math.round(printScale * 100) + '%',
+      nodeCount: String(PEOPLE.length), visibleCount: String(nodes.length),
+      blended, nodes, links, printNodes, printLinks,
+      activeId: 'org-' + S.selected,
+      zoomPct: Math.round(S.scale * 100) + '%',
+      scale: String(S.scale), panX: S.panX + 'px', panY: S.panY + 'px',
+      cursor: S.dragging ? 'grabbing' : 'grab',
+      announce: S.announce, statusBg: S.reparenting ? '#E8F0FE' : '#FFFFFF',
+      reparenting: S.reparenting,
+      movingName: cur.name,
+      targetName: targets[S.targetIdx] ? targets[S.targetIdx].name : '',
+      showRate: S.showRate,
+      rateMark: S.showRate ? '✓' : '○',
+      rateBg: S.showRate ? '#E8F0FE' : '#FFFFFF',
+      rateFg: S.showRate ? '#0B57D0' : '#4B5563',
+      rateBd: S.showRate ? '#BBD0F6' : '#CBD2DC',
+      toggleRate: () => this.setState(s => ({ showRate: !s.showRate })),
+      zoomIn: () => this.setState(s => ({ scale: Math.min(1.6, s.scale + 0.1) })),
+      zoomOut: () => this.setState(s => ({ scale: Math.max(0.4, s.scale - 0.1) })),
+      fit: () => this.fitView(false),
+      canvasRef: (el) => { if (el && !this._canvas) { this._canvas = el; setTimeout(() => this.fitView(true), 0); } },
+      collapseL3: () => { const c = {}; PEOPLE.forEach(p => { if (pos[p.id] && pos[p.id].depth === 2 && this.childrenOf(p.id).length) c[p.id] = true; }); this.setState({ collapsed: c }); this.say('Collapsed level 3. Only leads and their counts are shown.'); },
+      expandAll: () => { this.setState({ collapsed: {} }); this.say('All subtrees expanded. 30 people shown.'); },
+      onDown: (e) => this.setState({ dragging: true, sx: e.clientX, sy: e.clientY, px: S.panX, py: S.panY }),
+      onMove: (e) => { if (this.state.dragging) this.setState({ panX: this.state.px + (e.clientX - this.state.sx), panY: this.state.py + (e.clientY - this.state.sy) }); },
+      onUp: () => { if (this.state.dragging) this.setState({ dragging: false }); },
+      onKey: (e) => this.onKey(e),
+
+      anatomy: [
+        { k: 'Card', v: '196 × 74, radius/lg, 1px border/strong at 3.62:1. Selected takes 1.5px accent and accent/subtle fill; the border weight change means selection survives greyscale.' },
+        { k: 'Line 1', v: 'Name, type/body-sm weight 600, one line, ellipsis. Names are never abbreviated to initials on the card — the avatar already does that.' },
+        { k: 'Line 2', v: 'Role, type/label, content/secondary. This is the role in the programme, not the HR title.' },
+        { k: 'Meta row', v: 'Region chip, day rate in tabular numerals, and the direct-report counter. Rate obeys cost visibility: at level 1 it renders as ••• with the same width, never blank.' },
+        { k: 'Counter', v: 'A real button, 20px tall inside a 74px card so the composite target clears 24px. Shows the child count when expanded, “+N” hidden when collapsed.' },
+        { k: 'Connectors', v: 'Orthogonal, 1px border/strong, routed through a mid-gutter 15px below the parent. Never diagonal — a diagonal line at 60% zoom aliases into the dot grid.' }
+      ],
+
+      rules: [
+        'Layout is a tidy tree: leaves are packed left to right at a fixed pitch, parents centre over their children. Nothing overlaps at any zoom, so panning is the only navigation needed.',
+        'Collapse is per-subtree and its state is part of the saved view — a delivery manager who always works from a collapsed PMO branch gets it back on reload.',
+        'A collapsed node shows “+N”: the count of everyone hidden beneath it, not just direct children, so nothing disappears silently.',
+        'Zoom runs 40% to 160% in 10-point steps. Below 60% the meta row is dropped and the card shrinks to name plus role — a legibility floor, not a smooth scale.',
+        'Rate visibility is inherited from the project’s cost-visibility level, not a chart-local toggle; the switch here only hides rates on screen for a client-facing walkthrough and says so in its tooltip.',
+        'Reparenting moves the whole subtree, and the confirmation always names the count: “Moves Goh Mei Yee and 3 people.”',
+        'The chart is a view of the resource plan, not a second source of truth: renaming a person here renames them everywhere, and a person can appear exactly once.'
+      ],
+
+      keys: [
+        { k: '↑ ↓', v: 'Move to the manager or the first direct report.' },
+        { k: '← →', v: 'Move between siblings under the same manager.' },
+        { k: 'C', v: 'Collapse or expand the selected subtree; announces how many people were hidden.' },
+        { k: 'R', v: 'Enter reparent mode — the keyboard equivalent of drag-to-reparent.' },
+        { k: '↑ ↓ (R)', v: 'Walk the legal-target list, which excludes the node itself and all its descendants.' },
+        { k: 'Enter / Esc', v: 'Commit or cancel the reparent; both are announced with the resulting reporting line.' },
+        { k: '+ / −', v: 'Zoom in 10-point steps, anchored on the selected card.' }
+      ],
+
+      sayExamples: [
+        { k: '↓', v: 'Aisyah Rahman, Finance Lead (FI/CO), MY, MYR 2,400 per day, level 3, 3 direct reports, expanded.' },
+        { k: 'C', v: 'Aisyah Rahman subtree collapsed, 3 people hidden.' },
+        { k: 'R', v: 'Reparent mode. Moving Goh Mei Yee with 3 people. Up and down arrows choose a new manager from 26 legal targets. Enter commits, Escape cancels.' },
+        { k: 'Enter', v: 'Goh Mei Yee now reports to Chan Wei Ling. 3 people moved with them. Saved locally, 1 change pending sync.' }
+      ],
+
+      printRules: [
+        { k: 'Pagination', v: 'Levels 1–3 on page 1, scaled as one block to the 1,034 pt content width — here that lands at ' + Math.round(printScale * 100) + '% — with a floor of 70%. Below the floor the sheet drops to levels 1–2 and pushes level 3 to page 2 rather than shrinking type further. Level 4 always continues on page 2 grouped by workstream, each group repeating its lead as a stub card; subtrees are never split mid-branch.' },
+        { k: 'Ink', v: 'No fills. Structure is carried by a 1px black rule and a 3px coloured top edge per role class, which still reads as three distinct greys when printed mono.' },
+        { k: 'Header', v: 'Programme, client, project code and the “as at” date on every page, because a printed org chart outlives its accuracy.' },
+        { k: 'Rates', v: 'Included only when the exporter’s cost visibility allows it; otherwise the column is omitted entirely and the footer states “Rates withheld — cost visibility level 1”, rather than printing a masked column.' }
+      ],
+
+      a11y: [
+        { k: 'Tree', v: 'role="tree" with aria-activedescendant; each card is role="treeitem" with aria-level, aria-selected and aria-expanded. One tab stop for the whole canvas.' },
+        { k: 'Card name', v: 'The accessible name carries name, role, region, day rate and direct-report count, so the card is comprehensible without seeing its position in the layout.' },
+        { k: 'Pan / zoom', v: 'Pointer pan has arrow-key equivalents at the container level and is never the only way to reach a node; zoom respects the browser’s own zoom and never traps ⌘+.' },
+        { k: 'Reparent', v: 'Announced at entry, on every target change, and on commit or cancel — with the subtree size each time, because the consequence is what the user is deciding about.' },
+        { k: 'Live region', v: '#org-status is role="status" aria-live="polite" aria-atomic="true", shown visibly here for review, visually hidden in the product.' },
+        { k: 'Dot grid', v: 'Decorative and aria-hidden; it is below the 3:1 boundary threshold on purpose, because it conveys nothing.' }
+      ],
+
+      responsive: [
+        { k: '1920+', v: 'Canvas at 100%, right drawer available alongside for the selected person without panning.' },
+        { k: '1440', v: 'Default 78% zoom, drawer overlays the canvas edge.' },
+        { k: '1024', v: 'Zoom drops to 62%, meta row retained, toolbar collapses its labels to icons with tooltips.' },
+        { k: '768', v: 'Chart becomes an indented list — level, name, role, rate — with the same collapse behaviour. Reparent stays available; pan and zoom disappear.' },
+        { k: '320', v: 'Indented list only, two lines per person, 44px rows. This is the read-only mobile form, and the “Open on desktop to restructure” link states it.' }
+      ],
+
+      darkNodes: [
+        { name: 'Nurul Iman', role: 'Programme Director', region: 'MY', rate: '4,000/day', initials: 'NI', bg: '#16294A', border: '1.5px solid #7FB0FF', avBg: '#16294A', avFg: '#7FB0FF' },
+        { name: 'Rajesh Menon', role: 'Solution Architect', region: 'MY', rate: '3,200/day', initials: 'RM', bg: '#171C24', border: '1px solid #748196', avBg: '#0F2E22', avFg: '#56D69A' },
+        { name: 'Nguyen Thi Lan', role: 'Security Consultant', region: 'VN', rate: '1,300/day', initials: 'NL', bg: '#171C24', border: '1px solid #748196', avBg: '#33240B', avFg: '#E9B45A' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

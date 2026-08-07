@@ -1,0 +1,252 @@
+/* Design system — Button (layer 2, Primitives)
+ *
+ * Reads only `--ds-*` tokens, so both themes come for free and no hex appears
+ * below. Every colour here traces to a pair verified in
+ * src/styles/__tests__/foundations-contrast.test.ts. */
+
+.button {
+  /* The label stack (see .labels) needs the button to be a grid container. */
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  justify-content: center;
+
+  border: var(--ds-border-hairline) solid transparent;
+  border-radius: var(--ds-radius-md);
+  font-family: var(--ds-font-sans);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+
+  transition:
+    background-color var(--ds-duration-fast) var(--ds-easing-standard),
+    border-color var(--ds-duration-fast) var(--ds-easing-standard),
+    color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.button:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+/* ---------------------------------------------------------------------------
+ * Sizes
+ *
+ * Rule 6 from the spec: a button never uses type/label. 12px on a 36px control
+ * reads as a disabled chip, so 13px is the floor — which is why `sm` is 13px
+ * and not the 12px label token.
+ * -------------------------------------------------------------------------*/
+.sm {
+  height: 28px;
+  padding: 0 10px;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.md {
+  height: 36px;
+  padding: 0 14px;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.lg {
+  height: 44px;
+  padding: 0 18px;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* Icon-only: a square of the same height, no horizontal padding. The 44px
+ * variant is the touch target; `sm` is for table-row actions. */
+.iconOnly.sm {
+  width: 28px;
+  padding: 0;
+}
+.iconOnly.md {
+  width: 36px;
+  padding: 0;
+}
+.iconOnly.lg {
+  width: 44px;
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Variants
+ * -------------------------------------------------------------------------*/
+.primary {
+  background: var(--ds-accent-default);
+  color: var(--ds-accent-on);
+  border-color: var(--ds-accent-default);
+}
+.primary:hover:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-accent-hover);
+  border-color: var(--ds-accent-hover);
+}
+.primary:active:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-accent-active);
+  border-color: var(--ds-accent-active);
+}
+
+.secondary {
+  background: var(--ds-surface-raised);
+  color: var(--ds-content-primary);
+  border-color: var(--ds-border-strong);
+}
+.secondary:hover:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-surface-hover);
+  border-color: var(--ds-border-strong-hover);
+}
+.secondary:active:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-surface-active);
+  border-color: var(--ds-border-strong-hover);
+}
+
+.tertiary {
+  background: transparent;
+  color: var(--ds-accent-default);
+  border-color: transparent;
+}
+.tertiary:hover:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-accent-subtle-hover);
+  color: var(--ds-accent-hover);
+}
+.tertiary:active:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-accent-subtle-active);
+  color: var(--ds-accent-active);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--ds-content-secondary);
+  border-color: transparent;
+}
+.ghost:hover:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-surface-hover);
+  color: var(--ds-content-primary);
+}
+.ghost:active:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-surface-active);
+  color: var(--ds-content-primary);
+}
+
+.danger {
+  background: var(--ds-danger-default);
+  color: var(--ds-danger-on);
+  border-color: var(--ds-danger-default);
+}
+.danger:hover:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-danger-hover);
+  border-color: var(--ds-danger-hover);
+}
+.danger:active:not([aria-disabled="true"]):not([aria-busy="true"]) {
+  background: var(--ds-danger-active);
+  border-color: var(--ds-danger-active);
+}
+
+/* ---------------------------------------------------------------------------
+ * Disabled
+ *
+ * Driven by `aria-disabled`, not the `disabled` attribute — a disabled element
+ * is removed from the tab order and cannot hold a tooltip or be explained, so
+ * the component keeps it focusable and blocks activation in the handler.
+ * -------------------------------------------------------------------------*/
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  background: var(--ds-surface-disabled);
+  color: var(--ds-content-disabled);
+  border-color: var(--ds-border-disabled);
+}
+
+/* Filled variants read as "switched off" rather than "a different button". */
+.primary[aria-disabled="true"],
+.danger[aria-disabled="true"] {
+  background: var(--ds-fill-disabled);
+}
+
+.tertiary[aria-disabled="true"],
+.ghost[aria-disabled="true"] {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+ * Loading
+ *
+ * cursor:progress rather than not-allowed — the action was accepted, it is
+ * running. The button stays focusable; activation is blocked in the handler.
+ * -------------------------------------------------------------------------*/
+.button[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* Both labels occupy the same grid cell, so the button is always as wide as
+ * the wider of "Save plan" and "Saving…" in every state. That is what stops
+ * the row reflowing when loading starts — reserving width only while loading
+ * would move the layout at the exact moment the user is watching it. */
+.labels {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+}
+
+.labels > * {
+  grid-area: 1 / 1;
+}
+
+.hiddenLabel {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: var(--ds-radius-full);
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  opacity: 0.9;
+  animation: ds-button-spin 700ms linear infinite;
+}
+
+@keyframes ds-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion: the spinner must not simply freeze mid-rotation, which reads
+ * as a hung control. It slows to a step so progress is still legible. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: ds-button-spin 3s steps(8, end) infinite !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Menu chevron
+ * -------------------------------------------------------------------------*/
+.chevron {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  transition: transform var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.button[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}

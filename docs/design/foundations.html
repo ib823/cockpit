@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<![CDATA[<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#0B57D0; text-decoration:underline; text-underline-offset:2px; }
+  a:hover { color:#08429E; }
+  ::selection { background:#D6E4FD; }
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#F6F7F9;color:#101720;padding:0 0 96px">
+
+  <div style="max-width:1240px;margin:0 auto;padding:0 40px">
+
+    <header style="padding:72px 0 40px;border-bottom:1px solid #CBD2DC">
+      <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — SAP delivery planning</div>
+      <h1 style="margin:14px 0 0;font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.025em;max-width:20ch;text-wrap:pretty">Foundations: principles &amp; design tokens</h1>
+      <p style="margin:20px 0 0;max-width:68ch;font-size:16px;line-height:26px;color:#4B5563;text-wrap:pretty">Layer 1 of the Cockpit design system. Every value below is a named token with a computed contrast ratio for both themes. Nothing in the component or screen layers may introduce a value that is not defined here.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:24px">
+        <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:#E8F0FE;color:#0B57D0;font-size:12px;line-height:16px;font-weight:500;border:1px solid #BBD0F6">WCAG 2.2 AA verified</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:#FFFFFF;color:#4B5563;font-size:12px;line-height:16px;font-weight:500;border:1px solid #CBD2DC">Light + dark, both authored</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:#FFFFFF;color:#4B5563;font-size:12px;line-height:16px;font-weight:500;border:1px solid #CBD2DC">IBM Plex Sans / Plex Mono</span>
+      </div>
+    </header>
+
+    <section style="padding:56px 0 0">
+      <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">01 — Principles</div>
+      <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Six rules that decide arguments</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-top:28px">
+        <sc-for list="{{ principles }}" as="p" hint-placeholder-count="6">
+          <article style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:16px;color:#7D8799">{{ p.n }}</div>
+            <h3 style="margin:0;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-0.01em">{{ p.title }}</h3>
+            <p style="margin:0;font-size:14px;line-height:22px;color:#4B5563;text-wrap:pretty">{{ p.body }}</p>
+            <div style="margin-top:6px;padding-top:12px;border-top:1px dashed #CBD2DC;font-size:13px;line-height:20px;color:#101720"><span style="font-weight:600">Implication — </span>{{ p.impl }}</div>
+          </article>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="padding:64px 0 0">
+      <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">02 — Colour</div>
+      <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Semantic roles, light theme</h2>
+      <p style="margin:12px 0 0;max-width:70ch;font-size:14px;line-height:22px;color:#4B5563">Ratio column states the computed contrast of the token against the surface named in “Verified against”. Text roles target 4.5:1; boundary, icon and focus roles target 3:1. Roles marked <em>decorative</em> carry no meaning alone and are always paired with a stronger cue.</p>
+
+      <div style="margin-top:24px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:56px 1.5fr 110px 2fr 1.3fr 92px;gap:16px;padding:12px 20px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563">
+          <div>Swatch</div><div>Token</div><div>Value</div><div>Use</div><div>Verified against</div><div style="text-align:right">Ratio</div>
+        </div>
+        <sc-for list="{{ light }}" as="r" hint-placeholder-count="12">
+          <div style="display:grid;grid-template-columns:56px 1.5fr 110px 2fr 1.3fr 92px;gap:16px;padding:12px 20px;border-bottom:1px solid #E4E7EC;align-items:center">
+            <div style="height:28px;border-radius:6px;border:1px solid #CBD2DC;background:{{ r.hex }}"></div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:18px;color:#101720">{{ r.token }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:18px;color:#4B5563;font-variant-numeric:tabular-nums">{{ r.hex }}</div>
+            <div style="font-size:13px;line-height:19px;color:#4B5563">{{ r.use }}</div>
+            <div style="font-size:13px;line-height:19px;color:#667085">{{ r.against }}</div>
+            <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:18px;font-variant-numeric:tabular-nums;font-weight:500;color:{{ r.color }}">{{ r.ratio }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h2 style="margin:48px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Semantic roles, dark theme</h2>
+      <p style="margin:12px 0 0;max-width:70ch;font-size:14px;line-height:22px;color:#4B5563">Dark is authored, not inverted: surfaces get lighter as they rise, accent is desaturated and lifted so it still reads as blue at 8:1, and status hues are pulled toward their tint rather than their shade. Accent carries dark text, never white.</p>
+
+      <div style="margin-top:24px;background:#0E1116;border:1px solid #333C4A;border-radius:8px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:56px 1.5fr 110px 2fr 1.3fr 92px;gap:16px;padding:12px 20px;background:#171C24;border-bottom:1px solid #333C4A;font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#AFBACA">
+          <div>Swatch</div><div>Token</div><div>Value</div><div>Use</div><div>Verified against</div><div style="text-align:right">Ratio</div>
+        </div>
+        <sc-for list="{{ dark }}" as="r" hint-placeholder-count="12">
+          <div style="display:grid;grid-template-columns:56px 1.5fr 110px 2fr 1.3fr 92px;gap:16px;padding:12px 20px;border-bottom:1px solid #232A35;align-items:center">
+            <div style="height:28px;border-radius:6px;border:1px solid #3D4757;background:{{ r.hex }}"></div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:18px;color:#E9EEF6">{{ r.token }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:18px;color:#AFBACA;font-variant-numeric:tabular-nums">{{ r.hex }}</div>
+            <div style="font-size:13px;line-height:19px;color:#AFBACA">{{ r.use }}</div>
+            <div style="font-size:13px;line-height:19px;color:#8592A6">{{ r.against }}</div>
+            <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:18px;font-variant-numeric:tabular-nums;font-weight:500;color:{{ r.color }}">{{ r.ratio }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px">
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px">
+          <h3 style="margin:0 0 10px;font-size:15px;line-height:22px;font-weight:600">The accent trap, stated once</h3>
+          <p style="margin:0;font-size:13px;line-height:21px;color:#4B5563">A mid-blue such as <span style="font-family:'IBM Plex Mono',monospace">#007AFF</span> is 4.02:1 on white and fails for body-sized text and for link text in tables. Cockpit's light accent is <span style="font-family:'IBM Plex Mono',monospace">#0B57D0</span> at 6.39:1, which also survives the sunken surface at 5.75:1 and the app canvas at 5.96:1 — so a link is legible in a table row, a sidebar and a modal without a second token.</p>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px">
+          <h3 style="margin:0 0 10px;font-size:15px;line-height:22px;font-weight:600">Status never travels alone</h3>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ statusDemo }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:4px;font-size:12px;line-height:16px;font-weight:500;background:{{ s.bg }};color:{{ s.fg }};border:1px solid {{ s.bd }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">{{ s.glyph }}</span>{{ s.label }}</span>
+                <span style="font-size:13px;line-height:19px;color:#4B5563">{{ s.note }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding:64px 0 0">
+      <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">03 — Typography</div>
+      <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Eight steps, one of them numeric</h2>
+      <p style="margin:12px 0 0;max-width:70ch;font-size:14px;line-height:22px;color:#4B5563">IBM Plex Sans for interface text; IBM Plex Mono for identifiers, tokens and keyboard hints. Any figure that appears in a column — rate, margin, date, duration, allocation — takes <span style="font-family:'IBM Plex Mono',monospace">font-variant-numeric: tabular-nums</span> and right alignment.</p>
+      <div style="margin-top:24px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;overflow:hidden">
+        <sc-for list="{{ type }}" as="t" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:1.1fr 2.3fr 1.4fr;gap:24px;padding:20px;border-bottom:1px solid #E4E7EC;align-items:center">
+            <div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:18px;color:#101720">{{ t.token }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:18px;color:#667085;font-variant-numeric:tabular-nums">{{ t.spec }}</div>
+            </div>
+            <div style="font-size:{{ t.px }};line-height:{{ t.lh }};font-weight:{{ t.w }};letter-spacing:{{ t.ls }};font-family:{{ t.ff }};text-transform:{{ t.tt }};font-variant-numeric:{{ t.vn }};color:#101720;overflow:hidden;text-overflow:ellipsis">{{ t.sample }}</div>
+            <div style="font-size:13px;line-height:20px;color:#4B5563">{{ t.use }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="padding:64px 0 0">
+      <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">04 — Space, shape, depth, motion</div>
+      <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Fixed ramps, no arbitrary values</h2>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px">
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+          <h3 style="margin:0 0 4px;font-size:16px;line-height:22px;font-weight:600">Spacing — 4px base</h3>
+          <p style="margin:0 0 16px;font-size:13px;line-height:20px;color:#4B5563">Dense views use 4–12; page chrome uses 16–32; only the dashboard and marketing-grade surfaces reach 48+.</p>
+          <sc-for list="{{ spacing }}" as="s" hint-placeholder-count="10">
+            <div style="display:grid;grid-template-columns:96px 52px 1fr;gap:12px;align-items:center;padding:5px 0">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:16px;color:#101720">{{ s.token }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:16px;color:#667085;font-variant-numeric:tabular-nums">{{ s.px }}</div>
+              <div style="height:10px;border-radius:2px;background:#BBD0F6;width:{{ s.px }}"></div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+            <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600">Radius &amp; border width</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:12px">
+              <sc-for list="{{ radius }}" as="r" hint-placeholder-count="6">
+                <div style="width:104px">
+                  <div style="height:52px;background:#E8F0FE;border:1px solid #7D8799;border-radius:{{ r.px }}"></div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:15px;color:#101720;margin-top:6px">{{ r.token }}</div>
+                  <div style="font-size:11px;line-height:15px;color:#667085">{{ r.use }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:18px;padding-top:16px;border-top:1px solid #E4E7EC;font-size:13px;line-height:21px;color:#4B5563"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">border/width/hairline 1px</span> · <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">…/emphasis 1.5px</span> (selected row, current Gantt bar) · <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">…/focus 2px</span> (focus ring, always with a 2px offset).</div>
+          </div>
+
+          <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+            <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600">Elevation</h3>
+            <p style="margin:0 0 16px;font-size:13px;line-height:20px;color:#4B5563">In dark mode a shadow alone is invisible, so every dark elevation adds a surface step <em>and</em> a <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">border/subtle</span> hairline.</p>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ elevation }}" as="e" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch">
+                  <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;padding:10px 12px;box-shadow:{{ e.light }}">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:16px;color:#101720">{{ e.token }}</div>
+                    <div style="font-size:12px;line-height:17px;color:#667085">{{ e.use }}</div>
+                  </div>
+                  <div style="background:{{ e.darkBg }};border:1px solid #232A35;border-radius:6px;padding:10px 12px;box-shadow:{{ e.dark }}">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:16px;color:#E9EEF6">{{ e.darkBg }}</div>
+                    <div style="font-size:12px;line-height:17px;color:#8592A6">dark surface step</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+          <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600">Motion</h3>
+          <sc-for list="{{ motion }}" as="m" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:150px 96px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid #E4E7EC;align-items:baseline">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:17px;color:#101720">{{ m.token }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:17px;color:#667085;font-variant-numeric:tabular-nums">{{ m.val }}</div>
+              <div style="font-size:12px;line-height:18px;color:#4B5563">{{ m.use }}</div>
+            </div>
+          </sc-for>
+          <div style="margin-top:14px;font-size:13px;line-height:21px;color:#4B5563"><span style="font-weight:600">Reduced motion — </span>every duration collapses to <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">motion/duration/instant</span>, transforms are dropped and only opacity remains. Gantt auto-scroll becomes a jump; the sync spinner becomes a static glyph with a live-region text update.</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+          <h3 style="margin:0 0 16px;font-size:16px;line-height:22px;font-weight:600">Z-index</h3>
+          <sc-for list="{{ zindex }}" as="z" hint-placeholder-count="8">
+            <div style="display:grid;grid-template-columns:180px 64px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid #E4E7EC;align-items:baseline">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:17px;color:#101720">{{ z.token }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:17px;color:#667085;font-variant-numeric:tabular-nums">{{ z.val }}</div>
+              <div style="font-size:12px;line-height:18px;color:#4B5563">{{ z.use }}</div>
+            </div>
+          </sc-for>
+          <div style="margin-top:14px;font-size:13px;line-height:21px;color:#4B5563"><span style="font-weight:600">Stacking rule — </span>Cockpit allows at most two stacked modals (e.g. Edit task → Delete confirm). Each additional modal adds 10 to <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">z/modal</span> and its scrim opacity drops to 24% so the parent stays legible. A third request replaces the second rather than stacking.</div>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding:64px 0 0">
+      <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">05 — Implementation</div>
+      <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Paste-ready custom properties</h2>
+      <p style="margin:12px 0 0;max-width:70ch;font-size:14px;line-height:22px;color:#4B5563">Theme is set by <span style="font-family:'IBM Plex Mono',monospace">data-theme</span> on the root element, defaulting to the OS preference. Component CSS references only these names.</p>
+      <pre style="margin:24px 0 0;background:#0E1116;color:#E9EEF6;border:1px solid #333C4A;border-radius:8px;padding:24px;overflow:auto;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:20px">{{ css }}</pre>
+    </section>
+
+    <section style="padding:64px 0 0">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:28px">
+        <h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600;letter-spacing:-0.015em">Next layers</h2>
+        <p style="margin:10px 0 20px;font-size:14px;line-height:22px;color:#4B5563;max-width:70ch">This document is layer 1 of 5. The remaining layers build only from the tokens above.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+          <sc-for list="{{ roadmap }}" as="r" hint-placeholder-count="5">
+            <div style="border:1px solid #E4E7EC;border-radius:6px;padding:14px;background:{{ r.bg }}">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:15px;color:#667085">{{ r.n }}</div>
+              <div style="font-size:14px;line-height:20px;font-weight:600;margin-top:4px">{{ r.title }}</div>
+              <div style="font-size:12px;line-height:18px;color:#4B5563;margin-top:4px">{{ r.body }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>]]>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  renderVals() {
+    const ok = '#0A7A47', warn = '#8A5200';
+    const L = (token, hex, use, against, ratio, dec) => ({ token, hex, use, against, ratio, color: dec ? warn : ok });
+
+    const light = [
+      L('surface/base', '#FFFFFF', 'Cards, tables, modals, drawers', 'app canvas #F6F7F9', '1.06 decorative', true),
+      L('surface/app', '#F6F7F9', 'Page canvas behind all panels', 'surface/base', '1.06 decorative', true),
+      L('surface/sunken', '#F1F3F7', 'Table headers, inset wells, disabled fields', 'surface/base', '1.11 decorative', true),
+      L('surface/overlay', 'rgba(16,23,32,0.48)', 'Modal scrim; 24% when a second modal stacks', 'content beneath', 'n/a', true),
+      L('content/primary', '#101720', 'Body text, table cells, headings', 'surface/base', '18.02:1', false),
+      L('content/secondary', '#4B5563', 'Descriptions, column labels, helper text', 'surface/base', '7.56:1', false),
+      L('content/tertiary', '#667085', 'Metadata, timestamps, placeholder', 'surface/base', '4.97:1', false),
+      L('content/disabled', '#98A2B3', 'Disabled label — always paired with aria-disabled', 'surface/base', '2.58 exempt', true),
+      L('content/inverse', '#FFFFFF', 'Text on accent and on dark tooltips', 'accent/default', '6.39:1', false),
+      L('border/subtle', '#E4E7EC', 'Row rules, card edges — decorative only', 'surface/base', '1.24 decorative', true),
+      L('border/default', '#CBD2DC', 'Section dividers, table gridlines', 'surface/base', '1.52 decorative', true),
+      L('border/strong', '#7D8799', 'Input, checkbox, toggle and Gantt bar edges', 'surface/base', '3.62:1', false),
+      L('border/focus', '#0B57D0', '2px ring, 2px offset, on every focusable', 'surface/base', '6.39:1', false),
+      L('accent/default', '#0B57D0', 'Primary action, links, selection, today marker', 'surface/base', '6.39:1', false),
+      L('accent/hover', '#08429E', 'Hover on primary action and links', 'surface/base', '9.20:1', false),
+      L('accent/active', '#06337A', 'Pressed state', 'surface/base', '12.30:1', false),
+      L('accent/subtle', '#E8F0FE', 'Selected row, active nav, filter chip fill', 'accent/default text', '5.57:1', false),
+      L('accent/onAccent', '#FFFFFF', 'Label on a filled accent surface', 'accent/default', '6.39:1', false),
+      L('status/success/default', '#0A7A47', 'On track, synced, approved', 'surface/base', '5.40:1', false),
+      L('status/success/subtle', '#E3F5EB', 'Pill fill behind success text', 'success/default text', '4.77:1', false),
+      L('status/warning/default', '#8A5200', 'At risk, over-allocated, pending approval', 'surface/base', '6.39:1', false),
+      L('status/warning/subtle', '#FBF0DC', 'Pill fill behind warning text', 'warning/default text', '5.66:1', false),
+      L('status/danger/default', '#B3261E', 'Late, conflict, destructive action, blocked', 'surface/base', '6.54:1', false),
+      L('status/danger/subtle', '#FDE9E7', 'Pill fill, invalid field fill, conflict row', 'danger/default text', '5.60:1', false),
+      L('status/info/default', '#0B57D0', 'Informational banners, baseline overlay', 'surface/base', '6.39:1', false),
+      L('status/info/subtle', '#E8F0FE', 'Info banner fill', 'info/default text', '5.57:1', false)
+    ];
+
+    const D = (token, hex, use, against, ratio, dec) => ({ token, hex, use, against, ratio, color: dec ? '#E9B45A' : '#56D69A' });
+    const dark = [
+      D('surface/base', '#0E1116', 'App canvas — the lowest surface', 'surface/raised', '1.11 decorative', true),
+      D('surface/raised', '#171C24', 'Cards, tables, drawers, menus (+ hairline border)', 'surface/base', '1.11 decorative', true),
+      D('surface/sunken', '#0A0D12', 'Table headers, wells, code and Gantt gutter', 'surface/base', '1.03 decorative', true),
+      D('surface/overlay', 'rgba(4,6,10,0.64)', 'Modal scrim; 32% when a second modal stacks', 'content beneath', 'n/a', true),
+      D('content/primary', '#E9EEF6', 'Body text, table cells, headings', 'surface/base / raised', '16.23:1 / 14.68:1', false),
+      D('content/secondary', '#AFBACA', 'Descriptions, column labels, helper text', 'surface/base / raised', '9.64:1 / 8.71:1', false),
+      D('content/tertiary', '#8592A6', 'Metadata, timestamps, placeholder', 'surface/base / raised', '6.00:1 / 5.42:1', false),
+      D('content/disabled', '#5C6779', 'Disabled label — always paired with aria-disabled', 'surface/base', '3.31 exempt', true),
+      D('content/inverse', '#0B1220', 'Text on accent fills and light tooltips', 'accent/default', '8.52:1', false),
+      D('border/subtle', '#232A35', 'Row rules, card edges — decorative only', 'surface/base', '1.31 decorative', true),
+      D('border/default', '#333C4A', 'Section dividers, table gridlines', 'surface/base', '1.70 decorative', true),
+      D('border/strong', '#748196', 'Input, checkbox, toggle and Gantt bar edges', 'surface/base / raised', '4.79:1 / 4.33:1', false),
+      D('border/focus', '#8FC0FF', '2px ring, 2px offset, on every focusable', 'surface/base / raised', '10.04:1 / 9.08:1', false),
+      D('accent/default', '#7FB0FF', 'Primary action, links, selection, today marker', 'surface/base / raised', '8.61:1 / 7.78:1', false),
+      D('accent/hover', '#A6C8FF', 'Hover on primary action and links', 'surface/raised', '10.36:1', false),
+      D('accent/active', '#5C97F5', 'Pressed state', 'surface/raised', '5.94:1', false),
+      D('accent/subtle', '#16294A', 'Selected row, active nav, filter chip fill', 'accent/default text', '6.59:1', false),
+      D('accent/onAccent', '#0B1220', 'Label on a filled accent surface', 'accent/default', '8.52:1', false),
+      D('status/success/default', '#56D69A', 'On track, synced, approved', 'surface/base', '10.34:1', false),
+      D('status/success/subtle', '#0F2E22', 'Pill fill behind success text', 'success/default text', '8.01:1', false),
+      D('status/warning/default', '#E9B45A', 'At risk, over-allocated, pending approval', 'surface/base', '10.03:1', false),
+      D('status/warning/subtle', '#33240B', 'Pill fill behind warning text', 'warning/default text', '7.97:1', false),
+      D('status/danger/default', '#FF8A80', 'Late, conflict, destructive action, blocked', 'surface/base', '8.28:1', false),
+      D('status/danger/subtle', '#3A1512', 'Pill fill, invalid field fill, conflict row', 'danger/default text', '7.10:1', false),
+      D('status/info/default', '#7FB0FF', 'Informational banners, baseline overlay', 'surface/base', '8.61:1', false),
+      D('status/info/subtle', '#16294A', 'Info banner fill', 'info/default text', '6.59:1', false)
+    ];
+
+    const principles = [
+      { n: 'P1', title: 'The figure is the interface', body: 'Consultants read Cockpit for numbers under time pressure, often on a shared screen in front of a client. Rates, margins, dates and allocation percentages must line up vertically and never reflow between rows.', impl: 'Every numeric column uses type/numeric with tabular figures, right alignment and a fixed decimal count. Currency is never abbreviated in an editable cell; abbreviation is allowed only in summary tiles, where the full value is in the accessible name.' },
+      { n: 'P2', title: 'Density without noise', body: 'A programme view carries hundreds of rows. Grids, stripes and boxes at that scale become texture, and texture hides the exception you were looking for.', impl: 'One accent and four status hues in the whole product. No zebra striping, no vertical gridlines in tables. Separation comes from alignment and space/2–space/3; at most two border weights are visible in any one view.' },
+      { n: 'P3', title: 'Nothing important is implied', body: 'Local-first sync, cost-visibility redaction, baseline drift and permission level all change what the user is looking at without changing the layout. Silence about them is a correctness bug, not a polish issue.', impl: 'The sync chip is present in the top bar of every authenticated screen and announces every transition to a polite live region. Redacted figures, viewer-only mode and drift from baseline each have a persistent on-screen marker, not a tooltip.' },
+      { n: 'P4', title: 'Colour is the second channel', body: 'Status and heat carry decisions: an over-allocated resource in week 32 is a staffing escalation. Anyone with a colour-vision deficiency, on a projector, or printing the plan must read it identically.', impl: 'Every status pill carries a glyph and a word. Allocation heat prints its percentage in the cell and adds a diagonal hatch above 100%. Critical path is a 1.5px outline plus a caret, not a red fill.' },
+      { n: 'P5', title: 'The keyboard is the primary input', body: 'Expert users re-plan a phase faster by typing than by dragging, and drag-only interactions are unusable for assistive-technology users.', impl: 'Every pointer gesture has a stated keyboard equivalent — Gantt bars enter a Move mode with arrow-key nudging at the current zoom grain, and every drag-to-reorder tree has Alt+Arrow. Cmd/Ctrl+K reaches every screen and every project.' },
+      { n: 'P6', title: 'Hidden must look deliberate', body: 'When a viewer\u2019s cost-visibility level forbids a figure, an empty cell reads as a data error and prompts a support ticket — or worse, an assumption that the number is zero.', impl: 'Redaction renders a fixed-width mask with a lock glyph and the reason on focus: “Restricted — needs cost visibility level 2.” Totals that include a redacted component are themselves masked, never silently partial.' }
+    ];
+
+    const statusDemo = [
+      { glyph: '\u2713', label: 'On track', note: 'glyph + word + colour', bg: '#E3F5EB', fg: '#0A7A47', bd: '#9AD9BB' },
+      { glyph: '\u26A0', label: 'At risk', note: 'never amber fill alone', bg: '#FBF0DC', fg: '#8A5200', bd: '#E0C089' },
+      { glyph: '\u2715', label: 'Late', note: 'also sorts to the top', bg: '#FDE9E7', fg: '#B3261E', bd: '#F0B5AF' },
+      { glyph: '\u25CF', label: 'Not started', note: 'neutral, not grey-on-grey', bg: '#F1F3F7', fg: '#4B5563', bd: '#CBD2DC' }
+    ];
+
+    const T = (token, spec, px, lh, w, ls, sample, use, ff, tt, vn) => ({ token, spec, px, lh, w, ls, sample, use, ff: ff || "'IBM Plex Sans',sans-serif", tt: tt || 'none', vn: vn || 'normal' });
+    const type = [
+      T('type/display', '28 / 34 · 600 · -0.02em', '28px', '34px', 600, '-0.02em', 'Portfolio overview', 'Dashboard and auth page titles. One per screen, never inside a panel.'),
+      T('type/heading-lg', '20 / 28 · 600 · -0.015em', '20px', '28px', 600, '-0.015em', 'S/4HANA Migration — Phase plan', 'Screen title in the app shell; modal titles.'),
+      T('type/heading-md', '16 / 22 · 600 · -0.01em', '16px', '22px', 600, '-0.01em', 'Resource allocation', 'Panel, card and drawer headers; form section titles.'),
+      T('type/heading-sm', '12 / 16 · 600 · 0.06em · caps', '12px', '16px', 600, '0.06em', 'Rate card — EMEA', 'Table group headers, eyebrows, sidebar section labels.', null, 'uppercase'),
+      T('type/body', '14 / 20 · 400', '14px', '20px', 400, '0', 'Realization begins once the Explore sign-off is recorded.', 'Default interface text, form values, table cells.'),
+      T('type/body-sm', '13 / 18 · 400', '13px', '18px', 400, '0', 'Dependency: finish-to-start, 2-day lag', 'Dense table rows, Gantt tree rows, secondary descriptions.'),
+      T('type/label', '12 / 16 · 500 · 0.005em', '12px', '16px', 500, '0.005em', 'Allocation %', 'Field labels, chips, captions, badge text, axis labels.'),
+      T('type/numeric', '14 / 20 · 500 · tabular', '14px', '20px', 500, '0', 'EUR 1,248,900.00 · 87.5% · 14 Sep 2026', 'Any figure in a column: rates, margin, dates, durations, allocation.', "'IBM Plex Sans',sans-serif", 'none', 'tabular-nums'),
+      T('type/mono', '13 / 18 · 400', '13px', '18px', 400, '0', 'PRJ-2291 · ⌘K · b8f21c', 'IDs, tokens, keyboard hints, audit-log entries.', "'IBM Plex Mono',monospace")
+    ];
+
+    const spacing = ['space/0 0px', 'space/1 4px', 'space/2 8px', 'space/3 12px', 'space/4 16px', 'space/5 20px', 'space/6 24px', 'space/8 32px', 'space/10 40px', 'space/12 48px', 'space/16 64px']
+      .map(s => ({ token: s.split(' ')[0], px: s.split(' ')[1] }));
+
+    const radius = [
+      { token: 'radius/none', px: '0px', use: 'Gantt bars, table cells' },
+      { token: 'radius/xs', px: '2px', use: 'Checkbox, tag' },
+      { token: 'radius/sm', px: '4px', use: 'Status pill, badge' },
+      { token: 'radius/md', px: '6px', use: 'Button, input, menu item' },
+      { token: 'radius/lg', px: '8px', use: 'Card, panel, modal' },
+      { token: 'radius/full', px: '999px', use: 'Avatar, toggle, chip' }
+    ];
+
+    const elevation = [
+      { token: 'elevation/0 — flat', use: 'Tables, inline panels', light: 'none', dark: 'none', darkBg: '#0E1116' },
+      { token: 'elevation/1 — raised', use: 'Cards, sticky headers', light: '0 1px 2px rgba(16,23,32,0.06)', dark: '0 1px 2px rgba(0,0,0,0.5)', darkBg: '#171C24' },
+      { token: 'elevation/2 — menu', use: 'Dropdown, popover, tooltip', light: '0 4px 12px rgba(16,23,32,0.10)', dark: '0 4px 12px rgba(0,0,0,0.6)', darkBg: '#1D242E' },
+      { token: 'elevation/3 — drawer', use: 'Right / bottom drawer, command palette', light: '0 8px 28px rgba(16,23,32,0.14)', dark: '0 8px 28px rgba(0,0,0,0.68)', darkBg: '#222A35' },
+      { token: 'elevation/4 — modal', use: 'Modal, toast stack', light: '0 16px 48px rgba(16,23,32,0.20)', dark: '0 16px 48px rgba(0,0,0,0.76)', darkBg: '#28313D' }
+    ];
+
+    const motion = [
+      { token: 'duration/instant', val: '0ms', use: 'Reduced-motion substitute for everything below' },
+      { token: 'duration/fast', val: '120ms', use: 'Hover, focus ring, checkbox, tooltip open' },
+      { token: 'duration/base', val: '180ms', use: 'Dropdown, popover, toast enter, tab change' },
+      { token: 'duration/slow', val: '240ms', use: 'Drawer, modal, panel expand/collapse' },
+      { token: 'duration/emphasized', val: '300ms', use: 'Gantt zoom re-scale — the ceiling, never exceeded' },
+      { token: 'easing/standard', val: 'cubic-bezier(.2,0,0,1)', use: 'Anything entering or moving on screen' },
+      { token: 'easing/exit', val: 'cubic-bezier(.4,0,1,1)', use: 'Anything leaving; always faster than its entrance' }
+    ];
+
+    const zindex = [
+      { token: 'z/base', val: '0', use: 'Page content, Gantt canvas' },
+      { token: 'z/sticky', val: '100', use: 'Sticky table header, frozen Gantt tree column' },
+      { token: 'z/dropdown', val: '200', use: 'Select, menu, combobox list, context menu' },
+      { token: 'z/overlay', val: '300', use: 'Drawer scrim and drawer' },
+      { token: 'z/modal', val: '400', use: 'Modal (+10 per stacked modal, max 2)' },
+      { token: 'z/toast', val: '500', use: 'Toast stack, bottom-right, max 3 visible' },
+      { token: 'z/tooltip', val: '600', use: 'Tooltip and coach mark — above everything' }
+    ];
+
+    const roadmap = [
+      { n: 'Layer 1', title: 'Foundations', body: 'Principles and tokens. This document.', bg: '#E8F0FE' },
+      { n: 'Layer 2', title: 'Primitives', body: '32 components, every variant and state, both themes.', bg: '#FFFFFF' },
+      { n: 'Layer 3', title: 'Composites', body: 'App shell, data table, modals, command palette, empty states.', bg: '#FFFFFF' },
+      { n: 'Layer 4', title: 'Domain surfaces', body: 'Gantt, allocation matrix, org chart, RACI, cost, sync and conflict.', bg: '#FFFFFF' },
+      { n: 'Layer 5', title: 'Screens + specs', body: 'Every route in three widths, plus keyboard, focus and a11y annotations.', bg: '#FFFFFF' }
+    ];
+
+    const css = `:root, [data-theme="light"] {
+  --surface-base:#FFFFFF;      --surface-app:#F6F7F9;
+  --surface-sunken:#F1F3F7;    --surface-overlay:rgba(16,23,32,.48);
+  --content-primary:#101720;   --content-secondary:#4B5563;
+  --content-tertiary:#667085;  --content-disabled:#98A2B3;
+  --content-inverse:#FFFFFF;
+  --border-subtle:#E4E7EC;     --border-default:#CBD2DC;
+  --border-strong:#7D8799;     --border-focus:#0B57D0;
+  --accent-default:#0B57D0;    --accent-hover:#08429E;
+  --accent-active:#06337A;     --accent-subtle:#E8F0FE;
+  --accent-on:#FFFFFF;         --accent-border:#BBD0F6;
+  --success-default:#0A7A47;   --success-subtle:#E3F5EB;   --success-border:#9AD9BB;  --success-on:#FFFFFF;
+  --warning-default:#8A5200;   --warning-subtle:#FBF0DC;   --warning-border:#E0C089;  --warning-on:#FFFFFF;
+  --danger-default:#B3261E;    --danger-subtle:#FDE9E7;    --danger-border:#F0B5AF;   --danger-on:#FFFFFF;
+  --info-default:#0B57D0;      --info-subtle:#E8F0FE;      --info-border:#BBD0F6;     --info-on:#FFFFFF;
+  --elevation-1:0 1px 2px rgba(16,23,32,.06);
+  --elevation-2:0 4px 12px rgba(16,23,32,.10);
+  --elevation-3:0 8px 28px rgba(16,23,32,.14);
+  --elevation-4:0 16px 48px rgba(16,23,32,.20);
+}
+[data-theme="dark"] {
+  --surface-base:#0E1116;      --surface-app:#0E1116;
+  --surface-raised:#171C24;    --surface-sunken:#0A0D12;   --surface-overlay:rgba(4,6,10,.64);
+  --content-primary:#E9EEF6;   --content-secondary:#AFBACA;
+  --content-tertiary:#8592A6;  --content-disabled:#5C6779;
+  --content-inverse:#0B1220;
+  --border-subtle:#232A35;     --border-default:#333C4A;
+  --border-strong:#748196;     --border-focus:#8FC0FF;
+  --accent-default:#7FB0FF;    --accent-hover:#A6C8FF;
+  --accent-active:#5C97F5;     --accent-subtle:#16294A;
+  --accent-on:#0B1220;         --accent-border:#2F4E82;
+  --success-default:#56D69A;   --success-subtle:#0F2E22;   --success-border:#2C6B4E;  --success-on:#06170F;
+  --warning-default:#E9B45A;   --warning-subtle:#33240B;   --warning-border:#7A5A22;  --warning-on:#1C1305;
+  --danger-default:#FF8A80;    --danger-subtle:#3A1512;    --danger-border:#8A3A33;   --danger-on:#2A0A07;
+  --info-default:#7FB0FF;      --info-subtle:#16294A;      --info-border:#2F4E82;     --info-on:#0B1220;
+  --elevation-1:0 1px 2px rgba(0,0,0,.50);
+  --elevation-2:0 4px 12px rgba(0,0,0,.60);
+  --elevation-3:0 8px 28px rgba(0,0,0,.68);
+  --elevation-4:0 16px 48px rgba(0,0,0,.76);
+}
+:root {
+  /* surface/raised equals surface/base in light; dark overrides it above */
+  --surface-raised:#FFFFFF;
+
+  --space-0:0px;  --space-1:4px;  --space-2:8px;  --space-3:12px; --space-4:16px;
+  --space-5:20px; --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px;
+
+  --radius-none:0px; --radius-xs:2px; --radius-sm:4px;
+  --radius-md:6px;   --radius-lg:8px; --radius-full:999px;
+
+  --border-hairline:1px; --border-emphasis:1.5px; --border-focus-width:2px; --focus-offset:2px;
+
+  --font-sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',monospace;
+
+  --type-display:600 28px/34px var(--font-sans);      --ls-display:-.02em;
+  --type-heading-lg:600 20px/28px var(--font-sans);   --ls-heading-lg:-.015em;
+  --type-heading-md:600 16px/22px var(--font-sans);   --ls-heading-md:-.01em;
+  --type-heading-sm:600 12px/16px var(--font-sans);   --ls-heading-sm:.06em;
+  --type-body:400 14px/20px var(--font-sans);
+  --type-body-sm:400 13px/18px var(--font-sans);
+  --type-label:500 12px/16px var(--font-sans);        --ls-label:.005em;
+  --type-numeric:500 14px/20px var(--font-sans);      --numeric-feature:tabular-nums;
+  --type-mono:400 13px/18px var(--font-mono);
+
+  --duration-instant:0ms; --duration-fast:120ms; --duration-base:180ms;
+  --duration-slow:240ms;  --duration-emphasized:300ms;
+  --easing-standard:cubic-bezier(.2,0,0,1);
+  --easing-exit:cubic-bezier(.4,0,1,1);
+
+  --z-base:0; --z-sticky:100; --z-dropdown:200; --z-overlay:300;
+  --z-modal:400; --z-toast:500; --z-tooltip:600;
+}
+.numeric { font: var(--type-numeric); font-variant-numeric: var(--numeric-feature); text-align: right; }
+:where(a,button,input,select,textarea,[tabindex]):focus-visible {
+  outline: var(--border-focus-width) solid var(--border-focus);
+  outline-offset: var(--focus-offset);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-fast:0ms; --duration-base:0ms; --duration-slow:0ms; --duration-emphasized:0ms; }
+  *,*::before,*::after { animation-duration:1ms !important; animation-iteration-count:1 !important; transition-duration:1ms !important; }
+}`;
+
+    return { principles, light, dark, statusDemo, type, spacing, radius, elevation, motion, zindex, roadmap, css };
+  }
+}
+</script>
+</body>
+</html>

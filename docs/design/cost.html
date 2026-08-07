@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; } a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1500px;margin:0 auto;padding:56px 32px 24px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 4d of 5</div>
+  <h1 style="margin:14px 0 0;font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em">Cost, margin and redaction</h1>
+  <p style="margin:16px 0 0;max-width:80ch;font-size:15px;line-height:24px;color:#4B5563;text-wrap:pretty">Rate card, the GSR → RR → NSR → margin waterfall, out-of-pocket expenses and the 15% intercompany markup on cross-region resources. Switch the cost-visibility level below and watch redaction propagate: a masked line masks its subtotal and its total, and a partial sum is always labelled a visible subtotal — never a total.</p>
+</header>
+
+<section style="max-width:1500px;margin:0 auto;padding:0 32px">
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#4B5563">Cost visibility</span>
+    <div role="radiogroup" aria-label="Cost visibility level" style="display:inline-flex;gap:2px;padding:2px;border-radius:6px;background:#F1F3F7;border:1px solid #CBD2DC">
+      <sc-for list="{{ levelCells }}" as="l" hint-placeholder-count="3">
+        <button onClick="{{ l.on }}" style="height:28px;padding:0 12px;border-radius:4px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ l.bg }};color:{{ l.fg }};border:1px solid {{ l.bd }};box-shadow:{{ l.sh }}">{{ l.label }}</button>
+      </sc-for>
+    </div>
+    <span style="font-size:12.5px;line-height:19px;color:#4B5563;max-width:58ch;text-wrap:pretty">{{ levelNote }}</span>
+    <div style="margin-left:auto;display:inline-flex;gap:2px;padding:2px;border-radius:6px;background:#F1F3F7;border:1px solid #CBD2DC">
+      <sc-for list="{{ curCells }}" as="c" hint-placeholder-count="2">
+        <button onClick="{{ c.on }}" style="height:28px;padding:0 12px;border-radius:4px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }};box-shadow:{{ c.sh }}">{{ c.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div id="cost-status" role="status" aria-live="polite" aria-atomic="true" style="margin-top:10px;display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF">
+    <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085;flex:none;padding-top:2px">Announced</span>
+    <span style="font-size:12.5px;line-height:19px;color:#101720">{{ announce }}</span>
+  </div>
+</section>
+
+<section style="max-width:1500px;margin:0 auto;padding:16px 32px 0">
+  <div style="border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF;overflow:hidden">
+    <div style="display:flex;align-items:baseline;gap:12px;padding:14px 16px;border-bottom:1px solid #CBD2DC;flex-wrap:wrap">
+      <h2 style="margin:0;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-0.01em">Rate card — 2026-H2</h2>
+      <span style="font-size:12.5px;color:#4B5563;font-variant-numeric:tabular-nums">{{ lineCount }} role–region lines · {{ headCount }} resources · {{ daysCount }} days · effective 01 Jul 2026</span>
+      <span style="margin-left:auto;font-size:11.5px;line-height:17px;color:#4B5563;text-align:right;font-variant-numeric:tabular-nums">FX locked at proposal issue, 07 Aug 2026 · 1 SGD = 3.4820 · 1 USD = 4.7150 · 1 EUR = 5.0480 MYR<br /><span style="color:#667085">Internal treasury rate. Re-locking needs delivery-manager approval and re-prices every converted figure.</span></span>
+    </div>
+    <div style="overflow-x:auto">
+      <div style="min-width:1180px">
+        <div style="display:grid;grid-template-columns:{{ gridCols }};background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+          <sc-for list="{{ rateCols }}" as="c" hint-placeholder-count="9">
+            <div style="padding:8px 12px;border-right:1px solid #E4E7EC;text-align:{{ c.align }}">
+              <span style="font-size:11.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563">{{ c.label }}</span>
+              <span style="display:block;font-size:10px;color:#667085">{{ c.sub }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-for list="{{ rateRows }}" as="r" hint-placeholder-count="16">
+          <div style="display:grid;grid-template-columns:{{ gridCols }};align-items:center;min-height:38px;border-bottom:1px solid #E4E7EC;background:{{ r.bg }}">
+            <div style="padding:6px 12px;font-size:13px;color:#101720;display:flex;align-items:center;gap:8px">{{ r.role }}<sc-if value="{{ r.subcon }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:3px;background:#FBF0DC;border:1px solid #E0C089;font-size:10px;font-weight:600;color:#8A5200">SUBCON</span></sc-if></div>
+            <div style="padding:6px 12px;font-size:12.5px;color:#4B5563">{{ r.region }}</div>
+            <div style="padding:6px 12px;text-align:right;font-size:12.5px;color:#4B5563;font-variant-numeric:tabular-nums">{{ r.heads }}</div>
+            <div style="padding:6px 12px;text-align:right;font-size:12.5px;color:#4B5563;font-variant-numeric:tabular-nums">{{ r.days }}</div>
+            <sc-if value="{{ r.showNative }}" hint-placeholder-val="{{ true }}"><div style="padding:6px 12px;text-align:right;font-size:13px;color:#101720;font-variant-numeric:tabular-nums">{{ r.native }}</div></sc-if>
+            <sc-if value="{{ r.showNative }}" hint-placeholder-val="{{ true }}"><div style="padding:6px 12px;text-align:right;font-size:11.5px;color:#667085;font-variant-numeric:tabular-nums">{{ r.fx }}</div></sc-if>
+            <div style="padding:6px 12px;text-align:right;font-size:13px;font-weight:500;color:#101720;font-variant-numeric:tabular-nums">{{ r.myr }}</div>
+            <div style="padding:6px 12px;text-align:right;font-size:12.5px;color:#4B5563;font-variant-numeric:tabular-nums">
+              <sc-if value="{{ r.markupMasked }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="Intercompany markup restricted — needs cost visibility level 3. Request access." title="Restricted — needs cost visibility level 3" style="display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:3px;background:repeating-linear-gradient(135deg,#F1F3F7,#F1F3F7 4px,#E4E7EC 4px,#E4E7EC 8px);border:1px solid #7D8799;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563"><span aria-hidden="true">🔒 ▪▪▪</span></span></sc-if>
+              <sc-if value="{{ r.markupShown }}" hint-placeholder-val="{{ true }}">{{ r.markup }}</sc-if>
+            </div>
+            <div style="padding:6px 12px;text-align:right;font-size:13px;font-weight:600;color:#101720;font-variant-numeric:tabular-nums">
+              <sc-if value="{{ r.costMasked }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="{{ r.maskAria }}" title="{{ r.maskWhy }}" style="display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:3px;background:repeating-linear-gradient(135deg,#F1F3F7,#F1F3F7 4px,#E4E7EC 4px,#E4E7EC 8px);border:1px solid #7D8799;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563"><span aria-hidden="true">🔒 ▪▪▪,▪▪▪</span></span></sc-if>
+              <sc-if value="{{ r.costShown }}" hint-placeholder-val="{{ true }}">{{ r.cost }}</sc-if>
+            </div>
+          </div>
+        </sc-for>
+        <div style="display:grid;grid-template-columns:{{ gridCols }};align-items:center;min-height:44px;background:#F1F3F7;border-top:1.5px solid #101720">
+          <div style="padding:8px 12px;font-size:13px;font-weight:600">{{ totalLabel }}</div>
+          <div></div>
+          <div style="padding:8px 12px;text-align:right;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ totalHeads }}</div>
+          <div style="padding:8px 12px;text-align:right;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ totalDays }}</div>
+          <sc-if value="{{ showNative }}" hint-placeholder-val="{{ true }}"><div></div></sc-if>
+          <sc-if value="{{ showNative }}" hint-placeholder-val="{{ true }}"><div></div></sc-if>
+          <div style="padding:8px 12px;text-align:right;font-size:12.5px;color:#4B5563;font-variant-numeric:tabular-nums">blended {{ blended }}</div>
+          <div></div>
+          <div role="cell" aria-label="{{ totalAria }}" style="padding:8px 12px;text-align:right;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums">
+            <sc-if value="{{ totalMasked }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="No programme total available. Every cost line is restricted at cost visibility level 1." style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:3px;background:repeating-linear-gradient(135deg,#E4E7EC,#E4E7EC 4px,#CBD2DC 4px,#CBD2DC 8px);border:1px solid #7D8799;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563"><span aria-hidden="true">🔒 ▪▪,▪▪▪,▪▪▪</span></span></sc-if>
+            <sc-if value="{{ totalShown }}" hint-placeholder-val="{{ true }}">{{ totalCost }}</sc-if>
+          </div>
+        </div>
+        <sc-if value="{{ partialNote }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:#F6F7F9;border-top:1px solid #CBD2DC">
+            <span aria-hidden="true" style="font-size:12px;color:#4B5563;padding-top:1px">🔒</span>
+            <span style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ partialNote }}</span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1500px;margin:0 auto;padding:16px 32px 0">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <h2 style="margin:0;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-0.01em">Margin waterfall</h2>
+        <span style="font-size:12.5px;color:#4B5563">MYR · programme to date plus forecast</span>
+      </div>
+      <div role="table" aria-label="Margin waterfall" aria-rowcount="8" style="margin-top:16px">
+        <sc-for list="{{ waterfall }}" as="w" hint-placeholder-count="8">
+          <div role="row" style="display:grid;grid-template-columns:200px 1fr 168px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid {{ w.rule }}">
+            <div role="rowheader">
+              <div style="font-size:13px;font-weight:{{ w.fw }};color:#101720">{{ w.label }}</div>
+              <div style="font-size:11px;line-height:16px;color:#667085;text-wrap:pretty">{{ w.note }}</div>
+            </div>
+            <div aria-hidden="true" style="position:relative;height:20px">
+              <div style="position:absolute;top:3px;left:{{ w.left }};width:{{ w.width }};height:14px;border-radius:2px;background:{{ w.fill }};border:{{ w.border }}"></div>
+              <sc-if value="{{ w.hatched }}" hint-placeholder-val="{{ false }}">
+                <div aria-hidden="true" style="position:absolute;top:3px;left:{{ w.left }};width:{{ w.width }};height:14px;border-radius:2px;background:repeating-linear-gradient(135deg,#F1F3F7,#F1F3F7 4px,#CBD2DC 4px,#CBD2DC 8px);border:1px solid #7D8799"></div>
+              </sc-if>
+            </div>
+            <div role="cell" aria-label="{{ w.aria }}" style="text-align:right;font-size:13.5px;font-weight:{{ w.fw }};color:{{ w.fg }};font-variant-numeric:tabular-nums">
+              <sc-if value="{{ w.masked }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:3px;background:repeating-linear-gradient(135deg,#F1F3F7,#F1F3F7 4px,#E4E7EC 4px,#E4E7EC 8px);border:1px solid #7D8799;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563">🔒 {{ w.mask }}</span></sc-if>
+              <sc-if value="{{ w.shown }}" hint-placeholder-val="{{ true }}">{{ w.value }}</sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:14px;padding:12px 14px;border-radius:6px;background:{{ marginBg }};border:1px solid {{ marginBd }}">
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+          <span style="font-size:13px;font-weight:600;color:{{ marginFg }}">{{ marginTitle }}</span>
+          <span style="margin-left:auto;font-size:22px;font-weight:600;color:{{ marginFg }};font-variant-numeric:tabular-nums">{{ marginPct }}</span>
+        </div>
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:4px;text-wrap:pretty">{{ marginNote }}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+        <h2 style="margin:0 0 4px;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-0.01em">Out-of-pocket expenses</h2>
+        <p style="margin:0 0 14px;font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">Pass-through at cost with receipts, invoiced monthly. Excluded from NSR and from the margin calculation — which is why margin is quoted on NSR and never on total invoiced value.</p>
+        <sc-for list="{{ oop }}" as="o" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:1fr 132px;gap:12px;padding:8px 0;border-top:1px solid #E4E7EC;align-items:baseline">
+            <div>
+              <div style="font-size:13px;color:#101720">{{ o.label }}</div>
+              <div style="font-size:11.5px;line-height:17px;color:#667085">{{ o.note }} · {{ o.pol }}</div>
+            </div>
+            <div style="text-align:right;font-size:13px;font-weight:500;color:#101720;font-variant-numeric:tabular-nums">{{ o.amt }}</div>
+          </div>
+        </sc-for>
+        <div style="display:grid;grid-template-columns:1fr 132px;gap:12px;padding:10px 0 0;border-top:1.5px solid #101720;margin-top:8px">
+          <div style="font-size:13px;font-weight:600">Total out-of-pocket — all 4 lines</div>
+          <div style="text-align:right;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums">MYR 1,056,000</div>
+        </div>
+        <div style="font-size:11.5px;line-height:17px;color:#667085;margin-top:8px">Out-of-pocket is never redacted: it is invoiced to the client at cost, so it carries no margin information and hiding it would only obstruct the people approving it.</div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+        <h2 style="margin:0 0 12px;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-0.01em">Redaction rules</h2>
+        <sc-for list="{{ redaction }}" as="r" hint-placeholder-count="7">
+          <div style="display:grid;grid-template-columns:126px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ r.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r.v }}</div></div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1500px;margin:0 auto;padding:16px 32px 96px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Dark — masked and visible figures</h3>
+      <div style="border:1px solid #333C4A;border-radius:6px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:1.4fr 90px 130px;background:#0A0D12;border-bottom:1px solid #333C4A;font-size:10.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#AFBACA">
+          <div style="padding:7px 10px">Role</div><div style="padding:7px 10px;text-align:right">MYR rate</div><div style="padding:7px 10px;text-align:right">Line cost</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.4fr 90px 130px;border-bottom:1px solid #232A35"><div style="padding:8px 10px;font-size:12.5px;color:#E9EEF6">Solution Architect</div><div style="padding:8px 10px;text-align:right;font-size:12.5px;color:#E9EEF6;font-variant-numeric:tabular-nums">3,200</div><div style="padding:8px 10px;text-align:right;font-size:12.5px;font-weight:600;color:#E9EEF6;font-variant-numeric:tabular-nums">1,408,000</div></div>
+        <div style="display:grid;grid-template-columns:1.4fr 90px 130px;border-bottom:1px solid #232A35"><div style="padding:8px 10px;font-size:12.5px;color:#E9EEF6">Security Consultant <span style="display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:3px;background:#33240B;border:1px solid #7A5A22;font-size:9.5px;font-weight:600;color:#E9B45A">SUBCON</span></div><div style="padding:8px 10px;text-align:right;font-size:12.5px;color:#E9EEF6;font-variant-numeric:tabular-nums">1,301</div><div style="padding:8px 10px;text-align:right"><span style="display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:3px;background:repeating-linear-gradient(135deg,#12161C,#12161C 4px,#232A35 4px,#232A35 8px);border:1px solid #748196;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#AFBACA"><span aria-hidden="true">🔒</span>▪▪▪,▪▪▪</span></div></div>
+        <div style="display:grid;grid-template-columns:1.4fr 90px 130px;background:#0A0D12;border-top:1px solid #748196"><div style="padding:9px 10px;font-size:12.5px;font-weight:600;color:#E9EEF6">Visible subtotal — 16 of 17</div><div></div><div style="padding:9px 10px;text-align:right;font-size:13px;font-weight:700;color:#E9EEF6;font-variant-numeric:tabular-nums">24,230,545</div></div>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#8592A6;margin-top:10px">The mask in dark is a hatch of surface/sunken over surface/raised with a border/strong edge at 4.33:1 — visible as a deliberate object, while the hidden digits stay unreadable. Mask text sits at 8.71:1.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Number, currency and date formatting</h3>
+      <sc-for list="{{ formats }}" as="f" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:112px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ f.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ f.v }}</div></div>
+      </sc-for>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Accessibility contract</h3>
+      <sc-for list="{{ a11y }}" as="a" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:112px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ a.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ a.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:960}}">
+const FX = { MYR: 1, SGD: 3.482, USD: 4.715, EUR: 5.048 };
+const RATES = [
+  { role: 'Programme Director', region: 'MY', cur: 'MYR', rate: 4000, heads: 1, days: 420, sub: false, cross: false },
+  { role: 'Delivery Manager', region: 'MY', cur: 'MYR', rate: 2900, heads: 1, days: 460, sub: false, cross: false },
+  { role: 'Solution Architect', region: 'MY', cur: 'MYR', rate: 3200, heads: 1, days: 440, sub: false, cross: false },
+  { role: 'Integration Architect', region: 'SG', cur: 'SGD', rate: 1091, heads: 1, days: 320, sub: false, cross: true },
+  { role: 'Integration Consultant', region: 'SG', cur: 'SGD', rate: 1091, heads: 2, days: 480, sub: false, cross: true },
+  { role: 'FI/CO Consultant', region: 'MY', cur: 'MYR', rate: 2400, heads: 4, days: 1080, sub: false, cross: false },
+  { role: 'MM/SD Consultant', region: 'MY', cur: 'MYR', rate: 2400, heads: 4, days: 1020, sub: false, cross: false },
+  { role: 'PP/QM Consultant', region: 'MY', cur: 'MYR', rate: 2500, heads: 1, days: 260, sub: false, cross: false },
+  { role: 'HCM Consultant', region: 'MY', cur: 'MYR', rate: 2300, heads: 3, days: 620, sub: false, cross: false },
+  { role: 'Basis Consultant', region: 'MY', cur: 'MYR', rate: 2600, heads: 2, days: 520, sub: false, cross: false },
+  { role: 'ABAP Developer', region: 'IN', cur: 'USD', rate: 233, heads: 3, days: 900, sub: false, cross: true },
+  { role: 'Data Migration Lead', region: 'MY', cur: 'MYR', rate: 2700, heads: 3, days: 700, sub: false, cross: false },
+  { role: 'Test Lead / Analyst', region: 'MY', cur: 'MYR', rate: 2200, heads: 4, days: 760, sub: false, cross: false },
+  { role: 'Change Manager / Training', region: 'MY', cur: 'MYR', rate: 2100, heads: 4, days: 540, sub: false, cross: false },
+  { role: 'Business Analyst', region: 'MY', cur: 'MYR', rate: 1800, heads: 4, days: 620, sub: false, cross: false },
+  { role: 'PMO Analyst', region: 'MY', cur: 'MYR', rate: 1400, heads: 3, days: 640, sub: false, cross: false },
+  { role: 'Security Consultant', region: 'VN', cur: 'USD', rate: 276, heads: 3, days: 520, sub: true, cross: true }
+];
+const MARKUP = 0.15;
+const fmt = (n) => Math.round(n).toLocaleString('en-MY');
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      level: 2, currency: 'native',
+      announce: 'Cost view ready at visibility level 2 of 3. Delivery cost is visible; intercompany markup and subcontractor cost are masked.'
+    };
+  }
+
+  say(m) { this.setState({ announce: m }); }
+
+  rowCost(r) {
+    const myr = Math.round(r.rate * FX[r.cur]);
+    const base = myr * r.days;
+    const markup = r.cross ? Math.round(base * MARKUP) : 0;
+    return { myr, base, markup, total: base + markup };
+  }
+
+  // Level 1: no money at all. Level 2: cost visible except subcontractor lines
+  // and the intercompany markup. Level 3: everything.
+  maskedRow(r) {
+    const L = this.state.level;
+    if (L === 1) return true;
+    if (L === 2 && r.sub) return true;
+    return false;
+  }
+  maskedMarkup(r) { return this.state.level < 3 && r.cross; }
+
+  renderVals() {
+    const S = this.state;
+    const L = S.level;
+
+    let visibleCost = 0, visibleLines = 0, maskedLines = 0, totalDays = 0, totalHeads = 0, allCost = 0;
+    const rateRows = RATES.map((r, i) => {
+      const c = this.rowCost(r);
+      const masked = this.maskedRow(r);
+      allCost += c.total; totalDays += r.days; totalHeads += r.heads;
+      if (masked) maskedLines++; else { visibleCost += c.total; visibleLines++; }
+      const nat = r.cur === 'MYR' ? fmt(r.rate) : r.cur + ' ' + fmt(r.rate);
+      return {
+        role: r.role, region: r.region, subcon: r.sub, showNative: S.currency === 'native',
+        heads: String(r.heads), days: fmt(r.days),
+        native: nat,
+        fx: r.cur === 'MYR' ? '—' : '× ' + FX[r.cur].toFixed(4),
+        myr: fmt(c.myr),
+        markup: r.cross ? '+' + fmt(c.markup) : '—',
+        markupMasked: this.maskedMarkup(r), markupShown: !this.maskedMarkup(r),
+        cost: fmt(c.total),
+        costMasked: masked, costShown: !masked,
+        maskWhy: L === 1 ? 'Restricted — needs cost visibility level 2' : 'Restricted — subcontractor cost needs level 3',
+        maskAria: (L === 1 ? 'Line cost restricted — needs cost visibility level 2. Request access.' : 'Subcontractor line cost restricted — needs cost visibility level 3. Request access.'),
+        bg: masked ? '#FBFCFD' : (i % 2 === 1 ? '#FFFFFF' : '#FFFFFF')
+      };
+    });
+
+    const anyMasked = maskedLines > 0;
+    const partialNote = !anyMasked ? '' :
+      (L === 1
+        ? 'All ' + RATES.length + ' cost lines are restricted at visibility level 1, so no total can be shown — not even a partial one. Effort in days and headcount are unrestricted and are the figures to plan with at this level.'
+        : 'Visible subtotal: MYR ' + fmt(visibleCost) + ' across ' + visibleLines + ' of ' + RATES.length + ' lines. ' + maskedLines + ' subcontractor line' + (maskedLines === 1 ? ' is' : 's are') + ' restricted at your level, so this is not the programme total and must not be quoted as one. Request level 3 from Chan Wei Ling to see the full figure.');
+
+    const gsr = 38600000;
+    const discount = -Math.round(gsr * 0.06);
+    const rr = gsr + discount;
+    const passThrough = -1980000;
+    const nsr = rr + passThrough;
+    const internalCost = -allCost;
+    const icTotal = RATES.reduce((a, r) => a + this.rowCost(r).markup, 0);
+    const margin = nsr + internalCost;
+    const marginPct = (margin / nsr) * 100;
+    const marginVisible = L === 3;
+    const FLOOR = 25;
+    const healthy = marginPct >= FLOOR;
+    const gap = Math.abs(marginPct - FLOOR).toFixed(1);
+
+    // Bars are drawn from the running balance on one scale (GSR = 100%).
+    const money = (v) => (v < 0 ? '\u2212 MYR ' : 'MYR ') + fmt(Math.abs(v));
+    const pctOf = (v) => Math.abs(v) / gsr * 100;
+    let running = 0;
+    const W = (label, note, value, kind, masked, maskGlyph) => {
+      let left, width;
+      if (kind === 'neg') { running += value; left = pctOf(running) + '%'; width = Math.max(1.2, pctOf(value)) + '%'; }
+      else { running = value; left = '0%'; width = Math.max(1.2, pctOf(value)) + '%'; }
+      const negTotal = kind === 'total' && value < 0;
+      return {
+        label, note, value: money(value),
+        aria: masked
+          ? label + ' restricted — needs cost visibility level 3. Request access.'
+          : label + ', ' + (value < 0 ? 'minus ' : '') + fmt(Math.abs(value)) + ' Malaysian ringgit.',
+        masked, shown: !masked, mask: maskGlyph,
+        fw: kind === 'total' ? 600 : 400,
+        fg: (kind === 'neg' || negTotal) ? '#B3261E' : '#101720',
+        rule: kind === 'total' ? '#101720' : '#E4E7EC',
+        left, width,
+        fill: masked ? '#F1F3F7' : (kind === 'neg' ? '#FDE9E7' : kind === 'total' ? (negTotal ? '#B3261E' : '#101720') : '#E8F0FE'),
+        border: masked ? '1px solid #7D8799' : (kind === 'neg' ? '1px solid #B3261E' : '1px solid #101720'),
+        hatched: masked
+      };
+    };
+
+    const waterfall = [
+      W('GSR', 'Gross sell rate \u00d7 effort, before any discount', gsr, 'pos', false, ''),
+      W('Less client discount', 'Negotiated 6.0% programme discount', discount, 'neg', false, ''),
+      W('RR', 'Realised revenue \u2014 what the client is invoiced for services', rr, 'total', false, ''),
+      W('Less pass-through', 'Subcontracted scope invoiced at cost, no margin', passThrough, 'neg', false, ''),
+      W('NSR', 'Net service revenue \u2014 the base for margin', nsr, 'total', false, ''),
+      W('Less delivery cost', 'All internal and subcontracted resource cost, at rate-card rates', internalCost, 'neg', L < 3, '\u25aa\u25aa,\u25aa\u25aa\u25aa,\u25aa\u25aa\u25aa'),
+      W('Less intercompany markup (included above)', '15% on SG, IN and VN resources billed across entities', -icTotal, 'neg', L < 3, '\u25aa\u25aa\u25aa,\u25aa\u25aa\u25aa'),
+      W('Margin', 'NSR less delivery cost', margin, 'total', !marginVisible, '\u25aa,\u25aa\u25aa\u25aa,\u25aa\u25aa\u25aa')
+    ];
+
+    return {
+      rateCols: [
+        { label: 'Role', sub: '', align: 'left' },
+        { label: 'Region', sub: '', align: 'left' },
+        { label: 'Heads', sub: '', align: 'right' },
+        { label: 'Days', sub: '', align: 'right' }
+      ].concat(S.currency === 'native' ? [
+        { label: 'Native rate', sub: 'per day', align: 'right' },
+        { label: 'FX', sub: '07 Aug', align: 'right' }
+      ] : []).concat([
+        { label: 'MYR rate', sub: 'per day', align: 'right' },
+        { label: 'IC markup', sub: '15% cross-region', align: 'right' },
+        { label: 'Line cost', sub: 'MYR', align: 'right' }
+      ]),
+      rateRows, partialNote,
+      lineCount: String(RATES.length),
+      headCount: String(totalHeads),
+      daysCount: fmt(totalDays),
+      gridCols: S.currency === 'native' ? '1.6fr 76px 56px 68px 128px 80px 124px 100px 136px' : '1.6fr 76px 56px 68px 124px 100px 136px',
+      showNative: S.currency === 'native',
+      totalHeads: String(totalHeads), totalDays: fmt(totalDays),
+      blended: fmt(allCost / totalDays) + '/day',
+      totalLabel: anyMasked ? (L === 1 ? 'No total available' : 'Visible subtotal — ' + visibleLines + ' of ' + RATES.length + ' lines') : 'Programme total — all ' + RATES.length + ' lines',
+      totalCost: 'MYR ' + fmt(L === 1 ? 0 : (anyMasked ? visibleCost : allCost)),
+      totalAria: L === 1
+        ? 'No programme total available. All ' + RATES.length + ' cost lines are restricted at cost visibility level 1.'
+        : (anyMasked
+            ? 'Visible subtotal, ' + fmt(visibleCost) + ' Malaysian ringgit, across ' + visibleLines + ' of ' + RATES.length + ' lines; ' + maskedLines + ' line restricted. Not the programme total.'
+            : 'Programme total, ' + fmt(allCost) + ' Malaysian ringgit, all ' + RATES.length + ' lines included.'),
+      totalMasked: L === 1, totalShown: L !== 1,
+      waterfall,
+      marginTitle: marginVisible ? (healthy ? 'Margin on NSR' : 'Margin on NSR is below the floor') : 'Margin is restricted at your level',
+      marginPct: marginVisible ? marginPct.toFixed(1) + '%' : '🔒 ▪▪.▪%',
+      marginBg: marginVisible ? (healthy ? '#E3F5EB' : (marginPct < 0 ? '#FDE9E7' : '#FBF0DC')) : '#F1F3F7',
+      marginBd: marginVisible ? (healthy ? '#9AD9BB' : (marginPct < 0 ? '#B3261E' : '#E0C089')) : '#7D8799',
+      marginFg: marginVisible ? (healthy ? '#0A7A47' : (marginPct < 0 ? '#B3261E' : '#8A5200')) : '#4B5563',
+      marginNote: marginVisible
+        ? (healthy ? 'Above the 25.0% programme floor by ' + gap + ' points. Margin is calculated on NSR, so pass-through and out-of-pocket never flatter it.' : 'Below the 25.0% programme floor by ' + gap + ' points. Margin is calculated on NSR, so pass-through and out-of-pocket never flatter it. A deal below the floor needs partner sign-off before issue.')
+        : 'Margin depends on delivery cost, which is masked at level ' + L + '. It is masked rather than approximated: a rounded band would let the exact figure be recovered from NSR by subtraction.',
+      announce: S.announce,
+      levelCells: [1, 2, 3].map(n => ({
+        label: 'Level ' + n,
+        bg: L === n ? '#FFFFFF' : 'transparent',
+        fg: L === n ? '#101720' : '#4B5563',
+        bd: L === n ? '#7D8799' : 'transparent',
+        sh: L === n ? '0 1px 2px rgba(16,23,32,.06)' : 'none',
+        on: () => {
+          this.setState({ level: n });
+          const msg = n === 1
+            ? 'Cost visibility level 1 of 3. All 17 cost lines, the total, the delivery cost and the margin are masked. Effort and headcount remain visible.'
+            : n === 2
+              ? 'Cost visibility level 2 of 3. Internal cost lines are visible; 1 subcontractor line, the intercompany markup, the delivery cost and the margin are masked. The footer figure is a visible subtotal across 16 of 17 lines, not a total.'
+              : 'Cost visibility level 3 of 3. All figures visible, including the intercompany markup and the 27 point margin.';
+          this.say(msg);
+        }
+      })),
+      levelNote: L === 1
+        ? 'Level 1 — effort only. No rate, cost, markup or margin figure is rendered anywhere on the screen.'
+        : L === 2
+          ? 'Level 2 — internal cost visible. Subcontractor cost, intercompany markup and margin stay masked, and every sum that touches them is masked with them.'
+          : 'Level 3 — full visibility. Every figure on this screen is real, including margin.',
+      curCells: ['native', 'project'].map(c => ({
+        label: c === 'native' ? 'Native + converted' : 'Project currency (MYR)',
+        bg: S.currency === c ? '#FFFFFF' : 'transparent',
+        fg: S.currency === c ? '#101720' : '#4B5563',
+        bd: S.currency === c ? '#7D8799' : 'transparent',
+        sh: S.currency === c ? '0 1px 2px rgba(16,23,32,.06)' : 'none',
+        on: () => { this.setState({ currency: c }); this.say(c === 'native' ? 'Showing native rate, FX factor and converted MYR rate side by side. Nine columns.' : 'Native rate and FX columns hidden. Seven columns, all figures in MYR. Native rates remain in each row’s accessible name and in the Excel export.'); }
+      })),
+
+      oop: [
+        { label: 'International travel', note: 'SG and IN mobilisation, 34 trips', amt: 'MYR 480,000', pol: 'At cost, economy class, booked through the client travel desk' },
+        { label: 'Accommodation', note: 'Kuching, 620 room-nights', amt: 'MYR 320,000', pol: 'At cost, capped at MYR 520 per night' },
+        { label: 'Per diem', note: '4 regions, 1,120 days', amt: 'MYR 210,000', pol: 'Fixed regional rate, no receipts required' },
+        { label: 'Visas and permits', note: 'VN and IN, 6 people', amt: 'MYR 46,000', pol: 'At cost, non-refundable if a resource rolls off' }
+      ],
+
+      redaction: [
+        { k: 'What is masked', v: 'The figure only. The row, its label, its unit and its position in the table all stay — a reader must be able to see that a number exists and that they cannot have it.' },
+        { k: 'How it looks', v: 'A fixed-width monospace mask matching the digit grouping of the hidden figure, on a hatched surface/sunken fill with a 1px border/strong edge and a lock glyph. It reads as deliberate, never as a rendering failure.' },
+        { k: 'Propagation', v: 'Upward and total: any subtotal or total containing a masked line is itself masked. Arithmetic is deliberately broken rather than left recoverable by subtraction.' },
+        { k: 'Partial sums', v: 'Where a partial sum is genuinely useful it is labelled “Visible subtotal: X across N of M lines” and carries the reason and the route to access. The word “total” is reserved for a figure that includes everything.' },
+        { k: 'No approximation', v: 'No rounded bands, no “about MYR 1–1.5M”, no percentages of a masked base. An approximation of a restricted figure is a disclosure of it.' },
+        { k: 'Export parity', v: 'PDF, PPTX and Excel exports carry the same masks and the same subtotal labelling, stamped with the exporter’s level. A masked cell in Excel contains the literal text “RESTRICTED”, never an empty cell or a zero.' },
+        { k: 'Escalation', v: 'Every mask names its route: “Restricted — needs cost visibility level 3”, with Request access opening a pre-filled approval to the delivery manager who owns the level.' }
+      ],
+
+      a11y: [
+        { k: 'Masked cell', v: 'Each mask is role="img" whose aria-label is the reason — “Subcontractor line cost restricted — needs cost visibility level 3. Request access.” The lock glyph and the ▪ run sit inside one aria-hidden span, so no screen reader ever reads “black small square”.' },
+        { k: 'Subtotal', v: 'The footer cell carries the full sentence as its accessible name — “Visible subtotal, 24,230,545 Malaysian ringgit, across 16 of 17 lines; 1 line restricted. Not the programme total.” — so the caveat cannot be separated from the number.' },
+        { k: 'Level change', v: 'Changing cost visibility writes to #cost-status politely and states exactly what became visible or hidden, including how many lines and whether the total is now partial.' },
+        { k: 'Currency', v: 'Native and converted values are separate cells with their own column headers; the FX factor column is announced with the rate and its lock date, so a converted figure is never read without its basis.' },
+        { k: 'Waterfall', v: 'Rendered as a table, not a chart: role="table" with a role="row" per step, role="rowheader" on the label and role="cell" on the figure, and the bar column marked aria-hidden. The bar is a redundant encoding of a number already in the cell.' },
+        { k: 'Negative figures', v: 'Announced as “minus 1,290,000 Malaysian ringgit”, never by colour or a bare minus glyph; deductions also carry the word “less” in their label.' }
+      ],
+
+      formats: [
+        { k: 'Currency', v: 'ISO code then value, space-separated: MYR 2,400 — never RM or $, which are ambiguous across MY, SG and US. Two decimals only where cents are material (invoices, FX factors); rates and totals are whole units.' },
+        { k: 'Conversion', v: 'Native figure, FX factor to four decimals, and converted figure are always shown together or the converted figure is omitted. A converted number without its rate and date is not a fact.' },
+        { k: 'Percentages', v: 'One decimal for margin and markup, integer for allocation. A percentage always names its base in the label (“Margin on NSR”), because margin on RR and margin on NSR differ by four points here.' },
+        { k: 'Dates', v: 'DD MMM YYYY (07 Aug 2026) in the interface, ISO 8601 in exports and in every accessible name that a date-format setting could otherwise change under the user.' },
+        { k: 'Durations', v: 'Working days by default, with calendar days in parentheses where the two differ. The region calendar that produced the number is always named.' },
+        { k: 'Large numbers', v: 'Thousands separators, tabular numerals, right-aligned. Abbreviation to 1.2M is permitted only in summary tiles, and the full figure is in the accessible name and the tooltip.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

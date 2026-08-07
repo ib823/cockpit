@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; text-decoration:underline; text-underline-offset:2px; }
+  a:hover { color:#08429E; }
+  button, input { font-family:inherit; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:1ms !important; transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1440px;margin:0 auto;padding:72px 40px 40px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 3 of 5</div>
+  <h1 style="margin:14px 0 0;font-size:44px;line-height:50px;font-weight:600;letter-spacing:-0.025em;max-width:22ch;text-wrap:pretty">Composites: the structures screens are made of</h1>
+  <p style="margin:20px 0 0;max-width:70ch;font-size:16px;line-height:26px;color:#4B5563;text-wrap:pretty">Fourteen composites assembled entirely from layer-2 primitives and layer-1 tokens. Each names the primitives it is built from, its spacing in token units, and its behaviour under the loads Cockpit actually carries — 1,200 tasks, 80 phases, nine concurrent editors.</p>
+</header>
+
+<section style="max-width:1440px;margin:0 auto;padding:16px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">A — App shell</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Top bar, primary nav, contextual sub-nav</h2>
+  <p style="margin:12px 0 0;max-width:72ch;font-size:14px;line-height:22px;color:#4B5563">Anatomy: <span style="font-family:'IBM Plex Mono',monospace;font-size:13px">[top bar h56] → [primary nav h44] → [sub-nav h40] → [content]</span> = 140px of chrome, fixed. Below 1024px the sub-nav becomes a horizontally scrolling strip; below 768px the primary nav collapses into the top bar’s menu button. The sync chip never collapses — it is the one element guaranteed present at every width.</p>
+
+  <div style="margin-top:24px;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden;background:#F6F7F9">
+    <div style="display:flex;align-items:center;gap:16px;height:56px;padding:0 16px;background:#FFFFFF;border-bottom:1px solid #CBD2DC">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#101720;color:#FFFFFF;font-size:13px;font-weight:600">C</span>
+        <span style="font-size:15px;font-weight:600;letter-spacing:-0.01em">Cockpit</span>
+      </div>
+      <div style="height:24px;width:1px;background:#CBD2DC"></div>
+      <button style="display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;cursor:pointer">
+        <span style="font-size:13px;font-weight:500;color:#101720">S/4HANA Migration — Sarawak Energy</span>
+        <span style="font-size:9px;color:#4B5563">▼</span>
+      </button>
+      <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:4px;background:#F1F3F7;border:1px solid #CBD2DC;font-size:12px;font-weight:500;color:#4B5563">EDITOR</span>
+      <div style="flex:1;display:flex;justify-content:center">
+        <div style="display:flex;align-items:center;gap:8px;width:100%;max-width:420px;height:32px;padding:0 10px;border-radius:6px;background:#F1F3F7;border:1px solid #CBD2DC">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">⌕</span>
+          <span style="flex:1;font-size:13px;color:#667085">Search tasks, resources, phases…</span>
+          <kbd style="display:inline-flex;align-items:center;height:20px;padding:0 5px;border-radius:3px;background:#FFFFFF;border:1px solid #CBD2DC;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563">⌘K</kbd>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:#E3F5EB;border:1px solid #9AD9BB">
+        <span style="font-size:11px;color:#0A7A47" aria-hidden="true">✓</span>
+        <span style="font-size:12px;font-weight:500;color:#0A7A47">Synced</span>
+        <span style="font-size:11px;color:#0A7A47;font-variant-numeric:tabular-nums">14:32</span>
+      </div>
+      <div style="display:flex">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:#E8F0FE;color:#0B57D0;font-size:11px;font-weight:600;border:2px solid #FFFFFF">RM</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:#E3F5EB;color:#0A7A47;font-size:11px;font-weight:600;border:2px solid #FFFFFF;margin-left:-6px">AR</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:#F1F3F7;color:#4B5563;font-size:11px;font-weight:600;border:2px solid #FFFFFF;margin-left:-6px">+4</span>
+      </div>
+      <button aria-label="Account" style="width:32px;height:32px;border-radius:999px;border:1px solid #7D8799;background:#FBF0DC;color:#8A5200;font-size:12px;font-weight:600;cursor:pointer">CW</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:4px;height:44px;padding:0 16px;background:#FFFFFF;border-bottom:1px solid #E4E7EC">
+      <sc-for list="{{ primaryNav }}" as="n" hint-placeholder-count="6">
+        <span style="display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:6px;background:{{ n.bg }};color:{{ n.fg }};font-size:13px;font-weight:{{ n.fw }};border:1px solid {{ n.bd }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px" aria-hidden="true">{{ n.g }}</span>{{ n.label }}</span>
+      </sc-for>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button style="height:32px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:13px;font-weight:500;color:#101720;cursor:pointer">Baseline</button>
+        <button style="height:32px;padding:0 12px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;font-size:13px;font-weight:500;color:#FFFFFF;cursor:pointer">Generate proposal</button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:18px;height:40px;padding:0 16px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+      <sc-for list="{{ subNav }}" as="s" hint-placeholder-count="6">
+        <span style="display:inline-flex;align-items:center;gap:6px;height:40px;font-size:13px;font-weight:{{ s.fw }};color:{{ s.fg }};box-shadow:{{ s.bar }}">{{ s.label }}<sc-if value="{{ s.count }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:999px;background:#E4E7EC;font-size:11px;color:#4B5563;font-variant-numeric:tabular-nums">{{ s.count }}</span></sc-if></span>
+      </sc-for>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:#4B5563">
+        <span>Base currency <span style="font-weight:500;color:#101720">MYR</span></span>
+        <span style="width:1px;height:16px;background:#CBD2DC"></span>
+        <span>Cost visibility <span style="font-weight:500;color:#101720">Level 2 of 3</span></span>
+      </div>
+    </div>
+
+    <div style="padding:20px 16px;min-height:120px;background:#F6F7F9">
+      <div style="font-size:12px;line-height:18px;color:#667085">Content region. Scrolls independently; the three chrome rows are sticky. Focus order is top bar → primary nav → sub-nav → content, and a persistent “Skip to content” link precedes the logo.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:20px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Shell — dark</h3>
+      <div style="border:1px solid #333C4A;border-radius:6px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:12px;height:48px;padding:0 12px;background:#171C24;border-bottom:1px solid #333C4A">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:5px;background:#E9EEF6;color:#0B1220;font-size:12px;font-weight:600">C</span>
+          <span style="font-size:13px;font-weight:600;color:#E9EEF6">S/4HANA Migration</span>
+          <div style="flex:1"></div>
+          <span style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:999px;background:#0F2E22;border:1px solid #2C6B4E;font-size:12px;font-weight:500;color:#56D69A"><span aria-hidden="true">✓</span>Synced</span>
+        </div>
+        <div style="display:flex;gap:4px;height:40px;align-items:center;padding:0 12px;background:#171C24;border-bottom:1px solid #232A35">
+          <span style="height:28px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;background:#16294A;border:1px solid #2F4E82;color:#7FB0FF;font-size:13px;font-weight:600">Timeline</span>
+          <span style="height:28px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;color:#AFBACA;font-size:13px">Resources</span>
+          <span style="height:28px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;color:#AFBACA;font-size:13px">Cost</span>
+        </div>
+        <div style="height:36px;background:#0A0D12;display:flex;align-items:center;padding:0 12px;font-size:12px;color:#8592A6">Sub-nav on surface/sunken — the only place dark uses the sunken step in chrome</div>
+      </div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Shell rules</h3>
+      <sc-for list="{{ shellRules }}" as="r" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:10px;padding:6px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#0B57D0;line-height:20px">§</span><div style="font-size:13px;line-height:20px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1440px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">B — Data table</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">One table, every capability</h2>
+  <p style="margin:12px 0 0;max-width:72ch;font-size:14px;line-height:22px;color:#4B5563">Row height 40 (compact 32), sticky header, no vertical rules, no zebra. Numeric columns are right-aligned tabular; the first column is sticky when horizontal scrolling starts. Composed from: Checkbox · Button · Icon button · Dropdown menu · Chip · Status pill · Avatar · Pagination · Skeleton.</p>
+
+  <div style="margin-top:24px;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden;background:#FFFFFF">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #E4E7EC;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;min-width:200px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">⌕</span><span style="font-size:13px;color:#101720">basis</span>
+      </div>
+      <sc-for list="{{ filterChips }}" as="c" hint-placeholder-count="3">
+        <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:4px;background:#E8F0FE;border:1px solid #BBD0F6;font-size:12px;font-weight:500;color:#0B57D0">{{ c }}<span aria-label="Remove filter" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:3px;background:#D6E4FD;font-size:11px;cursor:pointer">×</span></span>
+      </sc-for>
+      <button style="height:28px;padding:0 8px;border-radius:4px;border:1px dashed #7D8799;background:#FFFFFF;font-size:12px;font-weight:500;color:#4B5563;cursor:pointer">+ Add filter</button>
+      <button style="height:28px;padding:0 8px;border-radius:4px;border:none;background:transparent;font-size:12px;font-weight:500;color:#0B57D0;cursor:pointer">Clear all</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <button style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;font-size:13px;color:#101720;cursor:pointer">Saved view: <span style="font-weight:600">Subcontractors</span> <span style="font-size:9px">▼</span></button>
+        <button style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;font-size:13px;color:#101720;cursor:pointer">Columns <span style="font-size:11px;color:#4B5563;font-variant-numeric:tabular-nums">7 / 11</span></button>
+        <button style="height:32px;padding:0 10px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;font-size:13px;color:#101720;cursor:pointer">Export</button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:14px;padding:8px 16px;background:#E8F0FE;border-bottom:1px solid #BBD0F6">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:2px;background:#0B57D0;border:1px solid #0B57D0;color:#FFFFFF;font-size:12px;font-weight:600">–</span>
+      <span style="font-size:13px;font-weight:500;color:#101720;font-variant-numeric:tabular-nums">3 of 42 resources selected</span>
+      <span style="width:1px;height:18px;background:#BBD0F6"></span>
+      <sc-for list="{{ bulkActions }}" as="b" hint-placeholder-count="4">
+        <button style="height:28px;padding:0 10px;border-radius:4px;border:1px solid {{ b.bd }};background:{{ b.bg }};font-size:13px;font-weight:500;color:{{ b.fg }};cursor:pointer">{{ b.label }}</button>
+      </sc-for>
+      <button style="margin-left:auto;height:28px;padding:0 8px;border-radius:4px;border:none;background:transparent;font-size:13px;color:#0B57D0;cursor:pointer">Clear selection · Esc</button>
+    </div>
+
+    <div style="overflow-x:auto">
+      <div style="min-width:1080px">
+        <div style="display:grid;grid-template-columns:40px 1.6fr 1.3fr 72px 1fr 110px 100px 120px 44px;gap:0;background:#F1F3F7;border-bottom:1px solid #CBD2DC;position:sticky;top:0">
+          <sc-for list="{{ columns }}" as="c" hint-placeholder-count="9">
+            <div style="display:flex;align-items:center;gap:6px;height:36px;padding:0 12px;justify-content:{{ c.just }};border-right:1px solid #E4E7EC;position:relative">
+              <span style="font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:{{ c.fg }}">{{ c.label }}</span>
+              <span style="font-size:10px;color:#0B57D0">{{ c.sort }}</span>
+              <span style="position:absolute;right:-2px;top:8px;bottom:8px;width:4px;cursor:col-resize;background:{{ c.grip }}"></span>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:40px 1.6fr 1.3fr 72px 1fr 110px 100px 120px 44px;align-items:center;height:40px;border-bottom:1px solid #E4E7EC;background:{{ r.bg }};box-shadow:{{ r.bar }}">
+            <div style="display:flex;align-items:center;justify-content:center"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:2px;background:{{ r.cbBg }};border:1px solid {{ r.cbBd }};color:#FFFFFF;font-size:11px;font-weight:600">{{ r.cb }}</span></div>
+            <div style="display:flex;align-items:center;gap:8px;padding:0 12px;min-width:0">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none;border-radius:999px;background:{{ r.avBg }};color:{{ r.avFg }};font-size:10px;font-weight:600">{{ r.initials }}</span>
+              <span style="font-size:13px;color:#101720;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ r.name }}</span>
+            </div>
+            <div style="padding:0 12px;font-size:13px;color:#4B5563;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ r.role }}</div>
+            <div style="padding:0 12px;font-size:13px;color:#4B5563;font-variant-numeric:tabular-nums">{{ r.region }}</div>
+            <div style="padding:0 12px;font-size:13px;color:#4B5563;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ r.stream }}</div>
+            <div style="padding:0 12px;text-align:right;font-size:13px;font-weight:500;color:{{ r.rateFg }};font-variant-numeric:tabular-nums;background:{{ r.rateBg }};border:{{ r.rateBd }};height:{{ r.rateH }};display:flex;align-items:center;justify-content:flex-end;border-radius:4px;margin:0 6px">{{ r.rate }}</div>
+            <div style="padding:0 12px;text-align:right;font-size:13px;color:#101720;font-variant-numeric:tabular-nums">{{ r.alloc }}</div>
+            <div style="padding:0 12px"><span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px 0 6px;border-radius:4px;background:{{ r.pillBg }};color:{{ r.pillFg }};border:1px solid {{ r.pillBd }};font-size:11px;font-weight:500"><span aria-hidden="true">{{ r.pillG }}</span>{{ r.pill }}</span></div>
+            <div style="display:flex;align-items:center;justify-content:center;color:#4B5563;font-size:14px">⋯</div>
+          </div>
+        </sc-for>
+
+        <div style="display:grid;grid-template-columns:40px 1.6fr 1.3fr 72px 1fr 110px 100px 120px 44px;align-items:center;height:40px;border-bottom:1px solid #E4E7EC">
+          <div></div>
+          <div style="display:flex;align-items:center;gap:8px;padding:0 12px"><div style="width:24px;height:24px;border-radius:999px;background:#E4E7EC"></div><div style="height:12px;width:60%;border-radius:2px;background:#E4E7EC"></div></div>
+          <div style="padding:0 12px"><div style="height:12px;width:70%;border-radius:2px;background:#E4E7EC"></div></div>
+          <div style="padding:0 12px"><div style="height:12px;width:60%;border-radius:2px;background:#EDEFF3"></div></div>
+          <div style="padding:0 12px"><div style="height:12px;width:50%;border-radius:2px;background:#EDEFF3"></div></div>
+          <div style="padding:0 12px"><div style="height:12px;width:70%;border-radius:2px;background:#E4E7EC;margin-left:auto"></div></div>
+          <div style="padding:0 12px"><div style="height:12px;width:50%;border-radius:2px;background:#EDEFF3;margin-left:auto"></div></div>
+          <div style="padding:0 12px"><div style="height:16px;width:70%;border-radius:4px;background:#E4E7EC"></div></div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:16px;padding:10px 16px;border-top:1px solid #CBD2DC;background:#FFFFFF;flex-wrap:wrap">
+      <span style="font-size:13px;color:#4B5563;font-variant-numeric:tabular-nums">1–8 of 42</span>
+      <div style="display:flex;gap:4px">
+        <sc-for list="{{ pages }}" as="p" hint-placeholder-count="6">
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 8px;border-radius:6px;background:{{ p.bg }};color:{{ p.fg }};border:1px solid {{ p.bd }};font-size:13px;font-weight:500;font-variant-numeric:tabular-nums">{{ p.label }}</span>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#4B5563">Rows <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;border-radius:6px;border:1px solid #CBD2DC;color:#101720;font-variant-numeric:tabular-nums">25 <span style="font-size:9px">▼</span></span></div>
+      <div style="margin-left:auto;font-size:12px;color:#667085">Virtualized variant: above 200 rows pagination is replaced by windowed scrolling — 12 rows rendered either side of the viewport, a sticky group header per phase, and a scrollbar overlay marking the selected rows.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px">
+      <h3 style="margin:0 0 10px;font-size:15px;line-height:22px;font-weight:600">Inline cell edit</h3>
+      <div style="border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 110px;height:36px;align-items:center;background:#F1F3F7;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563"><span style="padding:0 10px">Resource</span><span style="padding:0 10px;text-align:right">Day rate</span></div>
+        <div style="display:grid;grid-template-columns:1fr 110px;height:40px;align-items:center;border-top:1px solid #E4E7EC"><span style="padding:0 10px;font-size:13px">Nguyen Thi Lan</span><span style="padding:0 10px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums">1,300</span></div>
+        <div style="display:grid;grid-template-columns:1fr 110px;height:40px;align-items:center;border-top:1px solid #E4E7EC;background:#FFFFFF"><span style="padding:0 10px;font-size:13px">Arun Prakash</span><span style="padding:0 4px"><span style="display:flex;align-items:center;height:32px;padding:0 8px;border-radius:4px;border:1px solid #0B57D0;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0;background:#FFFFFF;font-size:13px;font-weight:500;justify-content:flex-end;font-variant-numeric:tabular-nums">1,150</span></span></div>
+        <div style="display:grid;grid-template-columns:1fr 110px;height:40px;align-items:center;border-top:1px solid #E4E7EC"><span style="padding:0 10px;font-size:13px">Siti Nurhaliza</span><span style="padding:0 10px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums">2,200</span></div>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#4B5563;margin-top:10px">Enter or double-click opens the editor in place at the cell’s exact bounds, so nothing shifts. Enter commits and moves down; Tab commits and moves right; Escape reverts. A failed commit keeps the editor open, turns the border status/danger and puts the reason in a popover below.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px">
+      <h3 style="margin:0 0 10px;font-size:15px;line-height:22px;font-weight:600">Column show/hide</h3>
+      <div style="border:1px solid #CBD2DC;border-radius:6px;box-shadow:0 4px 12px rgba(16,23,32,.10);overflow:hidden">
+        <div style="padding:8px 10px;border-bottom:1px solid #E4E7EC;font-size:12px;font-weight:600;color:#101720">Columns · drag to reorder</div>
+        <sc-for list="{{ colToggle }}" as="c" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid #E4E7EC">
+            <span style="color:#98A2B3;font-size:12px;cursor:grab">⠿</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:2px;background:{{ c.bg }};border:1px solid {{ c.bd }};color:#FFFFFF;font-size:10px">{{ c.tick }}</span>
+            <span style="font-size:13px;color:{{ c.fg }}">{{ c.label }}</span>
+            <sc-if value="{{ c.locked }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;font-size:11px;color:#667085">locked</span></sc-if>
+          </div>
+        </sc-for>
+        <div style="padding:8px 10px;display:flex;gap:8px"><button style="height:28px;padding:0 10px;border-radius:4px;border:1px solid #7D8799;background:#FFFFFF;font-size:12px;cursor:pointer">Reset</button><button style="height:28px;padding:0 10px;border-radius:4px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:12px;cursor:pointer">Save as view</button></div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px">
+      <h3 style="margin:0 0 10px;font-size:15px;line-height:22px;font-weight:600">Table rules</h3>
+      <sc-for list="{{ tableRules }}" as="r" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:5px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0;line-height:19px">§</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:20px">
+    <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Data table — dark</h3>
+    <div style="border:1px solid #333C4A;border-radius:6px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:40px 1.6fr 1.2fr 110px 120px;background:#0A0D12;border-bottom:1px solid #333C4A">
+        <div></div>
+        <div style="padding:0 12px;height:36px;display:flex;align-items:center;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#AFBACA">Resource</div>
+        <div style="padding:0 12px;height:36px;display:flex;align-items:center;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#AFBACA">Role</div>
+        <div style="padding:0 12px;height:36px;display:flex;align-items:center;justify-content:flex-end;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#7FB0FF">Day rate ▼</div>
+        <div style="padding:0 12px;height:36px;display:flex;align-items:center;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#AFBACA">Status</div>
+      </div>
+      <sc-for list="{{ darkRows }}" as="r" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:40px 1.6fr 1.2fr 110px 120px;align-items:center;height:40px;background:{{ r.bg }};border-bottom:1px solid #232A35;box-shadow:{{ r.bar }}">
+          <div style="display:flex;justify-content:center"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:2px;background:{{ r.cbBg }};border:1px solid {{ r.cbBd }};color:#0B1220;font-size:11px;font-weight:600">{{ r.cb }}</span></div>
+          <div style="padding:0 12px;font-size:13px;color:#E9EEF6">{{ r.name }}</div>
+          <div style="padding:0 12px;font-size:13px;color:#AFBACA">{{ r.role }}</div>
+          <div style="padding:0 12px;text-align:right;font-size:13px;font-weight:500;color:#E9EEF6;font-variant-numeric:tabular-nums">{{ r.rate }}</div>
+          <div style="padding:0 12px"><span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px 0 6px;border-radius:4px;background:{{ r.pillBg }};color:{{ r.pillFg }};border:1px solid {{ r.pillBd }};font-size:11px;font-weight:500"><span aria-hidden="true">{{ r.pillG }}</span>{{ r.pill }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:12px;line-height:18px;color:#8592A6;margin-top:10px">Selected rows in dark use accent/subtle <span style="font-family:'IBM Plex Mono',monospace">#16294A</span> plus a 2px accent leading bar — the fill alone is only 1.4:1 against surface/raised, which is why the bar is mandatory rather than decorative.</div>
+  </div>
+
+  <div style="margin-top:16px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085;margin-bottom:10px">Accessibility — shell &amp; table</div>
+    <sc-for list="{{ a11yTable }}" as="a" hint-placeholder-count="6">
+      <div style="display:grid;grid-template-columns:180px 1fr;gap:16px;padding:8px 0;border-top:1px solid #E4E7EC;font-size:13px;line-height:20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ a.k }}</div>
+        <div style="color:#4B5563;text-wrap:pretty">{{ a.v }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="max-width:1440px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">C — Overlays</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Modal, stacked modal, drawer</h2>
+
+  <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:24px;align-items:start">
+    <div style="background:#F1F3F7;border:1px solid #CBD2DC;border-radius:8px;padding:28px;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:rgba(16,23,32,.48)"></div>
+      <div style="position:relative;background:#FFFFFF;border-radius:8px;box-shadow:0 16px 48px rgba(16,23,32,.20);max-width:640px;margin:0 auto">
+        <div style="display:flex;align-items:flex-start;gap:16px;padding:20px 24px 16px">
+          <div style="flex:1">
+            <h3 style="margin:0;font-size:20px;line-height:28px;font-weight:600;letter-spacing:-0.015em">Add task to “Realize”</h3>
+            <p style="margin:6px 0 0;font-size:13px;line-height:20px;color:#4B5563">Dates default to the phase window and the Malaysia (MY) working calendar.</p>
+          </div>
+          <button aria-label="Close" style="width:32px;height:32px;flex:none;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;color:#4B5563;font-size:14px;cursor:pointer">×</button>
+        </div>
+        <div style="padding:4px 24px 20px;border-top:1px solid #E4E7EC">
+          <div style="padding-top:20px;display:flex;flex-direction:column;gap:16px">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Task name <span style="color:#B3261E" aria-hidden="true">*</span></label>
+              <div style="display:flex;align-items:center;height:36px;padding:0 12px;border-radius:6px;border:1px solid #0B57D0;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0;font-size:14px">Chart of accounts workshop</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <div><label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Start</label><div style="display:flex;align-items:center;justify-content:space-between;height:36px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;font-size:14px;font-variant-numeric:tabular-nums">07 Sep 2026 <span style="font-family:'IBM Plex Mono',monospace;color:#667085">▦</span></div></div>
+              <div><label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Finish</label><div style="display:flex;align-items:center;justify-content:space-between;height:36px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;font-size:14px;font-variant-numeric:tabular-nums">18 Sep 2026 <span style="font-family:'IBM Plex Mono',monospace;color:#667085">▦</span></div></div>
+            </div>
+            <div style="display:flex;gap:16px;font-size:12px;color:#4B5563"><span><span style="font-weight:600;color:#101720">8</span> working days</span><span style="color:#8A5200">1 public holiday excluded — 15 Sep, Malaysia Day</span></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 24px;border-top:1px solid #E4E7EC;background:#F6F7F9;border-radius:0 0 8px 8px">
+          <span style="font-size:12px;color:#667085">Saved locally as you type</span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button style="height:36px;padding:0 14px;border-radius:6px;border:none;background:transparent;font-size:14px;font-weight:500;color:#0B57D0;cursor:pointer">Cancel</button>
+            <button style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer">Add task</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:relative;margin:20px auto 0;max-width:420px;background:#FFFFFF;border-radius:8px;box-shadow:0 16px 48px rgba(16,23,32,.20);border-top:3px solid #B3261E">
+        <div style="padding:20px 24px 8px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#B3261E;margin-bottom:6px">Dialog 2 of 2 — stacked</div>
+          <h3 style="margin:0;font-size:18px;line-height:26px;font-weight:600">Delete phase “Realization”?</h3>
+          <p style="margin:8px 0 0;font-size:13px;line-height:20px;color:#4B5563">Its <span style="font-weight:600;color:#101720">24 tasks</span>, <span style="font-weight:600;color:#101720">9 resource assignments</span> and <span style="font-weight:600;color:#101720">3 milestones</span> will be removed. Dependencies from Explore will be left dangling and must be reconnected. This cannot be undone after the next sync.</p>
+        </div>
+        <div style="padding:12px 24px 16px">
+          <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Type the phase name to confirm</label>
+          <div style="display:flex;align-items:center;height:36px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;font-size:14px;color:#667085">Realization</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 24px;border-top:1px solid #E4E7EC;background:#F6F7F9;border-radius:0 0 8px 8px">
+          <button style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:14px;font-weight:500;box-shadow:0 0 0 2px #F6F7F9,0 0 0 4px #0B57D0;cursor:pointer">Cancel</button>
+          <button style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #B3261E;background:#B3261E;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer">Delete phase</button>
+        </div>
+      </div>
+      <div style="position:relative;text-align:center;font-size:12px;color:#FFFFFF;margin-top:14px">Focus rests on Cancel — never on the destructive action. The parent dialog is inert and its scrim has dropped to 24%.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Sizes</h3>
+        <sc-for list="{{ modalSizes }}" as="m" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:150px 1fr;gap:14px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ m.token }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563">{{ m.use }}</div></div>
+        </sc-for>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Modal rules</h3>
+        <sc-for list="{{ modalRules }}" as="r" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:5px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0;line-height:19px">§</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+        </sc-for>
+      </div>
+      <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:20px">
+        <h3 style="margin:0 0 12px;font-size:15px;line-height:22px;font-weight:600;color:#E9EEF6">Modal — dark</h3>
+        <div style="background:#171C24;border:1px solid #333C4A;border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.76);overflow:hidden">
+          <div style="padding:16px 18px 12px"><div style="font-size:16px;font-weight:600;color:#E9EEF6">Delete phase “Realization”?</div><div style="font-size:12.5px;line-height:19px;color:#AFBACA;margin-top:6px">Its 24 tasks and 9 resource assignments will be removed.</div></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;background:#0A0D12;border-top:1px solid #232A35"><button style="height:32px;padding:0 12px;border-radius:6px;border:1px solid #748196;background:#171C24;color:#E9EEF6;font-size:13px;cursor:pointer">Cancel</button><button style="height:32px;padding:0 12px;border-radius:6px;border:1px solid #FF8A80;background:#FF8A80;color:#2A0A07;font-size:13px;font-weight:500;cursor:pointer">Delete phase</button></div>
+        </div>
+        <div style="font-size:12px;line-height:18px;color:#8592A6;margin-top:10px">Dark scrim is <span style="font-family:'IBM Plex Mono',monospace">rgba(4,6,10,.64)</span> — deeper than light, because a dark modal on a dark canvas needs the separation that a shadow cannot provide.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#F1F3F7;border:1px solid #CBD2DC;border-radius:8px;padding:0;overflow:hidden">
+      <div style="display:flex;height:340px">
+        <div style="flex:1;padding:16px;font-size:12px;color:#667085;line-height:18px">Canvas stays live — the Gantt behind a right drawer is still scrollable, and the selected row keeps its accent bar.</div>
+        <div style="width:340px;background:#FFFFFF;border-left:1px solid #CBD2DC;box-shadow:-8px 0 28px rgba(16,23,32,.14);display:flex;flex-direction:column">
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border-bottom:1px solid #E4E7EC">
+            <div style="flex:1"><div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Task · Realize</div><div style="font-size:16px;font-weight:600;line-height:22px;margin-top:2px">Chart of accounts workshop</div></div>
+            <button aria-label="Close drawer" style="width:28px;height:28px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;color:#4B5563;cursor:pointer">×</button>
+          </div>
+          <div style="display:flex;gap:16px;padding:0 16px;border-bottom:1px solid #E4E7EC">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+              <span style="display:inline-flex;align-items:center;gap:6px;height:38px;font-size:13px;font-weight:500;color:#4B5563">{{ t.label }}</span>
+            </sc-for>
+          </div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px;flex:1">
+            <div style="display:grid;grid-template-columns:96px 1fr;gap:8px;font-size:13px"><span style="color:#4B5563">Dates</span><span style="font-variant-numeric:tabular-nums">07 – 18 Sep 2026</span></div>
+            <div style="display:grid;grid-template-columns:96px 1fr;gap:8px;font-size:13px"><span style="color:#4B5563">Effort</span><span style="font-variant-numeric:tabular-nums">8 working days · 64 h</span></div>
+            <div style="display:grid;grid-template-columns:96px 1fr;gap:8px;font-size:13px"><span style="color:#4B5563">Assigned</span><span>Aisyah Rahman · 80%</span></div>
+            <div style="display:grid;grid-template-columns:96px 1fr;gap:8px;font-size:13px"><span style="color:#4B5563">Cost</span><span style="font-variant-numeric:tabular-nums">MYR 15,360</span></div>
+          </div>
+          <div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid #E4E7EC;background:#F6F7F9"><button style="flex:1;height:36px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:13px;font-weight:500;cursor:pointer">Duplicate</button><button style="flex:1;height:36px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:13px;font-weight:500;cursor:pointer">Save</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#F1F3F7;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+        <div style="height:96px;padding:16px;font-size:12px;color:#667085">Bottom drawer — wide and short content, the canvas keeps its full width.</div>
+        <div style="background:#FFFFFF;border-top:1px solid #CBD2DC;box-shadow:0 -8px 28px rgba(16,23,32,.14)">
+          <div style="display:flex;justify-content:center;padding:5px 0"><div style="width:44px;height:4px;border-radius:999px;background:#CBD2DC"></div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:0 16px 10px"><div style="font-size:15px;font-weight:600">Critical path — 6 tasks, 0 days float</div><span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px 0 6px;border-radius:4px;background:#FDE9E7;color:#B3261E;border:1px solid #F0B5AF;font-size:11px;font-weight:500"><span aria-hidden="true">✕</span>2 late</span><button style="margin-left:auto;height:28px;padding:0 10px;border-radius:6px;border:1px solid #CBD2DC;background:#FFFFFF;font-size:12px;cursor:pointer">Collapse</button></div>
+          <div style="display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto">
+            <sc-for list="{{ criticalChain }}" as="c" hint-placeholder-count="5">
+              <span style="display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:6px;border:1.5px solid {{ c.bd }};background:{{ c.bg }};font-size:12px;font-weight:500;color:{{ c.fg }};white-space:nowrap">{{ c.label }}<span style="font-variant-numeric:tabular-nums;color:#4B5563">{{ c.days }}</span></span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Drawer rules</h3>
+        <sc-for list="{{ drawerRules }}" as="r" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:5px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0;line-height:19px">§</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+        </sc-for>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Tabs — states</h3>
+        <div style="display:flex;gap:20px;border-bottom:1px solid #CBD2DC">
+          <sc-for list="{{ tabStates }}" as="t" hint-placeholder-count="5">
+            <span style="display:inline-flex;align-items:center;gap:6px;height:40px;font-size:13px;font-weight:{{ t.fw }};color:{{ t.fg }};box-shadow:{{ t.bar }};border-radius:{{ t.r }};padding:{{ t.p }};background:{{ t.bg }}">{{ t.label }}<sc-if value="{{ t.count }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:999px;background:#E4E7EC;font-size:11px;color:#4B5563;font-variant-numeric:tabular-nums">{{ t.count }}</span></sc-if></span>
+          </sc-for>
+        </div>
+        <div style="font-size:12px;line-height:18px;color:#4B5563;margin-top:10px">Selected carries weight 600 plus a 2px accent underline. Disabled tabs are never used — a tab with nothing in it shows its empty state instead, because a disabled tab hides the fact that the section exists.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1440px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">D — Finding things</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Command palette &amp; global search</h2>
+
+  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:24px;align-items:start">
+    <div style="background:#F1F3F7;border:1px solid #CBD2DC;border-radius:8px;padding:28px;position:relative">
+      <div style="position:absolute;inset:0;background:rgba(16,23,32,.48);border-radius:8px"></div>
+      <div style="position:relative;max-width:620px;margin:0 auto;background:#FFFFFF;border-radius:8px;box-shadow:0 8px 28px rgba(16,23,32,.14);overflow:hidden">
+        <div style="display:flex;align-items:center;gap:10px;height:48px;padding:0 16px;border-bottom:1px solid #E4E7EC">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#667085">⌕</span>
+          <span style="flex:1;font-size:15px;color:#101720">cut</span>
+          <kbd style="display:inline-flex;align-items:center;height:20px;padding:0 5px;border-radius:3px;background:#F1F3F7;border:1px solid #CBD2DC;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563">Esc</kbd>
+        </div>
+        <div style="max-height:344px;overflow-y:auto">
+          <sc-for list="{{ paletteGroups }}" as="g" hint-placeholder-count="4">
+            <div>
+              <div style="padding:8px 16px 4px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085;background:#F6F7F9">{{ g.group }}</div>
+              <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid #E4E7EC;background:{{ i.bg }};box-shadow:{{ i.bar }}">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#4B5563;width:16px">{{ i.icon }}</span>
+                  <span style="flex:1;min-width:0"><span style="display:block;font-size:14px;line-height:20px;color:#101720">{{ i.label }}</span><span style="display:block;font-size:12px;line-height:17px;color:#667085">{{ i.hint }}</span></span>
+                  <sc-if value="{{ i.kbd }}" hint-placeholder-val="{{ false }}"><kbd style="display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:3px;background:#F1F3F7;border:1px solid #CBD2DC;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563">{{ i.kbd }}</kbd></sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:8px 16px;background:#F6F7F9;border-top:1px solid #E4E7EC;font-size:11px;color:#4B5563">
+          <span>↑↓ move</span><span>↵ open</span><span>⌘↵ open in drawer</span><span>Tab filter by type</span><span style="margin-left:auto;font-variant-numeric:tabular-nums">9 results</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+        <h3 style="margin:0 0 10px;font-size:16px;line-height:22px;font-weight:600">Palette behaviour</h3>
+        <div style="font-size:13px;line-height:20px;color:#4B5563;text-wrap:pretty">Opens on ⌘K from anywhere including inside a modal. Empty query shows five recent destinations and the three actions most used in this project — never a generic list. Results are grouped by kind and always in the same order: Actions, Go to, Tasks, Resources, Phases, Documents. Typing narrows within 120ms on local data; remote groups append with their own spinner rather than delaying the whole list. The active row carries a 2px accent leading bar in addition to its fill.</div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+        <h3 style="margin:0 0 10px;font-size:16px;line-height:22px;font-weight:600">Global search — grouped results page</h3>
+        <div style="border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+          <sc-for list="{{ searchGroups }}" as="s" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid #E4E7EC">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:{{ s.bg }};color:{{ s.fg }};font-family:'IBM Plex Mono',monospace;font-size:13px">{{ s.icon }}</span>
+              <span style="flex:1"><span style="display:block;font-size:13px;font-weight:500;color:#101720">{{ s.label }}</span><span style="display:block;font-size:12px;color:#667085">{{ s.hint }}</span></span>
+              <span style="font-size:12px;color:#4B5563;font-variant-numeric:tabular-nums">{{ s.count }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:12px;line-height:18px;color:#4B5563;margin-top:10px">The results page keeps the same grouping and adds per-group filters. A group with zero matches is listed with “0” rather than omitted, so the user learns the search covered it.</div>
+      </div>
+      <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:20px">
+        <h3 style="margin:0 0 12px;font-size:15px;font-weight:600;color:#E9EEF6">Palette — dark</h3>
+        <div style="background:#171C24;border:1px solid #333C4A;border-radius:8px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;height:42px;padding:0 14px;border-bottom:1px solid #232A35"><span style="font-family:'IBM Plex Mono',monospace;color:#8592A6">⌕</span><span style="font-size:14px;color:#E9EEF6">cut</span></div>
+          <div style="padding:6px 14px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#8592A6;background:#0A0D12">Tasks · 4 matches</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#16294A;box-shadow:inset 2px 0 0 #7FB0FF"><span style="font-size:13px;color:#E9EEF6">Cutover rehearsal</span><span style="margin-left:auto;font-size:12px;color:#AFBACA">Deploy · 12 Jan 2027</span></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 14px"><span style="font-size:13px;color:#E9EEF6">Cutover dress rehearsal 2</span><span style="margin-left:auto;font-size:12px;color:#AFBACA">Deploy · 19 Jan 2027</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section style="max-width:1440px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">E — Telling the user something</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Toasts and inline banners</h2>
+  <p style="margin:12px 0 0;max-width:72ch;font-size:14px;line-height:22px;color:#4B5563">A toast is for something that just happened and is now over. A banner is for a condition that persists. If the user must act, it is a banner — toasts disappear and conditions do not.</p>
+
+  <div style="display:grid;grid-template-columns:420px 1fr;gap:16px;margin-top:24px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="4">
+        <div style="display:flex;gap:12px;background:{{ t.bg }};border:1px solid {{ t.bd }};border-left:3px solid {{ t.accent }};border-radius:8px;padding:12px 14px;box-shadow:0 16px 48px rgba(16,23,32,.20)">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none;border-radius:999px;color:{{ t.accent }};font-size:12px;font-weight:600" aria-hidden="true">{{ t.g }}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;line-height:19px;font-weight:600;color:#101720">{{ t.title }}</div>
+            <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:2px;text-wrap:pretty">{{ t.body }}</div>
+            <button style="margin-top:8px;height:28px;padding:0 10px;border-radius:4px;border:1px solid #7D8799;background:#FFFFFF;font-size:12px;font-weight:500;color:#101720;cursor:pointer">{{ t.action }}</button>
+          </div>
+          <button aria-label="Dismiss" style="width:24px;height:24px;flex:none;border-radius:4px;border:none;background:transparent;color:#4B5563;font-size:13px;cursor:pointer">×</button>
+        </div>
+      </sc-for>
+      <div style="font-size:12px;line-height:18px;color:#4B5563;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:14px">Stack bottom-right, 8px apart, newest at the bottom, maximum three — a fourth collapses the oldest into “+2 more” which opens the notification list. Info and success auto-dismiss at 6s; warning and error persist. Hover, focus or a screen-reader visit pauses the timer, and the timer restarts rather than resumes.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <sc-for list="{{ banners }}" as="b" hint-placeholder-count="4">
+        <div style="display:flex;align-items:flex-start;gap:12px;background:{{ b.bg }};border:1px solid {{ b.bd }};border-radius:8px;padding:12px 14px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none;color:{{ b.fg }};font-size:12px;font-weight:600" aria-hidden="true">{{ b.g }}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;line-height:19px;font-weight:600;color:{{ b.fg }}">{{ b.title }}</div>
+            <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:2px;text-wrap:pretty">{{ b.body }}</div>
+          </div>
+          <button style="height:28px;padding:0 10px;flex:none;border-radius:4px;border:1px solid {{ b.bd }};background:#FFFFFF;font-size:12px;font-weight:500;color:{{ b.fg }};cursor:pointer">{{ b.action }}</button>
+        </div>
+      </sc-for>
+      <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:flex-start;gap:12px;background:#33240B;border:1px solid #7A5A22;border-radius:8px;padding:12px 14px">
+          <span style="color:#E9B45A;font-size:12px" aria-hidden="true">⚠</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#E9B45A">Working offline — 148 changes queued locally.</div><div style="font-size:12.5px;line-height:19px;color:#AFBACA;margin-top:2px">They will sync when the connection returns. Nothing has been lost.</div></div>
+          <button style="height:28px;padding:0 10px;border-radius:4px;border:1px solid #7A5A22;background:#171C24;font-size:12px;font-weight:500;color:#E9B45A;cursor:pointer">Retry now</button>
+        </div>
+        <div style="display:flex;gap:12px;background:#171C24;border:1px solid #232A35;border-left:3px solid #56D69A;border-radius:8px;padding:12px 14px;box-shadow:0 16px 48px rgba(0,0,0,.76)">
+          <span style="color:#56D69A;font-size:12px" aria-hidden="true">✓</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#E9EEF6">Baseline v4 saved</div><div style="font-size:12.5px;line-height:19px;color:#AFBACA;margin-top:2px">1,184 tasks captured at 14:32.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1440px;margin:0 auto;padding:64px 40px 0">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">F — Empty states</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Four states, four designs</h2>
+  <p style="margin:12px 0 0;max-width:72ch;font-size:14px;line-height:22px;color:#4B5563">They differ in structure, not only in words: first-run is centred and instructional with two paths forward; no-results stays inside the table with the toolbar live; error is left-aligned with a reference code; no-permission is a bordered panel that names the level held and the level required.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px">
+    <sc-for list="{{ emptyStates }}" as="e" hint-placeholder-count="4">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;overflow:hidden">
+        <div style="padding:8px 16px;background:#F1F3F7;border-bottom:1px solid #E4E7EC;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563">{{ e.kind }}</div>
+        <div style="padding:32px 28px;text-align:{{ e.align }}">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:8px;background:{{ e.bg }};border:1px solid {{ e.bd }};color:{{ e.tone }};font-size:18px" aria-hidden="true">{{ e.glyph }}</span>
+          <h3 style="margin:14px 0 0;font-size:18px;line-height:26px;font-weight:600;letter-spacing:-0.01em">{{ e.title }}</h3>
+          <p style="margin:8px auto 0;font-size:13.5px;line-height:21px;color:#4B5563;max-width:52ch;text-wrap:pretty">{{ e.body }}</p>
+          <div style="display:flex;gap:8px;margin-top:18px;justify-content:{{ e.just }}">
+            <button style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer">{{ e.primary }}</button>
+            <button style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;color:#101720;font-size:14px;font-weight:500;cursor:pointer">{{ e.secondary }}</button>
+          </div>
+        </div>
+        <div style="padding:10px 16px;border-top:1px solid #E4E7EC;background:#F6F7F9;font-size:12px;line-height:18px;color:#667085;text-wrap:pretty">{{ e.foot }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="max-width:1440px;margin:0 auto;padding:64px 40px 96px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">G — Forms</div>
+  <h2 style="margin:12px 0 0;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em">Field, group, section, error summary</h2>
+
+  <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-top:24px;align-items:start">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px">
+      <div style="background:#FDE9E7;border:1px solid #B3261E;border-radius:6px;padding:14px 16px">
+        <div style="font-size:14px;font-weight:600;color:#B3261E">3 fields need attention before this task can be saved</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+          <sc-for list="{{ errorList }}" as="e" hint-placeholder-count="3">
+            <div style="font-size:13px;line-height:20px;color:#4B5563"><span style="color:#B3261E;text-decoration:underline;text-underline-offset:2px;font-weight:500">{{ e.field }}</span> — {{ e.msg }}</div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="margin-top:24px">
+        <h3 style="margin:0;font-size:16px;line-height:22px;font-weight:600">Schedule</h3>
+        <p style="margin:4px 0 0;font-size:13px;line-height:20px;color:#4B5563">Dates use the Malaysia (MY) working calendar. Required fields are marked *.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Task name <span style="color:#B3261E" aria-hidden="true">*</span></label>
+          <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:6px;border:1px solid #B3261E;background:#FDE9E7;font-size:14px;color:#667085">e.g. Chart of accounts workshop<span style="margin-left:auto;color:#B3261E">✕</span></div>
+          <div style="font-size:12px;line-height:16px;color:#B3261E;margin-top:4px">Enter a name so the task can be found in search.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:160px 160px;gap:16px">
+          <div><label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Start *</label><div style="display:flex;align-items:center;height:36px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;font-size:14px;font-variant-numeric:tabular-nums">07 Sep 2026</div><div style="min-height:16px"></div></div>
+          <div><label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Finish *</label><div style="display:flex;align-items:center;height:36px;padding:0 12px;border-radius:6px;border:1px solid #B3261E;background:#FDE9E7;font-size:14px;font-variant-numeric:tabular-nums;color:#101720">01 Sep 2026</div><div style="font-size:12px;line-height:16px;color:#B3261E;margin-top:4px">Finish is before start.</div></div>
+        </div>
+        <div style="height:1px;background:#E4E7EC;margin:8px 0"></div>
+        <div>
+          <h3 style="margin:0;font-size:16px;line-height:22px;font-weight:600">Staffing</h3>
+          <p style="margin:4px 0 12px;font-size:13px;line-height:20px;color:#4B5563">Allocation is a share of a working day, so 150% means overtime and needs delivery-manager approval.</p>
+          <div style="display:grid;grid-template-columns:1fr 96px;gap:16px;align-items:start">
+            <div><label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Resource</label><div style="display:flex;align-items:center;height:36px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;font-size:14px">Aisyah Rahman — FI/CO, MY</div></div>
+            <div><label style="display:block;font-size:12px;font-weight:500;margin-bottom:4px">Allocation *</label><div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;height:36px;padding:0 12px;border-radius:6px;border:1px solid #B3261E;background:#FDE9E7;font-size:14px;font-variant-numeric:tabular-nums">220<span style="color:#4B5563;font-size:12px">%</span></div></div>
+          </div>
+          <div style="font-size:12px;line-height:16px;color:#B3261E;margin-top:4px">Allocation must be between 0 and 150. You entered 220.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:24px;padding-top:16px;border-top:1px solid #E4E7EC">
+        <button style="height:36px;padding:0 14px;border-radius:6px;border:none;background:transparent;font-size:14px;font-weight:500;color:#0B57D0;cursor:pointer">Cancel</button>
+        <button style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer">Save task</button>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Form rules</h3>
+        <sc-for list="{{ formRules }}" as="r" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:5px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0;line-height:19px">§</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+        </sc-for>
+      </div>
+      <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:20px">
+        <h3 style="margin:0 0 12px;font-size:15px;font-weight:600;color:#E9EEF6">Form — dark</h3>
+        <label style="display:block;font-size:12px;font-weight:500;color:#E9EEF6;margin-bottom:4px">Allocation *</label>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;height:36px;padding:0 12px;border-radius:6px;border:1px solid #FF8A80;background:#3A1512;font-size:14px;color:#E9EEF6;font-variant-numeric:tabular-nums">220<span style="color:#AFBACA;font-size:12px">%</span></div>
+        <div style="font-size:12px;line-height:16px;color:#FF8A80;margin-top:4px">Allocation must be between 0 and 150. You entered 220.</div>
+        <div style="font-size:12px;line-height:18px;color:#8592A6;margin-top:12px">Dark error fill is status/danger/subtle <span style="font-family:'IBM Plex Mono',monospace">#3A1512</span> — dark enough that content/primary still reads at 12.4:1 inside it, which an inverted light-red tint would not achieve.</div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px 24px">
+        <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085;margin-bottom:10px">Accessibility — composites</div>
+        <sc-for list="{{ a11yComposites }}" as="a" hint-placeholder-count="9">
+          <div style="display:grid;grid-template-columns:150px 1fr;gap:14px;padding:8px 0;border-top:1px solid #E4E7EC;font-size:12.5px;line-height:19px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#101720">{{ a.k }}</div>
+            <div style="color:#4B5563;text-wrap:pretty">{{ a.v }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</section></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1520,&quot;height&quot;:940}}">
+class Component extends DCLogic {
+  renderVals() {
+    const primaryNav = [
+      { label: 'Timeline', g: '▤', bg: '#E8F0FE', fg: '#0B57D0', fw: 600, bd: '#BBD0F6' },
+      { label: 'Resources', g: '◑', bg: 'transparent', fg: '#4B5563', fw: 500, bd: 'transparent' },
+      { label: 'Cost', g: '≡', bg: 'transparent', fg: '#4B5563', fw: 500, bd: 'transparent' },
+      { label: 'Org chart', g: '⌗', bg: 'transparent', fg: '#4B5563', fw: 500, bd: 'transparent' },
+      { label: 'Architecture', g: '◇', bg: 'transparent', fg: '#4B5563', fw: 500, bd: 'transparent' },
+      { label: 'Insights', g: '◔', bg: 'transparent', fg: '#4B5563', fw: 500, bd: 'transparent' }
+    ];
+
+    const subNav = [
+      { label: 'Gantt', fw: 600, fg: '#101720', bar: 'inset 0 -2px 0 #0B57D0', count: '' },
+      { label: 'Phases', fw: 500, fg: '#4B5563', bar: 'none', count: '12' },
+      { label: 'Tasks', fw: 500, fg: '#4B5563', bar: 'none', count: '1,184' },
+      { label: 'Milestones', fw: 500, fg: '#4B5563', bar: 'none', count: '23' },
+      { label: 'Dependencies', fw: 500, fg: '#4B5563', bar: 'none', count: '' },
+      { label: 'Baseline', fw: 500, fg: '#4B5563', bar: 'none', count: '' }
+    ];
+
+    const shellRules = [
+      'The top bar is the only global surface: project switcher, global search, sync chip, presence, account. Nothing project-specific ever moves into it.',
+      'Primary nav is destinations; sub-nav is views of the current destination. If an item changes what data you see rather than where you are, it belongs in the filter bar, not the nav.',
+      'The role badge (EDITOR / VIEWER) sits beside the project name because permission changes what every control below it does. A VIEWER sees the same layout with commit actions replaced by a single "Request edit access" button — never a screen of disabled buttons.',
+      'Cost visibility level is shown in the sub-nav bar at all times, so a masked figure is always explainable from the same screen.',
+      'At 768px the primary nav collapses into a menu button; at 320px the project switcher truncates to the project code (PRJ-2291) and the sync chip drops to its glyph plus one word.'
+    ];
+
+    const filterChips = ['Workstream: Technical', 'Region: MY, SG', 'Allocation > 80%'];
+
+    const bulkActions = [
+      { label: 'Assign to phase', bg: '#FFFFFF', fg: '#101720', bd: '#7D8799' },
+      { label: 'Set allocation', bg: '#FFFFFF', fg: '#101720', bd: '#7D8799' },
+      { label: 'Change rate card', bg: '#FFFFFF', fg: '#101720', bd: '#7D8799' },
+      { label: 'Remove from project', bg: '#FDE9E7', fg: '#B3261E', bd: '#F0B5AF' }
+    ];
+
+    const columns = [
+      { label: '', just: 'center', fg: '#4B5563', sort: '', grip: 'transparent' },
+      { label: 'Resource', just: 'flex-start', fg: '#4B5563', sort: '', grip: '#CBD2DC' },
+      { label: 'Role', just: 'flex-start', fg: '#4B5563', sort: '', grip: '#CBD2DC' },
+      { label: 'Region', just: 'flex-start', fg: '#4B5563', sort: '', grip: '#CBD2DC' },
+      { label: 'Workstream', just: 'flex-start', fg: '#4B5563', sort: '', grip: '#CBD2DC' },
+      { label: 'Day rate MYR', just: 'flex-end', fg: '#0B57D0', sort: '▼', grip: '#CBD2DC' },
+      { label: 'Alloc.', just: 'flex-end', fg: '#4B5563', sort: '', grip: '#CBD2DC' },
+      { label: 'Status', just: 'flex-start', fg: '#4B5563', sort: '', grip: '#CBD2DC' },
+      { label: '', just: 'center', fg: '#4B5563', sort: '', grip: 'transparent' }
+    ];
+
+    const R = (name, role, region, stream, rate, alloc, pill, o) => Object.assign({
+      name, role, region, stream, rate, alloc,
+      initials: name.split(' ').map(w => w[0]).slice(0, 2).join(''),
+      avBg: '#F1F3F7', avFg: '#4B5563', bg: '#FFFFFF', bar: 'none',
+      cb: '', cbBg: '#FFFFFF', cbBd: '#7D8799',
+      rateFg: '#101720', rateBg: 'transparent', rateBd: 'none', rateH: '40px',
+      pill, pillG: '✓', pillBg: '#E3F5EB', pillFg: '#0A7A47', pillBd: '#9AD9BB'
+    }, o || {});
+
+    const rows = [
+      R('Rajesh Menon', 'Solution Architect', 'MY', 'Technical', '3,200', '100%', 'On track', { avBg: '#E8F0FE', avFg: '#0B57D0' }),
+      R('Goh Mei Yee', 'Integration Architect', 'SG', 'Integration', '3,800', '80%', 'On track', { avBg: '#E3F5EB', avFg: '#0A7A47' }),
+      R('Arun Prakash', 'ABAP Developer', 'IN', 'Technical', '1,150', '120%', 'At risk', { bg: '#E8F0FE', bar: 'inset 2px 0 0 #0B57D0', cb: '✓', cbBg: '#0B57D0', cbBd: '#0B57D0', pillG: '⚠', pillBg: '#FBF0DC', pillFg: '#8A5200', pillBd: '#E0C089', avBg: '#FBF0DC', avFg: '#8A5200' }),
+      R('Nguyen Thi Lan', 'Security Consultant', 'VN', 'Technical', '1,300', '60%', 'On track', { bg: '#E8F0FE', bar: 'inset 2px 0 0 #0B57D0', cb: '✓', cbBg: '#0B57D0', cbBd: '#0B57D0' }),
+      R('Daniel Okafor', 'Data Migration Lead', 'MY', 'Data Migration', '2,700', '100%', 'Late', { bg: '#E8F0FE', bar: 'inset 2px 0 0 #0B57D0', cb: '✓', cbBg: '#0B57D0', cbBd: '#0B57D0', pillG: '✕', pillBg: '#FDE9E7', pillFg: '#B3261E', pillBd: '#F0B5AF' }),
+      R('Aisyah Rahman', 'FI/CO Consultant', 'MY', 'Finance', '2,400', '80%', 'On track', { bg: '#F6F7F9', rateBg: '#FFFFFF', rateBd: '1px solid #7D8799', rateH: '28px' }),
+      R('Chan Wei Ling', 'Delivery Manager', 'MY', 'PMO', '2,900', '50%', 'On track', {}),
+      R('Farah Nasution', 'Change Manager', 'MY', 'Change Mgmt', '2,100', '40%', 'Not started', { pillG: '●', pillBg: '#F1F3F7', pillFg: '#4B5563', pillBd: '#CBD2DC' })
+    ];
+
+    const pages = [
+      { label: '‹', bg: '#FFFFFF', fg: '#98A2B3', bd: '#E4E7EC' },
+      { label: '1', bg: '#0B57D0', fg: '#FFFFFF', bd: '#0B57D0' },
+      { label: '2', bg: '#FFFFFF', fg: '#101720', bd: '#CBD2DC' },
+      { label: '3', bg: '#FFFFFF', fg: '#101720', bd: '#CBD2DC' },
+      { label: '…', bg: '#FFFFFF', fg: '#4B5563', bd: 'transparent' },
+      { label: '6', bg: '#FFFFFF', fg: '#101720', bd: '#CBD2DC' },
+      { label: '›', bg: '#FFFFFF', fg: '#101720', bd: '#CBD2DC' }
+    ];
+
+    const colToggle = [
+      { label: 'Resource', tick: '✓', bg: '#98A2B3', bd: '#98A2B3', fg: '#4B5563', locked: true },
+      { label: 'Role', tick: '✓', bg: '#0B57D0', bd: '#0B57D0', fg: '#101720', locked: false },
+      { label: 'Region', tick: '✓', bg: '#0B57D0', bd: '#0B57D0', fg: '#101720', locked: false },
+      { label: 'Day rate MYR', tick: '✓', bg: '#0B57D0', bd: '#0B57D0', fg: '#101720', locked: false },
+      { label: 'Day rate (native)', tick: '', bg: '#FFFFFF', bd: '#7D8799', fg: '#101720', locked: false },
+      { label: 'Intercompany markup', tick: '', bg: '#FFFFFF', bd: '#7D8799', fg: '#101720', locked: false },
+      { label: 'Utilisation to date', tick: '', bg: '#FFFFFF', bd: '#7D8799', fg: '#101720', locked: false }
+    ];
+
+    const tableRules = [
+      'Sort is single-column by default; Shift+click adds a second key and the header shows “1 ▼ / 2 ▲”. The active sort column’s header text turns accent — plus the arrow, so it is not colour alone.',
+      'Column resize has a keyboard equivalent: focus the header, then Alt+←/→ resizes in 16px steps, announced as “Day rate, 148 pixels”.',
+      'Selection: click selects one, Shift+click a range, Cmd/Ctrl+click adds. Space toggles the focused row. The header checkbox selects the loaded page only and says so.',
+      'The bulk-action bar replaces the filter bar rather than stacking beneath it, so the table never loses vertical space, and it announces the count politely on every change.',
+      'Empty and error states render inside the table body, keeping header and toolbar operational so the user can undo the filter that emptied it.',
+      'Saved views persist filters, sort, column set, widths and density; they are per-user unless shared, and a shared view shows its owner’s avatar in the menu.'
+    ];
+
+    const darkRows = [
+      { name: 'Rajesh Menon', role: 'Solution Architect', rate: '3,200', bg: '#171C24', bar: 'none', cb: '', cbBg: '#171C24', cbBd: '#748196', pill: 'On track', pillG: '✓', pillBg: '#0F2E22', pillFg: '#56D69A', pillBd: '#2C6B4E' },
+      { name: 'Arun Prakash', role: 'ABAP Developer', rate: '1,150', bg: '#16294A', bar: 'inset 2px 0 0 #7FB0FF', cb: '✓', cbBg: '#7FB0FF', cbBd: '#7FB0FF', pill: 'At risk', pillG: '⚠', pillBg: '#33240B', pillFg: '#E9B45A', pillBd: '#7A5A22' },
+      { name: 'Daniel Okafor', role: 'Data Migration Lead', rate: '2,700', bg: '#171C24', bar: 'none', cb: '', cbBg: '#171C24', cbBd: '#748196', pill: 'Late', pillG: '✕', pillBg: '#3A1512', pillFg: '#FF8A80', pillBd: '#8A3A33' },
+      { name: 'Farah Nasution', role: 'Change Manager', rate: '2,100', bg: '#171C24', bar: 'none', cb: '', cbBg: '#171C24', cbBd: '#748196', pill: 'Not started', pillG: '●', pillBg: '#1B222C', pillFg: '#AFBACA', pillBd: '#333C4A' }
+    ];
+
+    const a11yTable = [
+      { k: 'App shell', v: 'header > nav[aria-label="Primary"] > nav[aria-label="Timeline views"] > main[id="content"]. A skip link targets #content and is the first tab stop. Route changes move focus to the <h1> of the new screen and announce it politely.' },
+      { k: 'Sync chip', v: 'A button (it opens the sync detail popover) whose accessible name is the full state sentence: “Synced, last at 14:32. 0 changes pending.” Every transition posts to a single polite live region; conflict and permanent-error post assertively.' },
+      { k: 'Data table', v: 'Native table semantics with role="grid" when cells are editable. aria-rowcount/aria-colcount reflect the full dataset, not the rendered window, so virtualization is invisible to assistive tech.' },
+      { k: 'Sortable header', v: 'The header cell contains a button; aria-sort="ascending|descending|none" on the th. Activating announces “Day rate, sorted descending, 42 rows”.' },
+      { k: 'Row selection', v: 'aria-selected on the row and a real checkbox inside it. Roving tabindex: one tab stop for the grid, arrows move the cell cursor, Home/End to row bounds, Ctrl+Home to the first cell.' },
+      { k: 'Inline edit', v: 'The cell keeps role="gridcell" and gains aria-expanded while editing. Commit announces the new value; failure moves focus back to the editor with aria-invalid and a described-by error.' },
+      { k: 'Bulk bar', v: 'role="region" aria-label="Bulk actions" placed immediately after the table in DOM order so it is reachable by Tab from the last selected row; Escape returns focus to that row and clears the selection.' }
+    ];
+
+    const modalSizes = [
+      { token: 'modal/sm 420', use: 'Confirmations and single-field prompts. No scroll — if it scrolls, it is the wrong size.' },
+      { token: 'modal/md 640', use: 'The default. Create task, edit resource, invite collaborator.' },
+      { token: 'modal/lg 880', use: 'Two-column forms and side-by-side comparison — conflict resolution lives here.' },
+      { token: 'modal/fullscreen', use: 'Proposal preview and architecture export. Keeps a top bar with Close and the document title; scrim is not used.' }
+    ];
+
+    const modalRules = [
+      'Max height 80vh; the body scrolls while header and footer stay fixed. A scrolled body shows a 1px border/default line on the header, appearing only once content is behind it.',
+      'Focus moves to the first interactive element on open — never to the Close button, and never to a destructive action. Escape closes; the trigger regains focus.',
+      'Stacking is capped at two. The second modal shifts down 24px, the parent drops to 24% scrim opacity and becomes inert. A third request replaces the second and announces the swap.',
+      'Footer button order is [tertiary Cancel] [primary Confirm], right-aligned, with the destructive variant swapping the primary for Button/Danger.',
+      'A modal never contains a second scroll region, a nested tab set, or a data table longer than 8 rows — those belong in a drawer or a screen.'
+    ];
+
+    const drawerRules = [
+      'Right drawer: 400 / 520 / 720 widths, full height under the top bar, used for the details of a selected object — a task, a resource, an approval. It does not block the canvas: the Gantt behind it stays scrollable and the selected row stays visible.',
+      'Bottom drawer: 320px tall, used for the critical-path panel and the conflict list, where the content is wide and short. It resizes by dragging its top edge, with Alt+↑/↓ as the keyboard equivalent in 32px steps.',
+      'Both are non-modal by default — no scrim, focus is not trapped, and the user can keep working. They become modal only when they own unsaved edits, and then they say so in the header.',
+      'Closing with unsaved changes raises a modal/sm confirm naming the object: “Discard changes to ‘Cutover rehearsal’?”'
+    ];
+
+    const tabs = [
+      { label: 'Overview', on: true },
+      { label: 'Assignments', on: false, count: '14' },
+      { label: 'Rate', on: false },
+      { label: 'Availability', on: false },
+      { label: 'History', on: false, count: '38' }
+    ];
+
+    const paletteGroups = [
+      { group: 'Actions', items: [
+        { icon: '+', label: 'Create phase', hint: 'in S/4HANA Migration', kbd: 'P' },
+        { icon: '+', label: 'Create task under “Realize”', hint: '', kbd: 'T' },
+        { icon: '⤒', label: 'Set baseline from current plan', hint: 'replaces baseline v3 · 14 Aug', kbd: '' }
+      ] },
+      { group: 'Go to', items: [
+        { icon: '▤', label: 'Timeline', hint: '', kbd: 'G then T' },
+        { icon: '≡', label: 'Cost dashboard', hint: 'level 2 of 3 visible', kbd: 'G then C' },
+        { icon: '⌗', label: 'Org chart', hint: '', kbd: 'G then O' }
+      ] },
+      { group: 'Tasks · 4 matches', items: [
+        { icon: '▸', label: 'Cutover rehearsal', hint: 'Deploy · 12–16 Jan 2027 · Daniel Okafor', kbd: '↵', bg: '#E8F0FE', bar: 'inset 2px 0 0 #0B57D0' },
+        { icon: '▸', label: 'Cutover dress rehearsal 2', hint: 'Deploy · 19–21 Jan 2027 · at risk', kbd: '' }
+      ] },
+      { group: 'Resources · 1 match', items: [
+        { icon: '◐', label: 'Chan Wei Ling', hint: 'Delivery Manager · MY · 2,900/day', kbd: '' }
+      ] }
+    ];
+
+    const toasts = [
+      { g: '✓', title: 'Baseline v4 saved', body: '1,184 tasks captured at 14:32. Comparison is now against v4.', bg: '#FFFFFF', bd: '#9AD9BB', accent: '#0A7A47', action: 'Undo' },
+      { g: 'i', title: 'Proposal ready', body: 'Sarawak Energy — S/4HANA proposal.pptx, 34 slides.', bg: '#FFFFFF', bd: '#BBD0F6', accent: '#0B57D0', action: 'Download' },
+      { g: '⚠', title: 'Arun Prakash is over-allocated', body: '120% across weeks 42–46 after this change.', bg: '#FFFFFF', bd: '#E0C089', accent: '#8A5200', action: 'Review' },
+      { g: '✕', title: 'Import failed — 12 of 340 rows rejected', body: 'Rows without a role could not be matched to the rate card. Nothing was imported.', bg: '#FFFFFF', bd: '#F0B5AF', accent: '#B3261E', action: 'View report' }
+    ];
+
+    const banners = [
+      { g: 'i', title: 'You are viewing baseline v3, not the current plan.', body: 'Edits are disabled while a baseline is displayed.', bg: '#E8F0FE', bd: '#BBD0F6', fg: '#0B57D0', action: 'Return to current' },
+      { g: '⚠', title: 'Working offline — 148 changes queued locally.', body: 'They will sync when the connection returns. Nothing has been lost.', bg: '#FBF0DC', bd: '#E0C089', fg: '#8A5200', action: 'Retry now' },
+      { g: '✕', title: 'Two people edited “Data cleansing sign-off”.', body: 'Choose which version to keep before this task can sync.', bg: '#FDE9E7', bd: '#F0B5AF', fg: '#B3261E', action: 'Resolve conflict' },
+      { g: '✓', title: 'Rate card 2026-H2 applied to 42 resources.', body: 'Total cost changed by +MYR 184,200 (+3.1%).', bg: '#E3F5EB', bd: '#9AD9BB', fg: '#0A7A47', action: 'See breakdown' }
+    ];
+
+    const emptyStates = [
+      { kind: 'First run', align: 'center', just: 'center', glyph: '▤', title: 'Build the timeline', body: 'Start with the five SAP Activate phases, or import a plan you already have. Tasks, dependencies and resources can be added once phases exist.', primary: 'Add the Activate phases', secondary: 'Import from Excel', tone: '#0B57D0', bg: '#E8F0FE', bd: '#BBD0F6', foot: 'Teaches the first step. Never shown with a sad face or an apology — nothing is wrong.' },
+      { kind: 'No results', align: 'center', just: 'center', glyph: '⌕', title: 'No tasks match these filters', body: '3 filters are active: Workstream Technical, Region MY and SG, Allocation over 80%. Removing the allocation filter would show 46 tasks.', primary: 'Remove allocation filter', secondary: 'Clear all filters', tone: '#4B5563', bg: '#F1F3F7', bd: '#CBD2DC', foot: 'Names the filters, and quantifies the fix. The toolbar above stays live so the user can act.' },
+      { kind: 'Error', align: 'left', just: 'flex-start', glyph: '✕', title: 'The plan could not be loaded', body: 'The server did not respond within 30 seconds. Your local copy is intact and 148 queued changes are safe.', primary: 'Try again', secondary: 'Work from local copy', tone: '#B3261E', bg: '#FDE9E7', bd: '#F0B5AF', foot: 'States what happened, what it means for their data, and two ways forward. Reference PRJ-2291 / 14:32 is shown for support.' },
+      { kind: 'No permission', align: 'left', just: 'flex-start', glyph: '🔒', title: 'Cost figures are hidden at your visibility level', body: 'You have level 1 of 3. Rates, margin and the cost breakdown need level 2. The timeline and resource plan are unaffected.', primary: 'Request level 2', secondary: 'Who can approve this?', tone: '#4B5563', bg: '#F1F3F7', bd: '#7D8799', foot: 'Deliberate, not broken: it names the level held, the level required, and what is still available.' }
+    ];
+
+    const formRules = [
+      'One column. Two columns only for genuinely paired fields — start/finish, rate/currency — and they collapse to one below 768px.',
+      'Labels sit above their field, always visible. Placeholder text is an example, never a label, and never the only description.',
+      'Field width signals expected input: a 3-character region code is not 480px wide. Widths come from the space ramp: 96 / 160 / 240 / 360 / full.',
+      'Validation runs on blur, then on every change once a field has errored, so corrections clear immediately. Never on keystroke for a field that has not yet errored.',
+      'The error summary appears above the form on failed submit, is focused programmatically, and lists each error as a link to its field.',
+      'Section = heading + optional description + fields, separated by space/8. Group = related fields at space/4. Field = label + control + helper at space/1.'
+    ];
+
+    const errorList = [
+      { field: 'Task name', msg: 'Enter a name so the task can be found in search.' },
+      { field: 'Finish date', msg: 'Finish is before start. Choose a date on or after 07 Sep 2026.' },
+      { field: 'Allocation', msg: 'Allocation must be between 0 and 150. You entered 220.' }
+    ];
+
+    const a11yComposites = [
+      { k: 'Modal', v: 'role="dialog" aria-modal="true", labelled by its title id and described by its lead paragraph. Focus is trapped, the background is inert, and scroll is locked on the body only. On close, focus returns to the trigger — or, if the trigger no longer exists, to the nearest surviving heading.' },
+      { k: 'Stacked modal', v: 'The parent gets inert and aria-hidden. Escape closes only the top modal. The stack is announced as “Delete phase, dialog 2 of 2”.' },
+      { k: 'Drawer', v: 'role="complementary" when non-modal, role="dialog" aria-modal when it owns unsaved edits. Opening moves focus to the drawer heading; closing returns it to the row that opened it.' },
+      { k: 'Tabs', v: 'role="tablist" with roving tabindex; arrows move and activate, Home/End jump, and each panel is role="tabpanel" labelled by its tab. Panels are not removed from the DOM on switch when they hold form state.' },
+      { k: 'Command palette', v: 'role="combobox" over role="listbox", with aria-activedescendant — focus never leaves the input. Groups are role="group" with aria-label. Result count is announced politely after a 300ms settle.' },
+      { k: 'Toast', v: 'A single role="status" region for info and success; role="alert" for warning and error. Max 3 visible, newest at the bottom, auto-dismiss 6s for info/success only — warnings and errors persist until dismissed. Hovering or focusing pauses the timer.' },
+      { k: 'Banner', v: 'role="status" for info/success, role="alert" for warning/error, placed at the top of the region it concerns rather than the top of the page, so it is not detached from what it describes.' },
+      { k: 'Empty state', v: 'The region keeps its heading level. The illustration glyph is aria-hidden; the state is carried by the heading and body text. No-permission and error states are announced when they replace loaded content.' },
+      { k: 'Form', v: 'Each field is label + control + aria-describedby. The error summary is role="alert" tabindex="-1" and focused on failed submit; each entry is an anchor to the field id. aria-invalid on every failed field.' }
+    ];
+
+    return { primaryNav, subNav, shellRules, filterChips, bulkActions, columns, rows, pages, colToggle, tableRules, darkRows, a11yTable,
+      criticalChain: [
+        { label: 'Data cleansing sign-off', days: '0d float', bg: '#FDE9E7', bd: '#B3261E', fg: '#B3261E' },
+        { label: 'Mock conversion 3', days: '0d', bg: '#FFFFFF', bd: '#7D8799', fg: '#101720' },
+        { label: 'Integration test cycle 2', days: '0d', bg: '#FFFFFF', bd: '#7D8799', fg: '#101720' },
+        { label: 'Cutover rehearsal', days: '0d', bg: '#FBF0DC', bd: '#8A5200', fg: '#8A5200' },
+        { label: 'Go-live', days: '—', bg: '#FFFFFF', bd: '#7D8799', fg: '#101720' }
+      ],
+      tabStates: [
+        { label: 'Overview', fw: 600, fg: '#101720', bar: 'inset 0 -2px 0 #0B57D0', r: '0', p: '0', bg: 'transparent', count: '' },
+        { label: 'Assignments', fw: 500, fg: '#4B5563', bar: 'none', r: '0', p: '0', bg: 'transparent', count: '14' },
+        { label: 'Rate', fw: 500, fg: '#101720', bar: 'none', r: '4px', p: '0 8px', bg: '#F1F3F7', count: '' },
+        { label: 'Availability', fw: 500, fg: '#4B5563', bar: '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0', r: '4px', p: '0 8px', bg: 'transparent', count: '' },
+        { label: 'History', fw: 500, fg: '#4B5563', bar: 'none', r: '0', p: '0', bg: 'transparent', count: '38' }
+      ],
+      searchGroups: [
+        { icon: '▸', label: 'Tasks', hint: 'Cutover rehearsal, Cutover dress rehearsal 2, Cutover comms…', count: '4', bg: '#E8F0FE', fg: '#0B57D0' },
+        { icon: '▤', label: 'Phases', hint: 'Deploy — contains 3 matching tasks', count: '1', bg: '#F1F3F7', fg: '#4B5563' },
+        { icon: '◐', label: 'Resources', hint: 'No resource name or role matches “cut”', count: '0', bg: '#F1F3F7', fg: '#4B5563' },
+        { icon: '▦', label: 'Documents', hint: 'Cutover plan v2.docx · Cutover runbook.xlsx', count: '2', bg: '#F1F3F7', fg: '#4B5563' }
+      ],
+      modalSizes, modalRules, drawerRules, tabs, paletteGroups, toasts, banners, emptyStates, formRules, errorList, a11yComposites };
+  }
+}
+</script>
+</body>
+</html>

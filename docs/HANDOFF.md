@@ -302,6 +302,45 @@ Ranked, with the reason each was deferred rather than attempted here:
    primary brand blue `#007AFF` on white is 4.02:1 and fails WCAG AA; the
    `dark:` variant is wired to a selector nothing sets.
 
+## 0b. Why the a11y suite asserted HTML strings (root cause found 2026-08-07)
+
+Item 7 above notes that "the a11y suite asserts against hand-written HTML
+strings rather than rendered components". The reason was not preference. It was
+not possible to do otherwise.
+
+`tests/setup.ts` replaced `window.getComputedStyle` with a stub that reported
+`display: 'none'` for **every** element:
+
+```js
+Object.defineProperty(window, 'getComputedStyle', {
+  value: () => ({ getPropertyValue: () => '', display: 'none', ... }),
+});
+```
+
+Testing Library consults `getComputedStyle` to decide whether a node belongs to
+the accessibility tree. With that stub in place, every element in the entire
+suite was invisible to accessible queries: `getByRole`, `getByLabelText` and
+every sibling query could never match anything, in any test. Only
+`{ hidden: true }` worked — a bare `<button>Hello</button>` was unreachable by
+role.
+
+The string assertions were therefore a workaround for a broken environment, and
+they are what let `BaseModal` ship to 28 dialogs with no `role="dialog"`, no
+`aria-modal` and `initialFocus: false` while `A11Y_EVIDENCE.md` claimed all of
+it was present. A test that reads source as text cannot notice that the
+rendered component has no accessible role.
+
+**Fixed:** jsdom's real implementation is used, with `width`/`height` filled in
+for AntD's measurement code (jsdom performs no layout, so those come back as
+empty strings). The full suite was run before and after — **1772 → 1773
+passing, zero regressions.** The stub was never load-bearing.
+
+**Consequence for the rebuild:** new components can now use real accessible
+queries — see `src/components/ds/__tests__/Button.test.tsx`, which drives the
+component the way a user does rather than asserting markup. Migrating the
+existing a11y suite off string assertions is unblocked, and is worth doing:
+those tests currently cannot fail for the defects they exist to catch.
+
 ## 0. Gate-Status Correction & P0 Remediation (2026-06-05)
 
 This file is the takeover ledger for any AI LLM CLI.

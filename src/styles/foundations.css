@@ -1,0 +1,410 @@
+/* ============================================================================
+ * Design system — Layer 1: Foundations
+ *
+ * The token substrate for the UI rebuild. Every primitive and composite in
+ * `src/components/ds/` references only the names defined here.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY EVERY NAME IS PREFIXED `--ds-`
+ *
+ * The design spec ships a "paste-ready" block using bare names (`--space-4`,
+ * `--radius-md`, `--z-modal`). Pasting it here would have been silently
+ * destructive, because this codebase already owns those exact names with
+ * different meanings:
+ *
+ *     --space-4    existing 0.25rem (4px, keyed by pixel value)
+ *                  spec     16px    (keyed by step index)      -> 4x jump
+ *     --space-16   existing 1rem (16px)   spec 64px            -> 4x jump
+ *     --radius-md  existing 8px           spec 6px
+ *     --z-modal    existing 1050          spec 400             -> modals would
+ *                                                                 fall behind
+ *                                                                 current overlays
+ *
+ * The old UI is still the live product until every route is migrated, so the
+ * two systems have to coexist without touching each other. The prefix is what
+ * makes that true. It stays after the migration as well — a namespace costs
+ * nothing and prevents the next collision.
+ *
+ * ---------------------------------------------------------------------------
+ * THEMING
+ *
+ * The spec assumes `data-theme` on the root element. This app's pre-hydration
+ * script (src/app/layout.tsx) sets a `dark`/`light` *class* instead. Both are
+ * honoured, and `prefers-color-scheme` covers the case where neither is set.
+ *
+ * Light is defined on bare `:root` so no colour has its only definition inside
+ * a media query — a page that never matches one still gets a complete palette.
+ * ==========================================================================*/
+
+/* ---------------------------------------------------------------------------
+ * Semantic colour — light
+ * -------------------------------------------------------------------------*/
+:root,
+:root.light,
+:root[data-theme="light"] {
+  /* Surfaces. `raised` equals `base` in light; only dark separates them. */
+  --ds-surface-base: #ffffff;
+  --ds-surface-raised: #ffffff;
+  --ds-surface-app: #f6f7f9;
+  --ds-surface-sunken: #f1f3f7;
+  --ds-surface-overlay: rgba(16, 23, 32, 0.48);
+  /* Second stacked modal only; max stack depth is 2. */
+  --ds-surface-overlay-stacked: rgba(16, 23, 32, 0.24);
+
+  --ds-content-primary: #101720;
+  --ds-content-secondary: #4b5563;
+  /* Corrected from the spec's #667085. See the contrast note at the foot of
+   * this file — #667085 fails AA on --ds-surface-sunken, which is exactly
+   * where placeholders and table-header metadata live. */
+  --ds-content-tertiary: #5f6b7f;
+  /* Exempt from the 4.5 floor: disabled text is always paired with
+   * aria-disabled, so the state is conveyed non-visually. */
+  --ds-content-disabled: #98a2b3;
+  --ds-content-inverse: #ffffff;
+
+  --ds-border-subtle: #e4e7ec;
+  --ds-border-default: #cbd2dc;
+  --ds-border-strong: #7d8799;
+  --ds-border-focus: #0b57d0;
+
+  --ds-accent-default: #0b57d0;
+  --ds-accent-hover: #08429e;
+  --ds-accent-active: #06337a;
+  --ds-accent-subtle: #e8f0fe;
+  --ds-accent-border: #bbd0f6;
+  --ds-accent-on: #ffffff;
+
+  --ds-success-default: #0a7a47;
+  --ds-success-subtle: #e3f5eb;
+  --ds-success-border: #9ad9bb;
+  --ds-success-on: #ffffff;
+
+  --ds-warning-default: #8a5200;
+  --ds-warning-subtle: #fbf0dc;
+  --ds-warning-border: #e0c089;
+  --ds-warning-on: #ffffff;
+
+  --ds-danger-default: #b3261e;
+  --ds-danger-subtle: #fde9e7;
+  --ds-danger-border: #f0b5af;
+  --ds-danger-on: #ffffff;
+
+  --ds-info-default: #0b57d0;
+  --ds-info-subtle: #e8f0fe;
+  --ds-info-border: #bbd0f6;
+  --ds-info-on: #ffffff;
+
+  /* Interaction states. In light these darken; in dark they lighten. Derived
+   * from the per-state colours the Primitives spec draws for every control,
+   * hoisted into tokens so a control never hard-codes a hex. */
+  --ds-surface-hover: #f1f3f7;
+  --ds-surface-active: #e4e7ec;
+  --ds-surface-disabled: #f6f7f9;
+  /* A filled control (primary, danger) when disabled — flatter than a
+   * neutral control's disabled surface so it reads as "switched off", not
+   * "a different button". */
+  --ds-fill-disabled: #f1f3f7;
+  --ds-border-strong-hover: #6e7a8c;
+  --ds-border-disabled: #e4e7ec;
+  --ds-accent-subtle-hover: #e8f0fe;
+  --ds-accent-subtle-active: #d6e4fd;
+  --ds-danger-hover: #8f1d17;
+  --ds-danger-active: #711511;
+
+  --ds-elevation-0: none;
+  --ds-elevation-1: 0 1px 2px rgba(16, 23, 32, 0.06);
+  --ds-elevation-2: 0 4px 12px rgba(16, 23, 32, 0.1);
+  --ds-elevation-3: 0 8px 28px rgba(16, 23, 32, 0.14);
+  --ds-elevation-4: 0 16px 48px rgba(16, 23, 32, 0.2);
+}
+
+/* ---------------------------------------------------------------------------
+ * Semantic colour — dark
+ *
+ * Declared three times on purpose: an explicit class, the spec's attribute,
+ * and the OS preference when the app has set neither. The media query is
+ * guarded so an explicit light choice always wins over a dark OS setting.
+ * -------------------------------------------------------------------------*/
+:root.dark,
+:root[data-theme="dark"] {
+  --ds-surface-base: #0e1116;
+  --ds-surface-raised: #171c24;
+  --ds-surface-app: #0e1116;
+  --ds-surface-sunken: #0a0d12;
+  --ds-surface-overlay: rgba(4, 6, 10, 0.64);
+  --ds-surface-overlay-stacked: rgba(4, 6, 10, 0.32);
+
+  --ds-content-primary: #e9eef6;
+  --ds-content-secondary: #afbaca;
+  --ds-content-tertiary: #8592a6;
+  --ds-content-disabled: #5c6779;
+  --ds-content-inverse: #0b1220;
+
+  --ds-border-subtle: #232a35;
+  --ds-border-default: #333c4a;
+  --ds-border-strong: #748196;
+  --ds-border-focus: #8fc0ff;
+
+  --ds-accent-default: #7fb0ff;
+  --ds-accent-hover: #a6c8ff;
+  --ds-accent-active: #5c97f5;
+  --ds-accent-subtle: #16294a;
+  --ds-accent-border: #2f4e82;
+  --ds-accent-on: #0b1220;
+
+  --ds-success-default: #56d69a;
+  --ds-success-subtle: #0f2e22;
+  --ds-success-border: #2c6b4e;
+  --ds-success-on: #06170f;
+
+  --ds-warning-default: #e9b45a;
+  --ds-warning-subtle: #33240b;
+  --ds-warning-border: #7a5a22;
+  --ds-warning-on: #1c1305;
+
+  --ds-danger-default: #ff8a80;
+  --ds-danger-subtle: #3a1512;
+  --ds-danger-border: #8a3a33;
+  --ds-danger-on: #2a0a07;
+
+  --ds-info-default: #7fb0ff;
+  --ds-info-subtle: #16294a;
+  --ds-info-border: #2f4e82;
+  --ds-info-on: #0b1220;
+
+  --ds-surface-hover: #1d242e;
+  --ds-surface-active: #222a35;
+  --ds-surface-disabled: #12161c;
+  --ds-fill-disabled: #1b222c;
+  --ds-border-strong-hover: #8894a8;
+  --ds-border-disabled: #232a35;
+  --ds-accent-subtle-hover: #16294a;
+  --ds-accent-subtle-active: #1d3357;
+  --ds-danger-hover: #ffa9a1;
+  --ds-danger-active: #e8756b;
+
+  --ds-elevation-0: none;
+  --ds-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --ds-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --ds-elevation-3: 0 8px 28px rgba(0, 0, 0, 0.68);
+  --ds-elevation-4: 0 16px 48px rgba(0, 0, 0, 0.76);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not([data-theme="light"]) {
+    --ds-surface-base: #0e1116;
+    --ds-surface-raised: #171c24;
+    --ds-surface-app: #0e1116;
+    --ds-surface-sunken: #0a0d12;
+    --ds-surface-overlay: rgba(4, 6, 10, 0.64);
+    --ds-surface-overlay-stacked: rgba(4, 6, 10, 0.32);
+
+    --ds-content-primary: #e9eef6;
+    --ds-content-secondary: #afbaca;
+    --ds-content-tertiary: #8592a6;
+    --ds-content-disabled: #5c6779;
+    --ds-content-inverse: #0b1220;
+
+    --ds-border-subtle: #232a35;
+    --ds-border-default: #333c4a;
+    --ds-border-strong: #748196;
+    --ds-border-focus: #8fc0ff;
+
+    --ds-accent-default: #7fb0ff;
+    --ds-accent-hover: #a6c8ff;
+    --ds-accent-active: #5c97f5;
+    --ds-accent-subtle: #16294a;
+    --ds-accent-border: #2f4e82;
+    --ds-accent-on: #0b1220;
+
+    --ds-success-default: #56d69a;
+    --ds-success-subtle: #0f2e22;
+    --ds-success-border: #2c6b4e;
+    --ds-success-on: #06170f;
+
+    --ds-warning-default: #e9b45a;
+    --ds-warning-subtle: #33240b;
+    --ds-warning-border: #7a5a22;
+    --ds-warning-on: #1c1305;
+
+    --ds-danger-default: #ff8a80;
+    --ds-danger-subtle: #3a1512;
+    --ds-danger-border: #8a3a33;
+    --ds-danger-on: #2a0a07;
+
+    --ds-info-default: #7fb0ff;
+    --ds-info-subtle: #16294a;
+    --ds-info-border: #2f4e82;
+    --ds-info-on: #0b1220;
+
+    --ds-surface-hover: #1d242e;
+    --ds-surface-active: #222a35;
+    --ds-surface-disabled: #12161c;
+    --ds-fill-disabled: #1b222c;
+    --ds-border-strong-hover: #8894a8;
+    --ds-border-disabled: #232a35;
+    --ds-accent-subtle-hover: #16294a;
+    --ds-accent-subtle-active: #1d3357;
+    --ds-danger-hover: #ffa9a1;
+    --ds-danger-active: #e8756b;
+
+    --ds-elevation-0: none;
+    --ds-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --ds-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.6);
+    --ds-elevation-3: 0 8px 28px rgba(0, 0, 0, 0.68);
+    --ds-elevation-4: 0 16px 48px rgba(0, 0, 0, 0.76);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Scales — identical in both themes
+ * -------------------------------------------------------------------------*/
+:root {
+  /* Spacing: 4px base, keyed by STEP not by pixels. --ds-space-4 is the fourth
+   * step (16px), not 4px. Steps 7, 9, 11 and 13-15 are deliberately absent —
+   * an incomplete ramp is what stops arbitrary values creeping back in. */
+  --ds-space-0: 0px;
+  --ds-space-1: 4px;
+  --ds-space-2: 8px;
+  --ds-space-3: 12px;
+  --ds-space-4: 16px;
+  --ds-space-5: 20px;
+  --ds-space-6: 24px;
+  --ds-space-8: 32px;
+  --ds-space-10: 40px;
+  --ds-space-12: 48px;
+  --ds-space-16: 64px;
+
+  --ds-radius-none: 0px; /* Gantt bars, table cells */
+  --ds-radius-xs: 2px; /* Checkbox, tag */
+  --ds-radius-sm: 4px; /* Status pill, badge */
+  --ds-radius-md: 6px; /* Button, input, menu item */
+  --ds-radius-lg: 8px; /* Card, panel, modal */
+  --ds-radius-full: 999px; /* Avatar, toggle, chip */
+
+  --ds-border-hairline: 1px;
+  --ds-border-emphasis: 1.5px;
+  --ds-border-focus-width: 2px;
+  --ds-focus-offset: 2px;
+
+  /* IBM Plex is the spec's choice. It is not loaded yet — the fallback chain
+   * carries the app until the font is added, and the metrics below assume
+   * Plex's proportions. */
+  --ds-font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ds-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --ds-type-display: 600 28px/34px var(--ds-font-sans);
+  --ds-ls-display: -0.02em;
+  --ds-type-heading-lg: 600 20px/28px var(--ds-font-sans);
+  --ds-ls-heading-lg: -0.015em;
+  --ds-type-heading-md: 600 16px/22px var(--ds-font-sans);
+  --ds-ls-heading-md: -0.01em;
+  --ds-type-heading-sm: 600 12px/16px var(--ds-font-sans);
+  --ds-ls-heading-sm: 0.06em;
+  --ds-type-body: 400 14px/20px var(--ds-font-sans);
+  --ds-type-body-sm: 400 13px/18px var(--ds-font-sans);
+  --ds-type-label: 500 12px/16px var(--ds-font-sans);
+  --ds-ls-label: 0.005em;
+  --ds-type-numeric: 500 14px/20px var(--ds-font-sans);
+  --ds-numeric-feature: tabular-nums;
+  --ds-type-mono: 400 13px/18px var(--ds-font-mono);
+
+  --ds-duration-instant: 0ms;
+  --ds-duration-fast: 120ms; /* hover, focus ring, checkbox, tooltip */
+  --ds-duration-base: 180ms; /* dropdown, popover, toast, tab change */
+  --ds-duration-slow: 240ms; /* drawer, modal, panel expand */
+  --ds-duration-emphasized: 300ms; /* Gantt zoom re-scale — the ceiling */
+  --ds-easing-standard: cubic-bezier(0.2, 0, 0, 1); /* entering or moving */
+  --ds-easing-exit: cubic-bezier(0.4, 0, 1, 1); /* leaving; always faster */
+
+  /* Deliberately an order of magnitude below the legacy scale (--z-modal:1050)
+   * so that during migration a new-system surface never covers a legacy one by
+   * accident. Stacked modals add 10 each, max depth 2. */
+  --ds-z-base: 0;
+  --ds-z-sticky: 100;
+  --ds-z-dropdown: 200;
+  --ds-z-overlay: 300;
+  --ds-z-modal: 400;
+  --ds-z-toast: 500;
+  --ds-z-tooltip: 600;
+}
+
+/* ---------------------------------------------------------------------------
+ * The two rules the spec applies globally.
+ *
+ * Both are scoped to `.ds` so they cannot alter the legacy UI mid-migration.
+ * Wrap a new-system subtree in `<div className="ds">` (or put it on <body>
+ * once every route has moved).
+ * -------------------------------------------------------------------------*/
+.ds {
+  font: var(--ds-type-body);
+  color: var(--ds-content-primary);
+  background: var(--ds-surface-app);
+}
+
+/* P1: "The figure is the interface." Figures line up vertically and never
+ * reflow between rows — tabular figures, right aligned, fixed decimals. */
+.ds .ds-numeric,
+.ds-numeric {
+  font: var(--ds-type-numeric);
+  font-variant-numeric: var(--ds-numeric-feature);
+  text-align: right;
+}
+
+/* P5: "The keyboard is the primary input." Every focusable target shows the
+ * ring — :focus-visible, so pointer users do not see it on click. */
+.ds :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ds-duration-fast: 0ms;
+    --ds-duration-base: 0ms;
+    --ds-duration-slow: 0ms;
+    --ds-duration-emphasized: 0ms;
+  }
+
+  .ds *,
+  .ds *::before,
+  .ds *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ============================================================================
+ * CONTRAST — what was verified, and the one value that was changed
+ *
+ * Every ratio in the spec was computed against `surface/base` alone (#FFFFFF
+ * light, #0E1116 dark). These tokens are also used on `surface/sunken` and, in
+ * dark, on `surface/raised`, where every ratio is lower. Recomputing each pair
+ * against the worst surface it can legitimately land on found exactly one
+ * genuine failure:
+ *
+ *     content/tertiary  #667085 on surface/sunken #F1F3F7  =  4.48:1   FAIL
+ *
+ * The spec assigns content/tertiary to "metadata, timestamps, placeholder" and
+ * surface/sunken to "table headers, inset wells, disabled fields" — a
+ * placeholder inside an inset well is that pairing, so it is reachable rather
+ * than theoretical. Corrected to #5F6B7F (same hue, 220.6deg):
+ *
+ *     #5F6B7F on #FFFFFF 5.53 · on #F6F7F9 5.16 · on #F1F3F7 4.85   PASS
+ *
+ * The three-step hierarchy is preserved: primary 16.22 > secondary 6.80 >
+ * tertiary 4.85 against the worst light surface.
+ *
+ * Everything else clears its floor against every surface it can appear on
+ * (4.5:1 for text, 3:1 for borders and other non-text UI). The status pill
+ * pairs reproduce the spec's stated ratios exactly.
+ *
+ * `content/disabled` is the one documented exemption in both themes: 2.58:1
+ * light, 3.31:1 dark. WCAG exempts disabled controls, and the spec requires it
+ * to be paired with aria-disabled so the state is never colour-only.
+ *
+ * These floors are enforced, not just documented — see
+ * src/styles/__tests__/foundations-contrast.test.ts. Changing a colour here
+ * without checking it fails the build.
+ * ==========================================================================*/
