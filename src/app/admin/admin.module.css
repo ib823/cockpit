@@ -1,0 +1,87 @@
+/* Admin overview — layout only. Every value is a --ds- token. */
+
+.email {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-secondary);
+}
+
+.bannerSlot {
+  margin-bottom: var(--ds-space-5);
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-8);
+}
+
+.statLabel {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-secondary);
+  margin: 0 0 var(--ds-space-2);
+}
+
+/* Tabular figures so three stat cards do not shift width against each other
+   as the numbers change (principle P1). */
+.statValue {
+  font: var(--ds-type-display);
+  letter-spacing: var(--ds-ls-display);
+  font-variant-numeric: var(--ds-numeric-feature);
+  color: var(--ds-content-primary);
+  margin: 0;
+}
+
+.section {
+  margin-top: var(--ds-space-8);
+}
+
+.sectionTitle {
+  font: var(--ds-type-heading-md);
+  letter-spacing: var(--ds-ls-heading-md);
+  color: var(--ds-content-primary);
+  margin: 0 0 var(--ds-space-4);
+}
+
+.linkGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-4);
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  text-decoration: none;
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-standard),
+    background-color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.linkCard:hover {
+  background: var(--ds-surface-hover);
+  border-color: var(--ds-border-strong);
+}
+
+.linkCard:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+.linkTitle {
+  font: var(--ds-type-body);
+  font-weight: 500;
+  color: var(--ds-content-primary);
+}
+
+.linkBody {
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+}

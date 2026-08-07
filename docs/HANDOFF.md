@@ -811,10 +811,39 @@ the *first* migrations look worse than the steady state, because there is
 nothing yet to amortise against. Each additional migrated route should add its
 own page code and little else.
 
-That is a prediction, and unlike the last one it is written down as a
-prediction: **check it when the third and fourth routes migrate.** If per-route
-JS keeps climbing by ~20kB each, this explanation is also wrong and the real
-cause is still unfound.
+That was written down as a prediction to check when more routes migrated.
+
+### The prediction was checked, and it was also wrong (2026-08-07)
+
+Three more routes migrated (`/admin`, `/admin/users`, `/admin/security`).
+`/login` was **not touched** by that change. It still grew:
+
+```
+/login    50.8kB -> 57.1kB
+/register 43.7kB -> 50.0kB
+```
+
+But `/login`'s own chunk measured **21.4kB before and 21.4kB after** — byte
+identical. Its code did not change and did not grow. The entire delta is
+shared code being re-attributed: once five routes used the design system,
+webpack re-split the chunks, and this metric sums *every* chunk a route loads.
+
+**The real finding is about the metric, not the bundle.** A route's measured
+size here changes when *unrelated* routes change. That makes it a genuine
+regression detector only with enough headroom to absorb re-splitting — an
+exact-fit budget will go red on a commit that never touched the route.
+
+That is now the third explanation of these numbers, and the first two were
+stated too confidently:
+
+1. "Field.tsx is the remaining weight" — measured, wrong (0.1kB)
+2. "shared code amortises, so per-route stays flat" — measured, wrong (+6.3kB)
+3. "the metric re-attributes shared chunks" — supported by the identical 21.4kB
+   own-chunk measurement, but it should be treated as the current best
+   explanation rather than settled
+
+The lesson worth keeping: measure before asserting, and when an explanation is
+not yet measured, write it down as a question rather than a finding.
 
 ### The rule applied
 

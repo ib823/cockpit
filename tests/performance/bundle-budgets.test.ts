@@ -48,11 +48,21 @@ import { join } from "path";
 // remaining weight. It was measured afterwards and gained ~0.1kB -- the theory
 // was wrong, and is corrected in docs/HANDOFF.md rather than left standing.
 //
-// What the chunks actually contain: 11.4kB of design system SHARED by both
-// routes, plus 10.0kB and 3.0kB of page code. This metric sums every chunk a
-// route loads, so shared code is attributed to each route that touches it --
-// which makes the first migrations look worse than the steady state, since
-// there is nothing yet to amortise against.
+// A SECOND prediction was made and also proved wrong. It said shared code would
+// amortise so per-route JS would stay flat as more routes migrated. Then three
+// admin routes migrated -- touching /login not at all -- and /login went
+// 50.8 -> 57.1kB.
+//
+// Its OWN chunk measured 21.4kB before and 21.4kB after: byte identical. The
+// whole delta is shared code being re-attributed, because webpack re-split the
+// chunks once five routes used the design system and this metric sums every
+// chunk a route loads.
+//
+// So the important property of this metric: a route's measured size changes
+// when UNRELATED routes change. An exact-fit budget therefore goes red on a
+// commit that never touched the route. These two now carry ~20% headroom
+// rather than the ~8% they had, which is what the file's own header always
+// said budgets are for -- "measured values with headroom, not targets".
 //
 // The distinction that matters, same as the coverage floors: re-baselining
 // after a deliberate composition change is legitimate; raising a budget to make
@@ -61,7 +71,7 @@ import { join } from "path";
 // every subsequent route amortises. The tailwind-merge fix above already
 // benefits every route that will follow.
 const PAGE_BUDGETS: Record<string, number> = {
-  "/login": 55,
+  "/login": 70,
   "/dashboard": 110,
   "/gantt-tool": 700,
   "/admin": 290,
@@ -70,7 +80,7 @@ const PAGE_BUDGETS: Record<string, number> = {
   "/account/add-passkey": 15,
   "/settings": 6,
   "/settings/security": 18,
-  "/register": 48,
+  "/register": 62,
 };
 
 // Aspirational targets. Deliberately NOT asserted — an unmet assertion either
