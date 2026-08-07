@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; } a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1600px;margin:0 auto;padding:56px 32px 26px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 5, part 2 of 3</div>
+  <h1 style="margin:14px 0 0;font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em">Core screens</h1>
+  <p style="margin:16px 0 0;max-width:80ch;font-size:15px;line-height:24px;color:#4B5563;text-wrap:pretty">Post-auth routing, the portfolio dashboard, the Gantt workspace and the modals it hosts, and the architecture canvas. The Gantt, allocation matrix, org chart and cost surfaces are prototyped in layer 4 — this part places them in the shell and designs the screens around them.</p>
+</header>
+
+<section style="max-width:1600px;margin:0 auto;padding:0 32px">
+  <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+    <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/dashboard</span>
+      <span style="font-size:12px;color:#4B5563">Portfolio overview · 1440px</span>
+    </div>
+
+    <div role="main" aria-label="Dashboard" style="background:#F6F7F9">
+      <div style="display:flex;align-items:center;gap:14px;height:52px;padding:0 16px;background:#FFFFFF;border-bottom:1px solid #CBD2DC">
+        <span style="display:inline-flex;align-items:center;gap:9px"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:#101720;color:#FFFFFF;font-size:12px;font-weight:600">C</span><span style="font-size:14.5px;font-weight:600;letter-spacing:-0.01em">Cockpit</span></span>
+        <span aria-hidden="true" style="width:1px;height:22px;background:#CBD2DC"></span>
+        <span style="font-size:13px;font-weight:600;color:#101720">All projects</span>
+        <span style="flex:1;display:flex;justify-content:center"><span style="display:flex;align-items:center;gap:8px;width:100%;max-width:420px;height:32px;padding:0 10px;border-radius:6px;background:#F1F3F7;border:1px solid #CBD2DC"><span aria-hidden="true" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">⌕</span><span style="flex:1;font-size:13px;color:#667085">Search projects, tasks, resources…</span><kbd style="display:inline-flex;align-items:center;height:20px;padding:0 5px;border-radius:3px;background:#FFFFFF;border:1px solid #CBD2DC;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4B5563">⌘K</kbd></span></span>
+        <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:#E3F5EB;border:1px solid #9AD9BB"><span aria-hidden="true" style="font-size:11px;color:#0A7A47">✓</span><span style="font-size:12px;font-weight:500;color:#0A7A47">Synced</span><span style="font-size:11px;color:#0A7A47;font-variant-numeric:tabular-nums">14:32</span></span>
+        <button aria-label="Account — Chan Wei Ling" style="width:32px;height:32px;border-radius:999px;border:1px solid #7D8799;background:#FBF0DC;color:#8A5200;font-size:12px;font-weight:600;cursor:pointer">CW</button>
+      </div>
+
+      <div style="padding:24px 20px">
+        <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+          <div>
+            <h2 style="margin:0;font-size:26px;line-height:32px;font-weight:600;letter-spacing:-0.02em">Portfolio overview</h2>
+            <p style="margin:5px 0 0;font-size:13px;color:#4B5563">6 active programmes · 214 people staffed · scoped to Malaysia delivery</p>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button style="height:36px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:13.5px;font-weight:500;cursor:pointer">Import a plan</button>
+            <button style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:13.5px;font-weight:500;cursor:pointer">New project</button>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:18px">
+          <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="4">
+            <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:15px 16px">
+              <div style="font-size:11.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085">{{ t.label }}</div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-top:7px">
+                <span style="font-size:26px;font-weight:600;letter-spacing:-0.02em;color:{{ t.fg }};font-variant-numeric:tabular-nums">{{ t.value }}</span>
+                <span style="font-size:12px;color:#4B5563">{{ t.unit }}</span>
+              </div>
+              <div style="font-size:12px;line-height:18px;color:#4B5563;margin-top:5px;text-wrap:pretty">{{ t.note }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:16px;background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #E4E7EC;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:600">Active programmes</span>
+            <span style="display:inline-flex;align-items:center;height:26px;padding:0 8px;border-radius:4px;background:#E8F0FE;border:1px solid #BBD0F6;font-size:12px;font-weight:500;color:#0B57D0">Region: MY</span>
+            <button style="height:26px;padding:0 8px;border-radius:4px;border:1px dashed #7D8799;background:#FFFFFF;font-size:12px;font-weight:500;color:#4B5563;cursor:pointer">+ Add filter</button>
+            <span style="margin-left:auto;font-size:12px;color:#4B5563;font-variant-numeric:tabular-nums">6 of 11 programmes</span>
+          </div>
+          <div style="overflow-x:auto">
+            <div style="min-width:980px">
+              <div style="display:grid;grid-template-columns:2fr 108px 1fr 116px 84px 116px 124px 44px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+                <sc-for list="{{ projCols }}" as="c" hint-placeholder-count="8">
+                  <div style="padding:8px 12px;font-size:11.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563;text-align:{{ c.align }}">{{ c.label }}</div>
+                </sc-for>
+              </div>
+              <sc-for list="{{ projects }}" as="p" hint-placeholder-count="6">
+                <div style="display:grid;grid-template-columns:2fr 108px 1fr 116px 84px 116px 124px 44px;align-items:center;min-height:52px;border-bottom:1px solid #E4E7EC">
+                  <div style="padding:8px 12px;min-width:0">
+                    <div style="font-size:13.5px;font-weight:500;color:#101720;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ p.name }}</div>
+                    <div style="font-size:11.5px;color:#667085;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ p.client }} · {{ p.code }}</div>
+                  </div>
+                  <div style="padding:8px 12px"><span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px 0 6px;border-radius:4px;background:{{ p.pillBg }};color:{{ p.pillFg }};border:1px solid {{ p.pillBd }};font-size:11px;font-weight:500"><span aria-hidden="true">{{ p.pillG }}</span>{{ p.pill }}</span></div>
+                  <div style="padding:8px 12px">
+                    <div style="height:8px;border-radius:999px;background:#E4E7EC;overflow:hidden"><div style="height:100%;width:{{ p.pct }};background:{{ p.fill }}"></div></div>
+                    <div style="font-size:11px;color:#4B5563;margin-top:4px;font-variant-numeric:tabular-nums">{{ p.pct }} · {{ p.phase }}</div>
+                  </div>
+                  <div style="padding:8px 12px;font-size:12px;color:#4B5563;font-variant-numeric:tabular-nums">{{ p.dates }}</div>
+                  <div style="padding:8px 12px;text-align:right;font-size:12.5px;color:#101720;font-variant-numeric:tabular-nums">{{ p.people }}</div>
+                  <div style="padding:8px 12px;text-align:right;font-size:12.5px;font-weight:500;color:#101720;font-variant-numeric:tabular-nums">{{ p.value }}</div>
+                  <div style="padding:8px 12px;text-align:right;font-size:12.5px;font-weight:500;color:{{ p.marginFg }};font-variant-numeric:tabular-nums">{{ p.margin }}</div>
+                  <div style="display:flex;align-items:center;justify-content:center;color:#4B5563">⋯</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;padding:14px;border-top:1px solid #CBD2DC">
+      <sc-for list="{{ dashNotes }}" as="n" hint-placeholder-count="4">
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty"><span style="font-weight:600;color:#101720">{{ n.k }} — </span>{{ n.v }}</div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1600px;margin:0 auto;padding:20px 32px 0">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:20px">
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/</span>
+        <span style="font-size:12px;color:#4B5563">Post-auth routing</span>
+      </div>
+      <div role="main" aria-label="Routing splash" style="padding:30px 24px;background:#F6F7F9;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:200px;justify-content:center">
+        <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;background:#101720;color:#FFFFFF;font-size:15px;font-weight:600">C</span>
+        <div role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="Restoring your last project" style="width:180px;height:6px;border-radius:999px;background:#E4E7EC;margin-top:18px;overflow:hidden"><div style="height:100%;width:64%;background:#0B57D0"></div></div>
+        <div style="font-size:13px;color:#4B5563;margin-top:12px">Restoring your last project — S/4HANA Migration</div>
+        <div style="font-size:12px;color:#667085;margin-top:4px;font-variant-numeric:tabular-nums">Reading 148 queued local changes</div>
+      </div>
+      <div style="padding:11px 14px;border-top:1px solid #E4E7EC;font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">Never a blank splash. It names what is being restored and, critically, that queued local work was found — the thing a user fears after closing a tab. Resolves to the last project, or /dashboard for a first-time user, and times out to /dashboard after 6 seconds with “Could not restore your last project — opening your dashboard instead.”</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/dashboard</span>
+        <span style="font-size:12px;color:#4B5563">First run &amp; loading</span>
+      </div>
+      <div style="padding:18px;background:#F6F7F9;display:flex;flex-direction:column;gap:12px">
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:24px;text-align:center">
+          <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:8px;background:#E8F0FE;border:1px solid #BBD0F6;color:#0B57D0;font-size:17px">▤</span>
+          <h3 style="margin:12px 0 0;font-size:17px;line-height:24px;font-weight:600">Create your first programme</h3>
+          <p style="margin:7px auto 0;max-width:44ch;font-size:13px;line-height:20px;color:#4B5563;text-wrap:pretty">Start from the five SAP Activate phases, import an existing plan from Excel, or copy the structure of a programme you have delivered before.</p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+            <button style="height:36px;padding:0 14px;border-radius:6px;background:#0B57D0;border:1px solid #0B57D0;color:#FFFFFF;font-size:13.5px;font-weight:500;cursor:pointer">Start from Activate</button>
+            <button style="height:36px;padding:0 14px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:13.5px;font-weight:500;cursor:pointer">Import from Excel</button>
+            <button style="height:36px;padding:0 14px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:13.5px;font-weight:500;cursor:pointer">Copy a past programme</button>
+          </div>
+        </div>
+        <div aria-busy="true" aria-live="polite" aria-label="Loading your programmes" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:14px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085;margin-bottom:10px">Loading — skeleton matches the real 52px row height exactly</div>
+          <sc-for list="{{ skeletonRows }}" as="r" hint-placeholder-count="3">
+            <div aria-hidden="true" style="display:grid;grid-template-columns:2fr 90px 1fr 90px;gap:12px;align-items:center;height:52px;border-bottom:1px solid #E4E7EC">
+              <div><div style="height:13px;width:{{ r.a }};border-radius:2px;background:#E4E7EC"></div><div style="height:11px;width:{{ r.b }};border-radius:2px;background:#EDEFF3;margin-top:6px"></div></div>
+              <div style="height:20px;border-radius:4px;background:#E4E7EC"></div>
+              <div style="height:8px;border-radius:999px;background:#E4E7EC"></div>
+              <div style="height:13px;border-radius:2px;background:#E4E7EC"></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1600px;margin:0 auto;padding:20px 32px 0">
+  <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+    <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/gantt-tool</span>
+      <span style="font-size:12px;color:#4B5563">Full-screen workspace — layout, panels and the modals it hosts</span>
+    </div>
+    <div role="main" aria-label="Gantt workspace layout" style="display:flex;height:340px;background:#F6F7F9">
+      <div style="width:50px;flex:none;background:#FFFFFF;border-right:1px solid #CBD2DC;display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:6px">
+        <sc-for list="{{ rail }}" as="r" hint-placeholder-count="6">
+          <span title="{{ r.label }}" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:{{ r.bg }};color:{{ r.fg }};border:1px solid {{ r.bd }};font-family:'IBM Plex Mono',monospace;font-size:13px">{{ r.g }}</span>
+        </sc-for>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;background:#FFFFFF;border-bottom:1px solid #E4E7EC;flex-wrap:nowrap;overflow:hidden">
+          <span style="font-size:13.5px;font-weight:600;white-space:nowrap">S/4HANA Migration</span>
+          <span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;flex:none;border-radius:4px;background:#F1F3F7;border:1px solid #CBD2DC;font-size:11px;font-weight:600;color:#4B5563">EDITOR</span>
+          <span style="display:inline-flex;gap:2px;padding:2px;flex:none;border-radius:6px;background:#F1F3F7;border:1px solid #CBD2DC"><span style="height:24px;padding:0 10px;display:inline-flex;align-items:center;border-radius:4px;background:#FFFFFF;border:1px solid #7D8799;font-size:12px;font-weight:500">Week</span><span style="height:24px;padding:0 10px;display:inline-flex;align-items:center;font-size:12px;color:#4B5563">Month</span></span>
+          <span style="margin-left:auto;display:flex;gap:6px;flex:none"><button style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Baseline</button><button style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Proposal</button></span>
+        </div>
+        <div style="flex:1;display:flex;min-height:0">
+          <div style="width:250px;flex:none;background:#FFFFFF;border-right:1px solid #CBD2DC;padding:8px 0;overflow:hidden">
+            <sc-for list="{{ treeRows }}" as="t" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:6px;height:30px;padding-left:{{ t.indent }};padding-right:10px;background:{{ t.bg }};box-shadow:{{ t.bar }}">
+                <span aria-hidden="true" style="width:12px;font-size:8px;color:#4B5563">{{ t.chev }}</span>
+                <span style="font-size:12px;font-weight:{{ t.fw }};color:{{ t.fg }};overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ t.name }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:1;position:relative;background:#FFFFFF;overflow:hidden">
+            <sc-for list="{{ ganttBars }}" as="b" hint-placeholder-count="8">
+              <div style="position:absolute;top:{{ b.top }};left:{{ b.left }};width:{{ b.w }};height:{{ b.h }};border-radius:3px;background:{{ b.bg }};border:{{ b.border }}"></div>
+            </sc-for>
+            <div aria-hidden="true" style="position:absolute;top:0;bottom:0;left:38%;width:2px;background:#0B57D0"></div>
+          </div>
+          <div style="width:230px;flex:none;background:#FFFFFF;border-left:1px solid #CBD2DC;padding:12px">
+            <div style="font-size:11.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085">Task · Realize</div>
+            <div style="font-size:14px;font-weight:600;line-height:20px;margin-top:3px">Chart of accounts workshop</div>
+            <sc-for list="{{ inspector }}" as="i" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:76px 1fr;gap:8px;margin-top:8px;font-size:12px"><span style="color:#4B5563">{{ i.k }}</span><span style="color:#101720;font-variant-numeric:tabular-nums">{{ i.v }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="height:30px;display:flex;align-items:center;gap:14px;padding:0 12px;background:#F1F3F7;border-top:1px solid #CBD2DC;font-size:11.5px;color:#4B5563">
+          <span>80 phases · 1,200 tasks</span><span>Critical path 6 tasks</span><span style="margin-left:auto;font-variant-numeric:tabular-nums">Saved locally · 3 pending</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;padding:14px;border-top:1px solid #CBD2DC">
+      <sc-for list="{{ workspaceNotes }}" as="n" hint-placeholder-count="5">
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty"><span style="font-weight:600;color:#101720">{{ n.k }} — </span>{{ n.v }}</div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1600px;margin:0 auto;padding:20px 32px 0">
+  <h2 style="margin:0 0 4px;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em">Modals the workspace hosts</h2>
+  <p style="margin:0 0 16px;font-size:14px;line-height:21px;color:#4B5563;max-width:78ch">Nine, each at its stated size, each with the primitive it is composed from. Two may stack; a third replaces the second.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">
+    <sc-for list="{{ modals }}" as="m" hint-placeholder-count="9">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:16px 18px">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:14px;font-weight:600;color:#101720">{{ m.title }}</span>
+          <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085">{{ m.size }}</span>
+        </div>
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:6px;text-wrap:pretty">{{ m.body }}</div>
+        <div style="font-size:11.5px;line-height:17px;color:#667085;margin-top:8px;padding-top:8px;border-top:1px solid #E4E7EC">Composed from: {{ m.parts }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="max-width:1600px;margin:0 auto;padding:20px 32px 96px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:20px">
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/architecture · /architecture/v3</span>
+        <span style="font-size:12px;color:#4B5563">Solution diagramming</span>
+      </div>
+      <div role="main" aria-label="Architecture canvas" style="display:flex;height:300px;background:#F6F7F9">
+        <div style="width:150px;flex:none;background:#FFFFFF;border-right:1px solid #CBD2DC;padding:10px">
+          <div style="font-size:10.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085">Palette</div>
+          <sc-for list="{{ palette }}" as="p" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:7px;margin-top:8px;padding:6px 8px;border:1px solid #CBD2DC;border-radius:6px;background:#FFFFFF;cursor:grab">
+              <span aria-hidden="true" style="width:14px;height:14px;border-radius:3px;background:{{ p.bg }};border:1px solid {{ p.bd }}"></span>
+              <span style="font-size:11.5px;color:#101720;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ p.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex:1;position:relative;overflow:hidden">
+          <div aria-hidden="true" style="position:absolute;inset:0;background-image:radial-gradient(#E4E7EC 1px,transparent 1px);background-size:20px 20px"></div>
+          <sc-for list="{{ archNodes }}" as="n" hint-placeholder-count="5">
+            <div style="position:absolute;left:{{ n.x }};top:{{ n.y }};width:{{ n.w }};box-sizing:border-box;background:#FFFFFF;border:{{ n.border }};border-radius:6px;padding:8px 10px;box-shadow:0 1px 2px rgba(16,23,32,.06)">
+              <div style="font-size:11.5px;font-weight:600;color:#101720">{{ n.label }}</div>
+              <div style="font-size:10.5px;color:#4B5563">{{ n.sub }}</div>
+            </div>
+          </sc-for>
+          <sc-for list="{{ archLinks }}" as="l" hint-placeholder-count="4">
+            <div aria-hidden="true" style="position:absolute;left:{{ l.left }};top:{{ l.top }};width:{{ l.w }};height:{{ l.h }};background:#7D8799"></div>
+          </sc-for>
+        </div>
+        <div style="width:170px;flex:none;background:#FFFFFF;border-left:1px solid #CBD2DC;padding:10px">
+          <div style="font-size:10.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085">Properties</div>
+          <sc-for list="{{ archProps }}" as="p" hint-placeholder-count="5">
+            <div style="margin-top:9px"><div style="font-size:10.5px;color:#4B5563">{{ p.k }}</div><div style="height:26px;margin-top:3px;border:1px solid #7D8799;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-size:11.5px;color:#101720;overflow:hidden;white-space:nowrap">{{ p.v }}</div></div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding:12px 14px;border-top:1px solid #CBD2DC;font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty"><span style="font-weight:600;color:#101720">v3 versus v1 — </span>the /architecture route opens the most recent saved diagram; /architecture/v3 pins a named version and is read-only, with a banner reading “Viewing v3, saved 12 Jul 2026 by Rajesh Menon. Editing is disabled.” and a Duplicate to edit action. Export produces SVG for the proposal and PNG at 2× for slides; both carry the version stamp in the footer.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Loading, empty and error per core screen</h3>
+        <sc-for list="{{ statesTable }}" as="r" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:112px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ r.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r.v }}</div></div>
+        </sc-for>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+        <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Responsive — what each screen does at each width</h3>
+        <sc-for list="{{ responsive }}" as="r" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:74px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ r.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r.v }}</div></div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:980}}">
+class Component extends DCLogic {
+  renderVals() {
+    const tiles = [
+      { label: 'Contracted value', value: '184.2', unit: 'MYR m', note: 'Across 6 active programmes. Two await signature and are excluded.', fg: '#101720' },
+      { label: 'Weighted margin', value: '26.4', unit: '%', note: 'Below the 25% floor on one programme — Perak Water, at 21.8%.', fg: '#8A5200' },
+      { label: 'People staffed', value: '214', unit: 'of 260', note: '46 unassigned next month; 5 over-allocated in the cutover window.', fg: '#101720' },
+      { label: 'Needs attention', value: '7', unit: 'items', note: '2 late phases, 1 sync conflict, 3 access requests, 1 expiring rate card.', fg: '#B3261E' }
+    ];
+
+    const projCols = [
+      { label: 'Programme', align: 'left' }, { label: 'Health', align: 'left' }, { label: 'Progress', align: 'left' },
+      { label: 'Window', align: 'left' }, { label: 'People', align: 'right' }, { label: 'Value MYR', align: 'right' },
+      { label: 'Margin', align: 'right' }, { label: '', align: 'center' }
+    ];
+
+    const P = (name, client, code, pill, pct, phase, dates, people, value, margin, tone, marginTone) => ({
+      name, client, code, pct, phase, dates, people, value, margin,
+      pill, pillG: tone === 'ok' ? '✓' : tone === 'warn' ? '⚠' : tone === 'late' ? '✕' : '●',
+      pillBg: tone === 'ok' ? '#E3F5EB' : tone === 'warn' ? '#FBF0DC' : tone === 'late' ? '#FDE9E7' : '#F1F3F7',
+      pillFg: tone === 'ok' ? '#0A7A47' : tone === 'warn' ? '#8A5200' : tone === 'late' ? '#B3261E' : '#4B5563',
+      pillBd: tone === 'ok' ? '#9AD9BB' : tone === 'warn' ? '#E0C089' : tone === 'late' ? '#F0B5AF' : '#CBD2DC',
+      fill: tone === 'late' ? '#B3261E' : tone === 'warn' ? '#8A5200' : '#0B57D0',
+      marginFg: marginTone === 'bad' ? '#B3261E' : marginTone === 'warn' ? '#8A5200' : '#101720'
+    });
+
+    const projects = [
+      P('S/4HANA Migration', 'Sarawak Energy', 'PRJ-2291', 'At risk', '62%', 'Realize', '05 Jan 26 – 26 Dec 27', '42', '38.6 m', '27.1%', 'warn', 'ok'),
+      P('Finance Transformation', 'Petronas Chemicals', 'PRJ-2188', 'On track', '81%', 'Deploy', '02 Mar 26 – 30 Apr 27', '31', '24.9 m', '29.4%', 'ok', 'ok'),
+      P('SuccessFactors Rollout', 'Malayan Banking', 'PRJ-2304', 'On track', '34%', 'Explore', '01 Jun 26 – 15 Sep 27', '18', '11.2 m', '31.0%', 'ok', 'ok'),
+      P('Utilities Billing Upgrade', 'Perak Water Board', 'PRJ-2140', 'Late', '48%', 'Realize', '14 Oct 25 – 28 Feb 27', '26', '19.4 m', '21.8%', 'late', 'bad'),
+      P('Group Reporting', 'Sime Darby Plantation', 'PRJ-2331', 'On track', '12%', 'Prepare', '20 Jul 26 – 31 Mar 28', '9', '7.8 m', '28.6%', 'ok', 'ok'),
+      P('Warehouse Management', 'Northport Malaysia', 'PRJ-2276', 'Not started', '0%', 'Prepare', '01 Oct 26 – 30 Jun 28', '4', '9.1 m', '26.2%', 'none', 'ok')
+    ];
+
+    const dashNotes = [
+      { k: 'Scanability', v: 'Health, progress and margin sit in fixed columns so six programmes can be read in one pass; nothing is behind a hover or a click.' },
+      { k: 'Sorting', v: 'Default order is attention-first — late, then at risk, then everything else by window start. A portfolio sorted alphabetically hides the one row that matters.' },
+      { k: 'Redaction', v: 'Value and margin obey cost visibility per programme, not per user: a lead with level 3 on one programme and level 1 on another sees a real figure beside a mask, each with its own reason.' },
+      { k: 'Tiles', v: 'Four, never more. Each one is a number a delivery lead is accountable for, and each states the exception behind it rather than only the aggregate.' }
+    ];
+
+    const skeletonRows = [{ a: '52%', b: '30%' }, { a: '44%', b: '26%' }, { a: '58%', b: '34%' }];
+
+    const rail = [
+      { g: '▤', label: 'Timeline', bg: '#E8F0FE', fg: '#0B57D0', bd: '#BBD0F6' },
+      { g: '◑', label: 'Resources', bg: '#FFFFFF', fg: '#4B5563', bd: 'transparent' },
+      { g: '≡', label: 'Cost', bg: '#FFFFFF', fg: '#4B5563', bd: 'transparent' },
+      { g: '⌗', label: 'Org chart', bg: '#FFFFFF', fg: '#4B5563', bd: 'transparent' },
+      { g: '◇', label: 'Architecture', bg: '#FFFFFF', fg: '#4B5563', bd: 'transparent' },
+      { g: '◔', label: 'Insights', bg: '#FFFFFF', fg: '#4B5563', bd: 'transparent' }
+    ];
+
+    const treeRows = [
+      { name: 'Prepare · PMO', indent: '10px', chev: '▶', fw: 600, fg: '#101720', bg: '#F6F7F9', bar: 'none' },
+      { name: 'Explore · Finance', indent: '10px', chev: '▶', fw: 600, fg: '#101720', bg: '#F6F7F9', bar: 'none' },
+      { name: 'Realize · Finance', indent: '10px', chev: '▼', fw: 600, fg: '#101720', bg: '#F6F7F9', bar: 'none' },
+      { name: 'Chart of accounts workshop', indent: '30px', chev: '', fw: 400, fg: '#101720', bg: '#E8F0FE', bar: 'inset 2px 0 0 #0B57D0' },
+      { name: 'Fit-gap — Finance 2', indent: '30px', chev: '', fw: 400, fg: '#4B5563', bg: '#FFFFFF', bar: 'none' },
+      { name: 'Build — Finance 3', indent: '30px', chev: '', fw: 400, fg: '#4B5563', bg: '#FFFFFF', bar: 'none' },
+      { name: 'Realize · Data Migration', indent: '10px', chev: '▶', fw: 600, fg: '#101720', bg: '#F6F7F9', bar: 'none' },
+      { name: 'Deploy · Cutover', indent: '10px', chev: '▶', fw: 600, fg: '#101720', bg: '#F6F7F9', bar: 'none' }
+    ];
+
+    const ganttBars = [
+      { top: '10px', left: '4%', w: '18%', h: '10px', bg: '#4B5563', border: '1px solid #101720' },
+      { top: '40px', left: '14%', w: '26%', h: '10px', bg: '#4B5563', border: '1px solid #101720' },
+      { top: '70px', left: '30%', w: '44%', h: '10px', bg: '#4B5563', border: '1px solid #101720' },
+      { top: '98px', left: '32%', w: '12%', h: '14px', bg: '#0B57D0', border: '1.5px solid #0B57D0' },
+      { top: '128px', left: '38%', w: '9%', h: '14px', bg: '#E8F0FE', border: '1px solid #0B57D0' },
+      { top: '158px', left: '44%', w: '14%', h: '14px', bg: '#E8F0FE', border: '1.5px solid #B3261E' },
+      { top: '188px', left: '46%', w: '30%', h: '10px', bg: '#4B5563', border: '1px solid #101720' },
+      { top: '218px', left: '68%', w: '22%', h: '10px', bg: '#4B5563', border: '1px solid #101720' }
+    ];
+
+    const inspector = [
+      { k: 'Dates', v: '07 – 18 Sep 2026' },
+      { k: 'Effort', v: '8 working days' },
+      { k: 'Assigned', v: 'Aisyah Rahman 80%' },
+      { k: 'Predecessor', v: 'Sign-off — Finance 8' },
+      { k: 'Cost', v: 'MYR 15,360' }
+    ];
+
+    const workspaceNotes = [
+      { k: 'Four regions', v: 'A 50px icon rail for destinations, a 44px project bar, the split Gantt, and a 230px inspector. Nothing else is chrome — the canvas gets every remaining pixel.' },
+      { k: 'Inspector', v: 'Docked at ≥1440px, an overlay drawer below that. It follows selection and never blocks the selected row, which stays visible with its accent bar.' },
+      { k: 'Status bar', v: '30px, always present: object counts, critical-path length and the sync state in words. It is the one place a user can confirm the size of what they are looking at.' },
+      { k: 'Viewer mode', v: 'A VIEWER sees the identical layout with commit actions replaced by one “Request edit access” button — never a screen of disabled controls.' },
+      { k: 'Density', v: 'Compact mode drops rows from 32 to 28 and the project bar from 44 to 40. Type never shrinks below 12px, and no padding is removed from a hit target.' }
+    ];
+
+    const modals = [
+      { title: 'Add / edit task', size: 'md 640', body: 'Name, phase, dates against the region calendar, effort, dependencies and assignment. Shows working days and the holidays excluded before commit.', parts: 'Input · Date-range picker · Combobox · Number input · Modal footer' },
+      { title: 'Add / edit phase', size: 'md 640', body: 'Name, stage, window, region calendar and workstream. Warns when the window falls outside its stage’s bounds instead of blocking it.', parts: 'Input · Select · Date-range picker · Inline alert' },
+      { title: 'Delete phase', size: 'sm 420', body: 'Destructive confirm. Names the phase, its 24 tasks, 9 assignments and 3 milestones, and requires the phase name typed to enable Delete.', parts: 'Modal/destructive · Input · Button/danger' },
+      { title: 'Assign resource', size: 'md 640', body: 'Async combobox over the roster with rate and region, an allocation slider clamped 0–150, and a live over-allocation warning naming the affected weeks.', parts: 'Combobox · Slider · Number input · Inline alert' },
+      { title: 'Edit dependency', size: 'sm 420', body: 'Link type (FS, SS, FF, SF), lag in working days, and a plain-language sentence of the result: “Cutover rehearsal starts 2 working days after Mock conversion 3 finishes.”', parts: 'Radio group · Number input · Inline alert' },
+      { title: 'Set baseline', size: 'sm 420', body: 'Names the version being replaced and how many tasks are captured. Baselines are never overwritten silently — the previous one is retained and listed.', parts: 'Modal · Inline alert · Button/primary' },
+      { title: 'Share project', size: 'md 640', body: 'Invite by email, role EDITOR or VIEWER, cost-visibility level, and expiry. Existing collaborators are listed with presence and last-seen.', parts: 'Combobox · Radio group · Select · Data table · Avatar' },
+      { title: 'Generate proposal', size: 'lg 880', body: 'Stepper: sections, branding, cost visibility for the export, then format. Shows a page-count estimate and warns when a chosen section contains masked figures.', parts: 'Stepper · Checkbox group · Radio group · Progress bar' },
+      { title: 'Resolve conflict', size: 'lg 880', body: 'Two versions side by side with field-level choice, as specified in layer 4e. Opens automatically only when the user was the last editor of the conflicted record.', parts: 'Modal/lg · Radio pair per field · Inline alert' }
+    ];
+
+    const palette = [
+      { label: 'SAP S/4HANA', bg: '#E8F0FE', bd: '#0B57D0' },
+      { label: 'SAP BTP', bg: '#E3F5EB', bd: '#0A7A47' },
+      { label: 'Integration', bg: '#FBF0DC', bd: '#8A5200' },
+      { label: 'Legacy system', bg: '#F1F3F7', bd: '#7D8799' },
+      { label: 'Data store', bg: '#FFFFFF', bd: '#7D8799' },
+      { label: 'External party', bg: '#FDE9E7', bd: '#B3261E' }
+    ];
+
+    // One geometry source: node width and column x-positions drive both cards and links.
+    const NW = 112, COL = [16, 168, 320];
+    const N = (col, y, label, sub, border) => ({ x: COL[col] + 'px', y: y + 'px', w: NW + 'px', label, sub, border, col, yv: y });
+    const archNodes = [
+      N(0, 24, 'S/4HANA', 'Private cloud, KL', '1.5px solid #0B57D0'),
+      N(0, 148, 'ECC 6.0', 'Legacy, retiring', '1px solid #7D8799'),
+      N(1, 86, 'SAP BTP', 'Integration Suite', '1px solid #0A7A47'),
+      N(2, 24, 'SuccessFactors', 'SaaS', '1px solid #0A7A47'),
+      N(2, 148, 'Bank host-to-host', 'External party', '1px solid #B3261E')
+    ];
+    const NHh = 46;
+    const link = (a, b) => {
+      const ax = COL[a.col] + NW, ay = a.yv + NHh / 2;
+      const bx = COL[b.col], by = b.yv + NHh / 2;
+      const mid = (ax + bx) / 2;
+      return [
+        { left: ax + 'px', top: ay + 'px', w: (mid - ax) + 'px', h: '1.5px' },
+        { left: mid + 'px', top: Math.min(ay, by) + 'px', w: '1.5px', h: (Math.abs(by - ay) || 1) + 'px' },
+        { left: mid + 'px', top: by + 'px', w: (bx - mid) + 'px', h: '1.5px' }
+      ];
+    };
+    const archLinks = []
+      .concat(link(archNodes[0], archNodes[2]))
+      .concat(link(archNodes[1], archNodes[2]))
+      .concat(link(archNodes[2], archNodes[3]))
+      .concat(link(archNodes[2], archNodes[4]));
+
+    const archProps = [
+      { k: 'Name', v: 'SAP BTP' }, { k: 'Type', v: 'Integration Suite' },
+      { k: 'Environment', v: 'Production' }, { k: 'Owner', v: 'Goh Mei Yee' },
+      { k: 'Go-live', v: '18 Jan 2027' }
+    ];
+
+    const statesTable = [
+      { k: '/dashboard', v: 'Loading — six 52px skeleton rows plus four tile skeletons, announced as “Loading your programmes”. Empty — the first-run state above. No results after filtering — stays in the table body with the filter count and a one-click removal. Error — “Your programmes could not be loaded. The list you last saw is shown from this device, dated 14:02.”' },
+      { k: '/gantt-tool', v: 'Loading — the tree renders first from the local copy, the canvas fills in behind it; the status bar reads “Loading 1,200 tasks”. Empty — a phase-less project offers the Activate starter inline in the tree. Error — the canvas is replaced, the tree stays, so navigation and undo survive.' },
+      { k: 'Inspector', v: 'Loading — field skeletons at exact field heights. Empty — “Select a task or phase to see its detail.” Error — the drawer keeps its header and shows a retry inline rather than closing.' },
+      { k: '/architecture', v: 'Loading — the palette and properties render immediately, the canvas shows a centred spinner with “Opening diagram v7”. Empty — “Drag a component from the palette to start.” Error — offers the last exported SVG for download so a client meeting is not lost.' },
+      { k: 'Modals', v: 'Loading — the primary button enters its loading state and the form stays interactive. Error — a role="alert" inline banner at the top of the modal body, never a nested modal, and focus moves to it.' }
+    ];
+
+    const responsive = [
+      { k: '1920+', v: 'Dashboard table gains the native-currency and utilisation columns. Gantt shows the inspector docked plus a 320px critical-path panel at the bottom without overlap.' },
+      { k: '1440', v: 'Reference width. Dashboard as drawn; Gantt with docked inspector; architecture with both side panels.' },
+      { k: '1024', v: 'Dashboard drops Window and People into a second line under the name. Gantt inspector becomes an overlay drawer; the icon rail stays. Architecture properties panel becomes a bottom drawer.' },
+      { k: '768', v: 'Dashboard becomes a card list, one programme per card, health and margin on the same line. Gantt switches to the stage-summary list from layer 4a — read plus percent-complete editing only. Architecture is read-only with pan and zoom.' },
+      { k: '320', v: 'Dashboard cards stack with 44px targets. Gantt is the stage list; tapping a stage opens its phases, tapping a phase opens a read-only task list. Architecture offers the exported image with pinch-zoom and an “Open on desktop to edit” link.' }
+    ];
+
+    return { tiles, projCols, projects, dashNotes, skeletonRows, rail, treeRows, ganttBars, inspector, workspaceNotes, modals, palette, archNodes, archLinks, archProps, statesTable, responsive };
+  }
+}
+</script>
+</body>
+</html>

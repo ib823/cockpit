@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; } a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1560px;margin:0 auto;padding:56px 32px 26px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 4b of 5</div>
+  <h1 style="margin:14px 0 0;font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em">Resource allocation matrix</h1>
+  <p style="margin:16px 0 0;max-width:78ch;font-size:15px;line-height:24px;color:#4B5563;text-wrap:pretty">{{ resCount }} named resources × {{ weekCount }} weeks of the programme calendar. Every cell prints its own percentage — colour and hatch are the second and third channels, never the first. Click a cell or use the arrow keys; <kbd style="font-family:'IBM Plex Mono',monospace;background:#F1F3F7;border:1px solid #CBD2DC;border-radius:3px;padding:1px 5px;font-size:12px">Enter</kbd> edits, <kbd style="font-family:'IBM Plex Mono',monospace;background:#F1F3F7;border:1px solid #CBD2DC;border-radius:3px;padding:1px 5px;font-size:12px">↑↓</kbd> adjusts by 10 points while editing.</p>
+</header>
+
+<section style="max-width:1560px;margin:0 auto;padding:0 32px">
+  <div style="border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #CBD2DC;flex-wrap:wrap">
+      <div role="radiogroup" aria-label="Group rows by" style="display:inline-flex;gap:2px;padding:2px;border-radius:6px;background:#F1F3F7;border:1px solid #CBD2DC">
+        <sc-for list="{{ groupCells }}" as="g" hint-placeholder-count="3">
+          <button onClick="{{ g.on }}" style="height:26px;padding:0 12px;border-radius:4px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ g.bg }};color:{{ g.fg }};border:1px solid {{ g.bd }};box-shadow:{{ g.sh }}">{{ g.label }}</button>
+        </sc-for>
+      </div>
+      <button onClick="{{ toggleOver }}" style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;background:{{ overBg }};color:{{ overFg }};border:1px solid {{ overBd }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px">{{ overMark }}</span>Over-allocated only</button>
+      <div style="width:1px;height:20px;background:#CBD2DC"></div>
+      <span style="font-size:12.5px;color:#4B5563;font-variant-numeric:tabular-nums">{{ conflictCount }} over-allocated cells across {{ conflictPeople }} people</span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:#4B5563">
+        <span>Weeks {{ visFromLabel }} – {{ visToLabel }}</span>
+        <button onClick="{{ jumpToConflict }}" style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Jump to first conflict</button>
+      </div>
+    </div>
+
+    <div style="display:flex;border-bottom:1px solid #CBD2DC;background:#F1F3F7">
+      <div style="width:300px;flex:none;border-right:1px solid #CBD2DC;height:52px;display:flex;align-items:flex-end;padding:0 12px 8px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#4B5563">Resource</span>
+      </div>
+      <div style="flex:1;overflow:hidden;position:relative;height:52px">
+        <div style="position:absolute;top:0;left:0;height:52px;width:{{ gridWidth }};transform:translateX({{ axisShift }})">
+          <sc-for list="{{ monthTicks }}" as="m" hint-placeholder-count="8">
+            <div style="position:absolute;top:0;left:{{ m.left }};width:{{ m.width }};height:26px;border-left:1px solid #CBD2DC;display:flex;align-items:center;padding-left:6px;font-size:11.5px;font-weight:600;color:#101720;white-space:nowrap;overflow:hidden">{{ m.label }}</div>
+          </sc-for>
+          <sc-for list="{{ weekTicks }}" as="w" hint-placeholder-count="24">
+            <div style="position:absolute;top:26px;left:{{ w.left }};width:52px;height:26px;border-left:1px solid #E4E7EC;background:{{ w.bg }};display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:{{ w.fg }};font-variant-numeric:tabular-nums">{{ w.label }}<span style="font-size:9px;color:#667085">{{ w.sub }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="width:104px;flex:none;border-left:1px solid #CBD2DC;height:52px;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 10px 8px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#4B5563">Avg · Peak</span>
+      </div>
+    </div>
+
+    <div role="grid" aria-label="Resource allocation by week" aria-rowcount="{{ resCount }}" aria-colcount="{{ weekCount }}" tabindex="0" onKeyDown="{{ onKey }}" style="display:flex;height:492px;outline:none">
+      <div style="width:300px;flex:none;border-right:1px solid #CBD2DC;overflow:hidden;position:relative;background:#FFFFFF">
+        <div style="position:absolute;top:0;left:0;right:0;transform:translateY({{ rowShift }})">
+          <sc-for list="{{ rowHeads }}" as="r" hint-placeholder-count="14">
+            <div style="position:absolute;top:{{ r.top }};left:0;right:0;height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;background:{{ r.bg }};box-shadow:{{ r.bar }};border-bottom:1px solid #F1F3F7">
+              <sc-if value="{{ r.isGroup }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#4B5563">{{ r.name }}</span>
+              </sc-if>
+              <sc-if value="{{ r.isPerson }}" hint-placeholder-val="{{ true }}">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none;border-radius:999px;background:{{ r.avBg }};color:{{ r.avFg }};font-size:10px;font-weight:600">{{ r.initials }}</span>
+              </sc-if>
+              <sc-if value="{{ r.isPerson }}" hint-placeholder-val="{{ true }}">
+                <span style="min-width:0;flex:1">
+                  <span style="display:block;font-size:12.5px;line-height:16px;color:#101720;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ r.name }}</span>
+                  <span style="display:block;font-size:11px;line-height:15px;color:#667085;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ r.role }} · {{ r.region }} · {{ r.rate }}</span>
+                </span>
+              </sc-if>
+              <sc-if value="{{ r.flag }}" hint-placeholder-val="{{ false }}">
+                <span title="Has over-allocated weeks" style="flex:none;display:inline-flex;align-items:center;gap:4px;height:18px;padding:0 5px;border-radius:3px;background:#FBF0DC;border:1px solid #E0C089;color:#8A5200;font-size:10px;font-weight:600"><span aria-hidden="true">⚠</span>{{ r.flagN }}</span>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div ref="{{ gridRef }}" onScroll="{{ onScroll }}" style="flex:1;overflow:auto;position:relative;background:#FFFFFF">
+        <div style="position:relative;width:{{ gridWidth }};height:{{ gridHeight }}">
+          <sc-for list="{{ bands }}" as="b" hint-placeholder-count="6">
+            <div style="position:absolute;top:0;bottom:0;left:{{ b.left }};width:52px;background:{{ b.bg }}"></div>
+          </sc-for>
+          <div style="position:absolute;top:0;bottom:0;left:{{ todayLeft }};width:2px;background:#0B57D0"></div>
+          <sc-for list="{{ cells }}" as="c" hint-placeholder-count="200">
+            <div role="gridcell" aria-selected="{{ c.sel }}" aria-label="{{ c.aria }}" tabindex="{{ c.tab }}" onClick="{{ c.on }}" style="position:absolute;top:{{ c.top }};left:{{ c.left }};width:51px;height:35px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:{{ c.bg }};border:{{ c.border }};box-shadow:{{ c.ring }};cursor:pointer">
+              <sc-if value="{{ c.hatch }}" hint-placeholder-val="{{ false }}">
+                <span aria-hidden="true" style="position:absolute;inset:0;background:{{ c.hatchBg }}"></span>
+              </sc-if>
+              <span style="position:relative;display:flex;align-items:center;gap:3px;padding:0 3px;border-radius:2px;background:{{ c.bg }};font-size:11.5px;font-weight:{{ c.fw }};color:{{ c.fg }};font-variant-numeric:tabular-nums">
+                <sc-if value="{{ c.glyph }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="font-size:10px">{{ c.glyph }}</span></sc-if>
+                {{ c.text }}
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="width:104px;flex:none;border-left:1px solid #CBD2DC;overflow:hidden;position:relative;background:#FFFFFF">
+        <div style="position:absolute;top:0;left:0;right:0;transform:translateY({{ rowShift }})">
+          <sc-for list="{{ rowTotals }}" as="t" hint-placeholder-count="14">
+            <div style="position:absolute;top:{{ t.top }};left:0;right:0;height:36px;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0 10px;border-bottom:1px solid #F1F3F7;background:{{ t.bg }}">
+              <span style="font-size:12px;color:#4B5563;font-variant-numeric:tabular-nums">{{ t.avg }}</span>
+              <span style="font-size:12px;font-weight:600;color:{{ t.peakFg }};font-variant-numeric:tabular-nums">{{ t.peak }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div id="matrix-status" role="status" aria-live="polite" aria-atomic="true" style="display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-top:1px solid #CBD2DC;background:{{ statusBg }}">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085;flex:none;padding-top:2px">Announced</span>
+      <span style="font-size:12.5px;line-height:19px;color:#101720">{{ announce }}</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:16px;padding:9px 14px;border-top:1px solid #CBD2DC;background:#F6F7F9;flex-wrap:wrap">
+      <sc-for list="{{ legend }}" as="l" hint-placeholder-count="6">
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:#4B5563">
+          <span style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:20px;border-radius:3px;background:{{ l.bg }};border:{{ l.border }};font-size:10px;font-weight:600;color:{{ l.fg }};font-variant-numeric:tabular-nums"><span aria-hidden="true" style="position:absolute;inset:0;background:{{ l.hatch }};border-radius:3px"></span><span style="position:relative;padding:0 3px;border-radius:2px;background:{{ l.bg }}">{{ l.sample }}</span></span>
+          {{ l.label }}
+        </span>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:28px 32px 0">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 4px;font-size:16px;line-height:22px;font-weight:600">Cell states &amp; contrast</h3>
+      <p style="margin:0 0 12px;font-size:12.5px;line-height:19px;color:#4B5563">Every ratio is text against that cell’s own fill, measured — not the page background.</p>
+      <sc-for list="{{ contrast }}" as="c" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:66px 1fr 62px;gap:10px;padding:8px 0;border-top:1px solid #E4E7EC;align-items:center">
+          <span style="position:relative;display:inline-flex;align-items:center;justify-content:center;height:24px;border-radius:3px;background:{{ c.bg }};border:{{ c.border }};font-size:11px;font-weight:600;color:{{ c.fg }};font-variant-numeric:tabular-nums"><span aria-hidden="true" style="position:absolute;inset:0;background:{{ c.hatch }};border-radius:3px"></span><span style="position:relative;padding:0 3px;border-radius:2px;background:{{ c.bg }}">{{ c.sample }}</span></span>
+          <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ c.desc }}</div>
+          <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#0A7A47;font-variant-numeric:tabular-nums">{{ c.ratio }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Rules</h3>
+      <sc-for list="{{ rules }}" as="r" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:6px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0;line-height:19px">§</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+      </sc-for>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Keyboard &amp; announcements</h3>
+      <sc-for list="{{ keys }}" as="k" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:96px 1fr;gap:12px;padding:6px 0;border-top:1px solid #E4E7EC;align-items:baseline"><kbd style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:#F1F3F7;border:1px solid #CBD2DC;border-bottom-width:2px;border-radius:4px;padding:2px 6px;justify-self:start">{{ k.k }}</kbd><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ k.v }}</div></div>
+      </sc-for>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ sayExamples }}" as="s" hint-placeholder-count="4">
+          <div style="font-size:12px;line-height:18px;color:#101720;background:#F1F3F7;border:1px solid #E4E7EC;border-radius:4px;padding:6px 8px"><span style="font-family:'IBM Plex Mono',monospace;color:#0B57D0">{{ s.k }}</span> — “{{ s.v }}”</div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:16px 32px 96px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Dark</h3>
+      <div style="border:1px solid #333C4A;border-radius:6px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:120px repeat(6,1fr);background:#0A0D12;border-bottom:1px solid #232A35">
+          <div style="padding:6px 8px;font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#AFBACA">Resource</div>
+          <sc-for list="{{ darkWeeks }}" as="w" hint-placeholder-count="6">
+            <div style="padding:6px 0;text-align:center;font-size:10px;color:#AFBACA;font-variant-numeric:tabular-nums">{{ w }}</div>
+          </sc-for>
+        </div>
+        <sc-for list="{{ darkRows }}" as="r" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:120px repeat(6,1fr);border-bottom:1px solid #232A35">
+            <div style="padding:8px;font-size:11.5px;color:#E9EEF6;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ r.name }}</div>
+            <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="6">
+              <div style="position:relative;height:30px;display:flex;align-items:center;justify-content:center;background:{{ c.bg }};border-left:1px solid #232A35"><span aria-hidden="true" style="position:absolute;inset:0;background:{{ c.hatch }}"></span><span style="position:relative;padding:0 3px;border-radius:2px;background:{{ c.bg }};font-size:11px;font-weight:{{ c.fw }};color:{{ c.fg }};font-variant-numeric:tabular-nums">{{ c.t }}</span></div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#8592A6;margin-top:10px">Dark heat inverts the ramp rather than the hues: empty is surface/base, full is accent/subtle #16294A with #E9EEF6 at 12.43:1, over is warning/subtle #33240B with #E9B45A at 7.97:1, severe is danger/subtle #3A1512 with #FF8A80 at 7.10:1. The hatch lightens instead of darkening — <span style="font-family:'IBM Plex Mono',monospace">rgba(233,238,246,.30)</span> — because a dark hatch on a dark cell disappears.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Greyscale &amp; print proof</h3>
+      <div style="border:1px solid #CBD2DC;border-radius:6px;overflow:hidden">
+        <sc-for list="{{ greyRows }}" as="r" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:110px repeat(6,1fr);border-bottom:1px solid #E4E7EC">
+            <div style="padding:7px 8px;font-size:11.5px;color:#101720">{{ r.name }}</div>
+            <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="6">
+              <div style="position:relative;height:30px;display:flex;align-items:center;justify-content:center;background:{{ c.bg }};border-left:1px solid #E4E7EC"><span aria-hidden="true" style="position:absolute;inset:0;background:{{ c.hatch }}"></span><span style="position:relative;display:flex;align-items:center;gap:2px;padding:0 3px;border-radius:2px;background:{{ c.bg }};font-size:11px;font-weight:{{ c.fw }};color:{{ c.fg }};font-variant-numeric:tabular-nums"><span aria-hidden="true" style="font-size:9px">{{ c.g }}</span>{{ c.t }}</span></div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:12px;text-wrap:pretty">The same three weeks with every hue removed. Over-allocation still reads: the number is above 100, the hatch is present, and the glyph is ⚠ or ✕. This is the test the matrix must pass before any colour decision is discussed — and it is also what the Excel export and the A3 wall chart look like.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Accessibility contract</h3>
+      <sc-for list="{{ a11y }}" as="a" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:112px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ a.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ a.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560,&quot;height&quot;:980}}">
+const ROSTER = [
+  ['Rajesh Menon', 'Solution Architect', 'MY', 3200, 'Technical'],
+  ['Goh Mei Yee', 'Integration Architect', 'SG', 3800, 'Integration'],
+  ['Chan Wei Ling', 'Delivery Manager', 'MY', 2900, 'PMO'],
+  ['Nurul Iman', 'Programme Director', 'MY', 4000, 'PMO'],
+  ['Aisyah Rahman', 'FI/CO Consultant', 'MY', 2400, 'Finance'],
+  ['Tan Boon Hock', 'FI/CO Consultant', 'MY', 2400, 'Finance'],
+  ['Lim Siew Fong', 'MM/SD Consultant', 'MY', 2400, 'Logistics'],
+  ['Hafiz Kamarudin', 'MM/SD Consultant', 'MY', 2400, 'Logistics'],
+  ['Yeo Chin Wei', 'PP/QM Consultant', 'MY', 2500, 'Logistics'],
+  ['Sharifah Aziz', 'HCM Consultant', 'MY', 2300, 'Human Capital'],
+  ['Devi Krishnan', 'HCM Consultant', 'MY', 2300, 'Human Capital'],
+  ['Zulkifli Hassan', 'Basis Consultant', 'MY', 2600, 'Technical'],
+  ['Arun Prakash', 'ABAP Developer', 'IN', 1100, 'Technical'],
+  ['Priya Raghavan', 'ABAP Developer', 'IN', 1100, 'Technical'],
+  ['Vikram Shetty', 'ABAP Developer', 'IN', 1100, 'Technical'],
+  ['Daniel Okafor', 'Data Migration Lead', 'MY', 2700, 'Data Migration'],
+  ['Ng Kah Seng', 'Data Migration Analyst', 'MY', 2700, 'Data Migration'],
+  ['Siti Nurhaliza', 'Test Lead', 'MY', 2200, 'Testing'],
+  ['Ravi Subramaniam', 'Test Analyst', 'MY', 2200, 'Testing'],
+  ['Farah Nasution', 'Change Manager', 'MY', 2100, 'Change Management'],
+  ['Iskandar Zulkarnain', 'Business Analyst', 'MY', 1800, 'Finance'],
+  ['Chong Li Mei', 'Business Analyst', 'MY', 1800, 'Logistics'],
+  ['Nguyen Thi Lan', 'Security Consultant', 'VN', 1300, 'Technical'],
+  ['Tran Van Minh', 'Security Consultant', 'VN', 1300, 'Technical'],
+  ['Wong Jia Hui', 'PMO Analyst', 'MY', 1400, 'PMO'],
+  ['Amirul Shah', 'PMO Analyst', 'MY', 1400, 'PMO'],
+  ['Kavitha Nair', 'Integration Consultant', 'SG', 3800, 'Integration'],
+  ['Lee Kok Wai', 'Cutover Lead', 'MY', 2900, 'Cutover'],
+  ['Suriani Bakar', 'Training Lead', 'MY', 2100, 'Change Management'],
+  ['Ganesh Iyer', 'Analytics Consultant', 'IN', 1100, 'Analytics'],
+  ['Ong Hui Ying', 'Analytics Consultant', 'MY', 2400, 'Analytics'],
+  ['Mohd Faizal', 'Basis Consultant', 'MY', 2600, 'Technical'],
+  ['Cheryl Tan', 'FI/CO Consultant', 'SG', 3200, 'Finance'],
+  ['Anand Pillai', 'MM/SD Consultant', 'IN', 1100, 'Logistics'],
+  ['Norhayati Yusof', 'Test Analyst', 'MY', 2200, 'Testing'],
+  ['Koh Beng Huat', 'Data Migration Analyst', 'MY', 2700, 'Data Migration'],
+  ['Rina Solehah', 'Business Analyst', 'MY', 1800, 'Human Capital'],
+  ['Jason Lau', 'Integration Consultant', 'SG', 3800, 'Integration'],
+  ['Meena Balakrishnan', 'Change Analyst', 'MY', 2100, 'Change Management'],
+  ['Firdaus Omar', 'Cutover Analyst', 'MY', 2900, 'Cutover'],
+  ['Low Sze Ting', 'PMO Analyst', 'MY', 1400, 'PMO'],
+  ['Hoang Duc Anh', 'Security Analyst', 'VN', 1300, 'Technical']
+];
+const WEEKS = 104;
+const CW = 52;
+const RH = 36;
+const TODAY_W = 38;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const HATCH_DARK = 'repeating-linear-gradient(135deg,rgba(16,23,32,0) 0 3px,rgba(16,23,32,.42) 3px 6px)';
+const HATCH_HEAVY = 'repeating-linear-gradient(135deg,rgba(16,23,32,0) 0 2px,rgba(16,23,32,.55) 2px 5px)';
+const HATCH_LIGHT = 'repeating-linear-gradient(135deg,rgba(233,238,246,0) 0 3px,rgba(233,238,246,.30) 3px 6px)';
+
+function seed(n) { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); }
+
+// Over-allocation is exceptional by design: five named people under two
+// pressure windows — integration test (W40–46) and cutover (W72–78).
+const PRESSURED = { 12: 1, 13: 1, 14: 1, 1: 1, 15: 1 };
+function inPressure(w) { return (w >= 40 && w <= 46) || (w >= 72 && w <= 78); }
+function alloc(r, w) {
+  const ramp = w < 6 ? 0.3 : w < 14 ? 0.7 : w < 70 ? 1 : w < 86 ? 0.8 : 0.45;
+  const base = (35 + Math.round(seed(r * 17 + w * 3) * 60)) * ramp;
+  let v = Math.round(base / 5) * 5;
+  if (v > 100) v = 100;
+  if (PRESSURED[r] && inPressure(w) && seed(r * 5 + w) > 0.35) {
+    v = 105 + Math.round(seed(r * 11 + w * 2) * 8) * 5;
+  }
+  if ((r + w) % 53 === 0) v = 0;
+  if (w > 96 && r % 4 !== 0) v = 0;
+  return Math.max(0, Math.min(160, v));
+}
+
+function weekLabel(w) {
+  const d = new Date(2026, 0, 5 + w * 7);
+  return { wk: 'W' + (w % 52 + 1), sub: d.getDate() + ' ' + MONTHS[d.getMonth()], month: MONTHS[d.getMonth()] + ' ' + d.getFullYear(), key: d.getMonth() + '-' + d.getFullYear() };
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      group: 'None', overOnly: false, scrollTop: 0, scrollLeft: 0, vw: 900,
+      cursor: { r: 12, c: 36 }, editing: false, edits: {},
+      announce: 'Allocation matrix ready. 42 resources by 104 weeks. Arrow keys move the cell cursor; Enter edits.'
+    };
+  }
+
+  rowsModel() {
+    const S = this.state;
+    let people = ROSTER.map((p, i) => ({ i, name: p[0], role: p[1], region: p[2], rate: p[3], stream: p[4] }));
+    if (S.overOnly) people = people.filter(p => this.peak(p.i) > 100);
+    if (S.group === 'Workstream') {
+      const out = [];
+      const streams = [];
+      people.forEach(p => { if (streams.indexOf(p.stream) < 0) streams.push(p.stream); });
+      streams.sort().forEach(s => {
+        out.push({ group: s });
+        people.filter(p => p.stream === s).forEach(p => out.push(p));
+      });
+      return out;
+    }
+    if (S.group === 'Region') {
+      const out = [];
+      ['MY', 'SG', 'IN', 'VN'].forEach(rg => {
+        const set = people.filter(p => p.region === rg);
+        if (!set.length) return;
+        out.push({ group: rg === 'MY' ? 'Malaysia' : rg === 'SG' ? 'Singapore' : rg === 'IN' ? 'India (offshore)' : 'Vietnam (subcontract)' });
+        set.forEach(p => out.push(p));
+      });
+      return out;
+    }
+    return people;
+  }
+
+  val(ri, w) {
+    const k = ri + ':' + w;
+    return this.state.edits[k] !== undefined ? this.state.edits[k] : alloc(ri, w);
+  }
+  peak(ri) { let m = 0; for (let w = 0; w < WEEKS; w++) { const v = this.val(ri, w); if (v > m) m = v; } return m; }
+  avg(ri) { let t = 0, n = 0; for (let w = 0; w < WEEKS; w++) { const v = this.val(ri, w); if (v > 0) { t += v; n++; } } return n ? Math.round(t / n) : 0; }
+
+  style(v) {
+    if (v === 0) return { bg: '#FFFFFF', fg: '#667085', fw: 400, text: '—', glyph: '', hatch: false, hatchBg: 'none', border: '1px solid #F1F3F7', state: 'unstaffed' };
+    if (v < 50) return { bg: '#F6F7F9', fg: '#101720', fw: 400, text: v + '%', glyph: '', hatch: false, hatchBg: 'none', border: '1px solid #E4E7EC', state: 'part time' };
+    if (v < 80) return { bg: '#F1F3F7', fg: '#101720', fw: 400, text: v + '%', glyph: '', hatch: false, hatchBg: 'none', border: '1px solid #E4E7EC', state: 'partly allocated' };
+    if (v <= 100) return { bg: '#E8F0FE', fg: '#101720', fw: 600, text: v + '%', glyph: '', hatch: false, hatchBg: 'none', border: '1px solid #BBD0F6', state: 'fully allocated' };
+    if (v <= 120) return { bg: '#FBF0DC', fg: '#8A5200', fw: 600, text: v + '%', glyph: '⚠', hatch: true, hatchBg: HATCH_DARK, border: '1px solid #E0C089', state: 'over-allocated' };
+    return { bg: '#FDE9E7', fg: '#B3261E', fw: 600, text: v + '%', glyph: '✕', hatch: true, hatchBg: HATCH_HEAVY, border: '1.5px solid #B3261E', state: 'severely over-allocated' };
+  }
+
+  say(m) { this.setState({ announce: m }); }
+
+  cellName(rowObj, w, v) {
+    const lb = weekLabel(w);
+    const st = this.style(v);
+    return rowObj.name + ', ' + lb.wk + ' beginning ' + lb.sub + ', ' + (v === 0 ? 'not staffed' : v + ' percent, ' + st.state) +
+      (v > 100 ? ', over by ' + (v - 100) + ' points' : '') + '.';
+  }
+
+  moveCursor(dr, dc) {
+    const rows = this.rowsModel();
+    let { r, c } = this.state.cursor;
+    let nr = r, nc = Math.max(0, Math.min(WEEKS - 1, c + dc));
+    if (dr !== 0) {
+      nr = r;
+      do { nr += dr; } while (nr >= 0 && nr < rows.length && rows[nr].group);
+      if (nr < 0 || nr >= rows.length) nr = r;
+    }
+    this.setState({ cursor: { r: nr, c: nc } }, () => this.ensureVisible(nr, nc));
+    const row = rows[nr];
+    if (row && !row.group) this.say(this.cellName(row, nc, this.val(row.i, nc)));
+  }
+
+  ensureVisible(r, c) {
+    const el = this._el;
+    if (!el) return;
+    const top = r * RH, left = c * CW;
+    if (top < el.scrollTop) el.scrollTop = top;
+    else if (top + RH > el.scrollTop + el.clientHeight) el.scrollTop = top + RH - el.clientHeight;
+    if (left < el.scrollLeft) el.scrollLeft = left;
+    else if (left + CW > el.scrollLeft + el.clientWidth) el.scrollLeft = left + CW - el.clientWidth;
+    this.setState({ scrollTop: el.scrollTop, scrollLeft: el.scrollLeft, vw: el.clientWidth });
+  }
+
+  onKey(e) {
+    const k = e.key;
+    const S = this.state;
+    const rows = this.rowsModel();
+    const row = rows[S.cursor.r];
+    if (S.editing) {
+      if (k === 'ArrowUp' || k === 'ArrowDown') {
+        e.preventDefault();
+        const cur = this.val(row.i, S.cursor.c);
+        const nv = Math.max(0, Math.min(160, cur + (k === 'ArrowUp' ? 10 : -10)));
+        const ed = Object.assign({}, S.edits); ed[row.i + ':' + S.cursor.c] = nv;
+        this.setState({ edits: ed });
+        this.say(nv + ' percent' + (nv > 100 ? ', over by ' + (nv - 100) + ' points' : '') + '.');
+        return;
+      }
+      if (k === 'Enter' || k === 'Tab') {
+        e.preventDefault();
+        const v = this.val(row.i, S.cursor.c);
+        this.setState({ editing: false });
+        this.say('Set ' + row.name + ', ' + weekLabel(S.cursor.c).wk + ' to ' + v + ' percent. Saved locally, 1 change pending sync.' + (v > 100 ? ' Over-allocated by ' + (v - 100) + ' points.' : ''));
+        return;
+      }
+      if (k === 'Escape') {
+        e.preventDefault();
+        const ed = Object.assign({}, S.edits); delete ed[row.i + ':' + S.cursor.c];
+        this.setState({ editing: false, edits: ed });
+        this.say('Edit cancelled. ' + this.cellName(row, S.cursor.c, this.val(row.i, S.cursor.c)));
+        return;
+      }
+      return;
+    }
+    if (k === 'ArrowRight') { e.preventDefault(); this.moveCursor(0, 1); return; }
+    if (k === 'ArrowLeft') { e.preventDefault(); this.moveCursor(0, -1); return; }
+    if (k === 'ArrowDown') { e.preventDefault(); this.moveCursor(1, 0); return; }
+    if (k === 'ArrowUp') { e.preventDefault(); this.moveCursor(-1, 0); return; }
+    if (k === 'PageDown') { e.preventDefault(); this.moveCursor(0, 13); return; }
+    if (k === 'PageUp') { e.preventDefault(); this.moveCursor(0, -13); return; }
+    if (k === 'Home') { e.preventDefault(); this.setState({ cursor: { r: S.cursor.r, c: 0 } }, () => this.ensureVisible(S.cursor.r, 0)); this.say('First week, ' + weekLabel(0).sub + '.'); return; }
+    if (k === 'End') { e.preventDefault(); this.setState({ cursor: { r: S.cursor.r, c: WEEKS - 1 } }, () => this.ensureVisible(S.cursor.r, WEEKS - 1)); this.say('Last week, ' + weekLabel(WEEKS - 1).sub + '.'); return; }
+    if (k === 'Enter') {
+      e.preventDefault();
+      if (!row || row.group) return;
+      this.setState({ editing: true });
+      this.say('Editing ' + row.name + ', ' + weekLabel(S.cursor.c).wk + '. Up and down arrows change by 10 points. Enter commits, Escape cancels.');
+      return;
+    }
+    if (k === 'n' || k === 'N') { e.preventDefault(); this.nextConflict(); }
+  }
+
+  nextConflict() {
+    const rows = this.rowsModel();
+    const S = this.state;
+    for (let r = S.cursor.r; r < rows.length; r++) {
+      const row = rows[r];
+      if (row.group) continue;
+      for (let w = (r === S.cursor.r ? S.cursor.c + 1 : 0); w < WEEKS; w++) {
+        if (this.val(row.i, w) > 100) {
+          this.setState({ cursor: { r, c: w } }, () => this.ensureVisible(r, w));
+          this.say('Next conflict: ' + this.cellName(row, w, this.val(row.i, w)));
+          return;
+        }
+      }
+    }
+    this.say('No further over-allocated cells after the cursor.');
+  }
+
+  renderVals() {
+    const S = this.state;
+    const rows = this.rowsModel();
+    const firstRow = Math.max(0, Math.floor(S.scrollTop / RH) - 2);
+    const rowWin = Math.ceil(492 / RH) + 4;
+    const firstCol = Math.max(0, Math.floor(S.scrollLeft / CW) - 1);
+    const colWin = Math.ceil(S.vw / CW) + 2;
+
+    const rowHeads = [];
+    const rowTotals = [];
+    for (let i = firstRow; i < Math.min(rows.length, firstRow + rowWin); i++) {
+      const r = rows[i];
+      const isCursor = S.cursor.r === i;
+      if (r.group) {
+        rowHeads.push({ top: (i * RH) + 'px', isGroup: true, isPerson: false, name: r.group, bg: '#F1F3F7', bar: 'none', flag: false, initials: '', role: '', region: '', rate: '', flagN: '' });
+        rowTotals.push({ top: (i * RH) + 'px', avg: '', peak: '', peakFg: '#4B5563', bg: '#F1F3F7' });
+        continue;
+      }
+      const peak = this.peak(r.i);
+      let overWeeks = 0;
+      for (let w = 0; w < WEEKS; w++) if (this.val(r.i, w) > 100) overWeeks++;
+      rowHeads.push({
+        top: (i * RH) + 'px', isGroup: false, isPerson: true, name: r.name, role: r.role, region: r.region,
+        rate: 'MYR ' + r.rate.toLocaleString(),
+        initials: r.name.split(' ').map(x => x[0]).slice(0, 2).join(''),
+        avBg: peak > 120 ? '#FDE9E7' : peak > 100 ? '#FBF0DC' : '#E8F0FE',
+        avFg: peak > 120 ? '#B3261E' : peak > 100 ? '#8A5200' : '#0B57D0',
+        bg: isCursor ? '#E8F0FE' : '#FFFFFF', bar: isCursor ? 'inset 2px 0 0 #0B57D0' : 'none',
+        flag: overWeeks > 0, flagN: overWeeks + 'w'
+      });
+      rowTotals.push({
+        top: (i * RH) + 'px', avg: this.avg(r.i) + '%', peak: peak + '%',
+        peakFg: peak > 120 ? '#B3261E' : peak > 100 ? '#8A5200' : '#101720',
+        bg: isCursor ? '#E8F0FE' : '#FFFFFF'
+      });
+    }
+
+    const cells = [];
+    for (let i = firstRow; i < Math.min(rows.length, firstRow + rowWin); i++) {
+      const r = rows[i];
+      if (r.group) continue;
+      for (let w = firstCol; w < Math.min(WEEKS, firstCol + colWin); w++) {
+        const v = this.val(r.i, w);
+        const st = this.style(v);
+        const sel = S.cursor.r === i && S.cursor.c === w;
+        cells.push({
+          top: (i * RH) + 'px', left: (w * CW) + 'px',
+          bg: st.bg, fg: st.fg, fw: st.fw, text: st.text, glyph: st.glyph,
+          hatch: st.hatch, hatchBg: st.hatchBg,
+          border: sel && S.editing ? '2px solid #0B57D0' : st.border,
+          ring: sel ? '0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0' : 'none',
+          sel: sel ? 'true' : 'false', tab: sel ? 0 : -1,
+          aria: this.cellName(r, w, v),
+          on: () => { this.setState({ cursor: { r: i, c: w }, editing: false }); this.say(this.cellName(r, w, v)); }
+        });
+      }
+    }
+
+    const weekTicks = [];
+    const monthTicks = [];
+    let lastKey = '';
+    for (let w = firstCol; w < Math.min(WEEKS, firstCol + colWin); w++) {
+      const lb = weekLabel(w);
+      weekTicks.push({ left: (w * CW) + 'px', label: lb.wk, sub: lb.sub, bg: w === TODAY_W ? '#E8F0FE' : 'transparent', fg: w === TODAY_W ? '#0B57D0' : '#4B5563' });
+      if (lb.key !== lastKey) { monthTicks.push({ left: (w * CW) + 'px', width: (CW * 4.34) + 'px', label: lb.month }); lastKey = lb.key; }
+    }
+
+    const bands = [];
+    for (let w = firstCol; w < Math.min(WEEKS, firstCol + colWin); w++) {
+      const m = new Date(2026, 0, 5 + w * 7).getMonth();
+      if (m % 2 === 1) bands.push({ left: (w * CW) + 'px', bg: '#FBFCFD' });
+    }
+
+    let conflictCount = 0;
+    const conflictPeople = {};
+    ROSTER.forEach((p, ri) => { for (let w = 0; w < WEEKS; w++) if (this.val(ri, w) > 100) { conflictCount++; conflictPeople[ri] = 1; } });
+
+    const HG = (o) => o;
+    return {
+      resCount: '42', weekCount: '104',
+      gridWidth: (WEEKS * CW) + 'px', gridHeight: (rows.length * RH) + 'px',
+      rowShift: (-S.scrollTop) + 'px', axisShift: (-S.scrollLeft) + 'px',
+      todayLeft: (TODAY_W * CW) + 'px',
+      rowHeads, rowTotals, cells, weekTicks, monthTicks, bands,
+      announce: S.announce,
+      statusBg: S.editing ? '#E8F0FE' : '#FFFFFF',
+      conflictCount, conflictPeople: Object.keys(conflictPeople).length,
+      visFromLabel: weekLabel(firstCol).wk, visToLabel: weekLabel(Math.min(WEEKS - 1, firstCol + colWin - 2)).wk,
+      onScroll: (e) => { this._el = e.target; this.setState({ scrollTop: e.target.scrollTop, scrollLeft: e.target.scrollLeft, vw: e.target.clientWidth }); },
+      gridRef: (el) => { if (el) this._el = el; },
+      onKey: (e) => this.onKey(e),
+      jumpToConflict: () => { this.setState({ cursor: { r: 0, c: 0 } }, () => this.nextConflict()); },
+      toggleOver: () => this.setState(s => ({ overOnly: !s.overOnly })),
+      overMark: S.overOnly ? '✓' : '○',
+      overBg: S.overOnly ? '#E8F0FE' : '#FFFFFF',
+      overFg: S.overOnly ? '#0B57D0' : '#4B5563',
+      overBd: S.overOnly ? '#BBD0F6' : '#CBD2DC',
+      groupCells: ['None', 'Workstream', 'Region'].map(g => ({
+        label: g === 'None' ? 'Flat list' : 'By ' + g.toLowerCase(),
+        bg: S.group === g ? '#FFFFFF' : 'transparent',
+        fg: S.group === g ? '#101720' : '#4B5563',
+        bd: S.group === g ? '#7D8799' : 'transparent',
+        sh: S.group === g ? '0 1px 2px rgba(16,23,32,.06)' : 'none',
+        on: () => this.setState({ group: g })
+      })),
+
+      legend: [
+        { sample: '—', label: 'Not staffed', bg: '#FFFFFF', fg: '#667085', border: '1px solid #CBD2DC', hatch: 'none' },
+        { sample: '45%', label: 'Part time', bg: '#F6F7F9', fg: '#101720', border: '1px solid #E4E7EC', hatch: 'none' },
+        { sample: '80%', label: 'Partly allocated', bg: '#F1F3F7', fg: '#101720', border: '1px solid #E4E7EC', hatch: 'none' },
+        { sample: '100%', label: 'Fully allocated', bg: '#E8F0FE', fg: '#101720', border: '1px solid #BBD0F6', hatch: 'none' },
+        { sample: '⚠115', label: 'Over 100% — hatch + ⚠', bg: '#FBF0DC', fg: '#8A5200', border: '1px solid #E0C089', hatch: HATCH_DARK },
+        { sample: '✕145', label: 'Over 120% — dense hatch + ✕', bg: '#FDE9E7', fg: '#B3261E', border: '1.5px solid #B3261E', hatch: HATCH_HEAVY }
+      ],
+
+      contrast: [
+        { sample: '—', desc: 'Not staffed — surface/base with content/tertiary em dash. No number, because 0% and “no assignment” are the same fact here.', bg: '#FFFFFF', fg: '#667085', border: '1px solid #CBD2DC', hatch: 'none', ratio: '4.97:1' },
+        { sample: '45%', desc: 'Part time (1–49%) — surface/app fill, content/primary figure.', bg: '#F6F7F9', fg: '#101720', border: '1px solid #E4E7EC', hatch: 'none', ratio: '16.94:1' },
+        { sample: '80%', desc: 'Partly allocated (50–79%) — surface/sunken fill, content/primary figure.', bg: '#F1F3F7', fg: '#101720', border: '1px solid #E4E7EC', hatch: 'none', ratio: '16.22:1' },
+        { sample: '100%', desc: 'Fully allocated (80–100%) — accent/subtle fill, weight 600. The healthy target, so it is the only calm blue in the grid.', bg: '#E8F0FE', fg: '#101720', border: '1px solid #BBD0F6', hatch: 'none', ratio: '15.72:1' },
+        { sample: '⚠115', desc: 'Over-allocated (101–120%) — warning/subtle fill, 42%-opacity hatch at 135°, ⚠ glyph. The figure sits on a solid chip of the cell’s own fill, so the hatch never crosses a glyph: the ratio below is the worst case, not an average.', bg: '#FBF0DC', fg: '#8A5200', border: '1px solid #E0C089', hatch: HATCH_DARK, ratio: '5.66:1' },
+        { sample: '✕145', desc: 'Severe (over 120%) — danger/subtle fill, denser 55% hatch, ✕ glyph, 1.5px danger border so it survives greyscale and a projector. Figure on a solid chip again.', bg: '#FDE9E7', fg: '#B3261E', border: '1.5px solid #B3261E', hatch: HATCH_HEAVY, ratio: '5.60:1' },
+        { sample: '120', desc: 'Focused cell — 2px accent ring at 2px offset over any fill; against the white gap it measures 6.39:1 and against the darkest cell fill 4.6:1.', bg: '#FBF0DC', fg: '#8A5200', border: '2px solid #0B57D0', hatch: 'none', ratio: '6.39:1' }
+      ],
+
+      rules: [
+        'The number is always printed. A cell never communicates by fill alone — remove every colour and the grid still reads, which is exactly what the Excel export and the greyscale print do.',
+        'Hatch angle and density encode severity independently of hue: 3px/42% at 101–120%, 2px/55% above 120%. The figure is drawn on a solid 2px-radius chip of the cell’s own fill, so no stripe ever crosses a glyph — the stated ratios are the worst case a reader can meet, not an average across the stripe pattern.',
+        'Over-allocation is exceptional on purpose: five people — the three ABAP developers, the integration architect and the data-migration lead — inside two pressure windows, integration test (W40–46) and cutover (W72–78). A grid where every row is flagged has no exception to find.',
+        'Capacity is a property of the person, not the cell: the row header carries the peak and the count of over-allocated weeks, so a conflict is findable without scrolling 104 columns.',
+        'Column width is fixed at 52px — enough for “145%” at 11.5px tabular without truncation. Density is changed by hiding weeks (filter to a phase window), never by shrinking the cell.',
+        'Windowing is two-dimensional: ~15 rows × ~20 columns exist in the DOM out of 4,368 possible cells. Scroll position is the single source of truth, held on the scrolling element.',
+        'Editing is in place at the cell’s exact bounds and commits on Enter; the row header’s peak and the average recompute immediately, so the consequence of the edit is visible in the same glance.',
+        'Grouping by workstream or region inserts non-selectable group rows; the cursor skips them, and the announcement never reads a group row as a resource.',
+        'Leave, public holidays and non-working weeks are not drawn as 0% — a future revision marks them with a distinct “LV” token so “not booked” and “not available” never look identical.'
+      ],
+
+      keys: [
+        { k: '← → ↑ ↓', v: 'Move the cell cursor. Group rows are skipped. The grid scrolls to keep the cell in view on both axes.' },
+        { k: 'PgUp/PgDn', v: 'Move 13 weeks — one quarter — at a time.' },
+        { k: 'Home / End', v: 'First and last week of the programme on the current row.' },
+        { k: 'Enter', v: 'Edit the focused cell in place; Enter again commits and announces the new value with its over-allocation delta.' },
+        { k: '↑ ↓ (edit)', v: 'Adjust by 10 points, clamped 0–160. Escape reverts to the stored value.' },
+        { k: 'N', v: 'Jump to the next over-allocated cell after the cursor, announcing who and which week.' }
+      ],
+
+      sayExamples: [
+        { k: '→', v: 'Arun Prakash, W41 beginning 12 Oct, 120 percent, over-allocated, over by 20 points.' },
+        { k: 'Enter', v: 'Editing Arun Prakash, W41. Up and down arrows change by 10 points. Enter commits, Escape cancels.' },
+        { k: 'Enter (commit)', v: 'Set Arun Prakash, W41 to 130 percent. Saved locally, 1 change pending sync. Over-allocated by 30 points.' },
+        { k: 'N', v: 'Next conflict: Priya Raghavan, W44 beginning 2 Nov, 145 percent, severely over-allocated, over by 45 points.' }
+      ],
+
+      a11y: [
+        { k: 'Grid', v: 'role="grid" with aria-rowcount 42 and aria-colcount 104 describing the whole dataset, not the rendered window. One tab stop; a roving tabindex marks the focused cell.' },
+        { k: 'Cell name', v: 'Every cell carries a full aria-label — person, week, date, percentage, state and the over-allocation delta — so nothing the fill or hatch encodes is available only visually.' },
+        { k: 'Row header', v: 'The resource column is role="rowheader" and includes role, region and day rate, so a cell read in isolation still identifies who and at what cost.' },
+        { k: 'Live region', v: '#matrix-status is role="status" aria-live="polite" aria-atomic="true" and is written on cursor move, edit entry, each 10-point adjustment, commit, cancel and conflict jump. It is shown visibly here for review; in the product it is visually hidden.' },
+        { k: 'Hatch', v: 'The hatch layer is aria-hidden and sits below a solid text chip, so it is a redundant encoding of a number that is already printed at full contrast and already in the accessible name.' },
+        { k: 'Editing', v: 'The cell gains aria-expanded during edit; commit failures keep focus in the cell, set aria-invalid and describe the reason (“Allocation must be between 0 and 160”).' },
+        { k: 'Zoom / 320px', v: 'At 320px the matrix becomes a per-resource week list — one resource, 104 rows of week and percentage — rather than a two-dimensional scroll, satisfying WCAG 1.4.10 without losing any figure.' }
+      ],
+
+      darkWeeks: ['W38', 'W39', 'W40', 'W41', 'W42', 'W43'],
+      darkRows: [
+        { name: 'Rajesh Menon', cells: [
+          { t: '100%', bg: '#16294A', fg: '#E9EEF6', fw: 600, hatch: 'none' },
+          { t: '100%', bg: '#16294A', fg: '#E9EEF6', fw: 600, hatch: 'none' },
+          { t: '80%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' },
+          { t: '100%', bg: '#16294A', fg: '#E9EEF6', fw: 600, hatch: 'none' },
+          { t: '—', bg: '#0E1116', fg: '#8592A6', fw: 400, hatch: 'none' },
+          { t: '60%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' }
+        ] },
+        { name: 'Arun Prakash', cells: [
+          { t: '90%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' },
+          { t: '⚠115%', bg: '#33240B', fg: '#E9B45A', fw: 600, hatch: HATCH_LIGHT },
+          { t: '⚠120%', bg: '#33240B', fg: '#E9B45A', fw: 600, hatch: HATCH_LIGHT },
+          { t: '✕145%', bg: '#3A1512', fg: '#FF8A80', fw: 600, hatch: HATCH_LIGHT },
+          { t: '⚠110%', bg: '#33240B', fg: '#E9B45A', fw: 600, hatch: HATCH_LIGHT },
+          { t: '80%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' }
+        ] },
+        { name: 'Nguyen Thi Lan', cells: [
+          { t: '—', bg: '#0E1116', fg: '#8592A6', fw: 400, hatch: 'none' },
+          { t: '40%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' },
+          { t: '60%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' },
+          { t: '60%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' },
+          { t: '100%', bg: '#16294A', fg: '#E9EEF6', fw: 600, hatch: 'none' },
+          { t: '100%', bg: '#16294A', fg: '#E9EEF6', fw: 600, hatch: 'none' }
+        ] },
+        { name: 'Siti Nurhaliza', cells: [
+          { t: '50%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' },
+          { t: '50%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' },
+          { t: '100%', bg: '#16294A', fg: '#E9EEF6', fw: 600, hatch: 'none' },
+          { t: '100%', bg: '#16294A', fg: '#E9EEF6', fw: 600, hatch: 'none' },
+          { t: '⚠105%', bg: '#33240B', fg: '#E9B45A', fw: 600, hatch: HATCH_LIGHT },
+          { t: '90%', bg: '#1B222C', fg: '#E9EEF6', fw: 400, hatch: 'none' }
+        ] }
+      ],
+
+      greyRows: [
+        { name: 'Rajesh Menon', cells: [
+          { t: '100%', g: '', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: 'none' },
+          { t: '80%', g: '', bg: '#F1F3F7', fg: '#101720', fw: 400, hatch: 'none' },
+          { t: '100%', g: '', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: 'none' },
+          { t: '—', g: '', bg: '#FFFFFF', fg: '#667085', fw: 400, hatch: 'none' },
+          { t: '60%', g: '', bg: '#F1F3F7', fg: '#101720', fw: 400, hatch: 'none' },
+          { t: '100%', g: '', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: 'none' }
+        ] },
+        { name: 'Arun Prakash', cells: [
+          { t: '90%', g: '', bg: '#F1F3F7', fg: '#101720', fw: 400, hatch: 'none' },
+          { t: '115%', g: '⚠', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: HATCH_DARK },
+          { t: '120%', g: '⚠', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: HATCH_DARK },
+          { t: '145%', g: '✕', bg: '#CBD2DC', fg: '#101720', fw: 600, hatch: HATCH_HEAVY },
+          { t: '110%', g: '⚠', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: HATCH_DARK },
+          { t: '80%', g: '', bg: '#F1F3F7', fg: '#101720', fw: 400, hatch: 'none' }
+        ] },
+        { name: 'Siti Nurhaliza', cells: [
+          { t: '50%', g: '', bg: '#F6F7F9', fg: '#101720', fw: 400, hatch: 'none' },
+          { t: '100%', g: '', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: 'none' },
+          { t: '100%', g: '', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: 'none' },
+          { t: '105%', g: '⚠', bg: '#E4E7EC', fg: '#101720', fw: 600, hatch: HATCH_DARK },
+          { t: '90%', g: '', bg: '#F1F3F7', fg: '#101720', fw: 400, hatch: 'none' },
+          { t: '—', g: '', bg: '#FFFFFF', fg: '#667085', fw: 400, hatch: 'none' }
+        ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

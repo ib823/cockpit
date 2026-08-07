@@ -427,15 +427,46 @@ beforeEach(() => {
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder as any;
 
-// Mock window.getComputedStyle for AntD components
+// window.getComputedStyle
+//
+// This was previously replaced wholesale with a stub that reported
+// `display: 'none'` for EVERY element. Testing Library consults
+// getComputedStyle to decide whether a node is in the accessibility tree, so
+// the stub made every element in the entire suite invisible: `getByRole`,
+// `getByLabelText` and every other accessible query could never match
+// anything, in any test, and only `{ hidden: true }` worked.
+//
+// That is very likely why the accessibility suite asserts HTML strings rather
+// than querying rendered components — the accessible queries were broken, so
+// they were worked around instead of fixed. Asserting strings is what allowed
+// BaseModal to ship with no role="dialog" and no focus trap while its evidence
+// file claimed otherwise.
+//
+// jsdom's real implementation is used instead. The two properties AntD reads
+// off the result are layout values jsdom always reports as empty strings, so
+// they are filled in with harmless defaults rather than by faking the whole
+// object.
 if (typeof window !== 'undefined') {
+  const realGetComputedStyle = window.getComputedStyle.bind(window);
+
   Object.defineProperty(window, 'getComputedStyle', {
-    value: () => ({
-      getPropertyValue: () => '',
-      display: 'none',
-      width: '0px',
-      height: '0px',
-    }),
+    configurable: true,
+    value: (element: Element, pseudoElement?: string | null) => {
+      const style = realGetComputedStyle(element, pseudoElement ?? undefined);
+
+      // jsdom performs no layout, so these come back as "". AntD reads them
+      // during measurement and treats "" as NaN.
+      return new Proxy(style, {
+        get(target, prop, receiver) {
+          if (prop === 'width' || prop === 'height') {
+            const value = Reflect.get(target, prop, receiver);
+            return value === '' ? '0px' : value;
+          }
+          const value = Reflect.get(target, prop, receiver);
+          return typeof value === 'function' ? value.bind(target) : value;
+        },
+      });
+    },
   });
 
   // Mock matchMedia for responsive components

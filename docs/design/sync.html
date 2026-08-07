@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; } a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:1ms !important; transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1500px;margin:0 auto;padding:56px 32px 24px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 4e of 5</div>
+  <h1 style="margin:14px 0 0;font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em">Sync state machine &amp; conflict resolution</h1>
+  <p style="margin:16px 0 0;max-width:80ch;font-size:15px;line-height:24px;color:#4B5563;text-wrap:pretty">Six states, thirteen transitions, one chip. Click a state to see its chip and its exact announcement, or run the scripted journey to watch a full round trip from a local edit through a conflict to resolution.</p>
+</header>
+
+<section style="max-width:1500px;margin:0 auto;padding:0 32px">
+  <div style="border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #CBD2DC;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#4B5563">Current state</span>
+      <span style="display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 11px;border-radius:999px;background:{{ chipBg }};border:1px solid {{ chipBd }}">
+        <sc-if value="{{ chipSpin }}" hint-placeholder-val="{{ false }}"><span style="width:12px;height:12px;border-radius:999px;border:2px solid #BBD0F6;border-top-color:{{ chipFg }};animation:spin 700ms linear infinite"></span></sc-if>
+        <sc-if value="{{ chipGlyphShown }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="font-size:11px;color:{{ chipFg }}">{{ chipGlyph }}</span></sc-if>
+        <span style="font-size:12.5px;font-weight:600;color:{{ chipFg }}">{{ chipLabel }}</span>
+        <span style="font-size:11.5px;color:{{ chipMetaFg }};font-variant-numeric:tabular-nums">{{ chipMeta }}</span>
+      </span>
+      <span style="font-size:12.5px;line-height:19px;color:#4B5563;max-width:50ch;text-wrap:pretty">{{ stateSummary }}</span>
+      <span style="margin-left:auto;display:flex;gap:8px">
+        <button onClick="{{ runJourney }}" style="height:30px;padding:0 12px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">{{ journeyLabel }}</button>
+        <button onClick="{{ reset }}" style="height:30px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Reset</button>
+      </span>
+    </div>
+
+    <div style="position:relative;height:410px;background:#F6F7F9;overflow-x:auto;overflow-y:hidden">
+      <div style="position:relative;width:1120px;height:410px">
+      <div aria-hidden="true" style="position:absolute;inset:0;background-image:radial-gradient(#E4E7EC 1px,transparent 1px);background-size:24px 24px;opacity:.7"></div>
+      <sc-for list="{{ edges }}" as="e" hint-placeholder-count="18">
+        <div aria-hidden="true" style="position:absolute;left:{{ e.left }};top:{{ e.top }};width:{{ e.w }};height:{{ e.h }};background:{{ e.color }};opacity:{{ e.op }}"></div>
+      </sc-for>
+      <sc-for list="{{ edgeLabels }}" as="e" hint-placeholder-count="9">
+        <div aria-hidden="true" style="position:absolute;left:{{ e.left }};top:{{ e.top }};transform:translate(-50%,-50%);background:#F6F7F9;padding:1px 5px;border-radius:3px;font-size:10.5px;font-weight:500;color:{{ e.color }};white-space:nowrap">{{ e.label }}</div>
+      </sc-for>
+      <sc-for list="{{ stateNodes }}" as="s" hint-placeholder-count="6">
+        <button onClick="{{ s.on }}" aria-pressed="{{ s.pressed }}" style="position:absolute;left:{{ s.x }};top:{{ s.y }};width:212px;text-align:left;background:{{ s.bg }};border:{{ s.border }};border-radius:8px;padding:11px 13px;box-shadow:{{ s.shadow }};cursor:pointer">
+          <span style="display:flex;align-items:center;gap:8px">
+            <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none;border-radius:999px;background:{{ s.glyphBg }};color:{{ s.glyphFg }};font-size:11px;font-weight:700">{{ s.glyph }}</span>
+            <span style="font-size:13px;font-weight:600;color:#101720">{{ s.label }}</span>
+          </span>
+          <span style="display:block;font-size:11.5px;line-height:17px;color:#4B5563;margin-top:5px;text-wrap:pretty">{{ s.blurb }}</span>
+        </button>
+      </sc-for>
+      </div>
+    </div>
+
+    <div id="sync-status" role="{{ liveRole }}" aria-live="{{ livePoliteness }}" aria-atomic="true" style="display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-top:1px solid #CBD2DC;background:{{ statusBg }}">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085;flex:none;padding-top:2px">{{ liveLabel }}</span>
+      <span style="font-size:12.5px;line-height:19px;color:#101720">{{ announce }}</span>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1500px;margin:0 auto;padding:16px 32px 0">
+  <div style="border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF;overflow:hidden">
+    <div style="padding:13px 16px;border-bottom:1px solid #CBD2DC"><h2 style="margin:0;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-0.01em">Every transition</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1.3fr 1.6fr 2.1fr;gap:14px;padding:9px 16px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:11.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563">
+      <div>From</div><div>To</div><div>Trigger</div><div>Visual treatment</div><div>Announcement</div>
+    </div>
+    <sc-for list="{{ transitions }}" as="t" hint-placeholder-count="13">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1.3fr 1.6fr 2.1fr;gap:14px;padding:11px 16px;border-bottom:1px solid #E4E7EC;align-items:start">
+        <div style="font-size:12.5px;font-weight:500;color:#101720">{{ t.from }}</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:#101720"><span aria-hidden="true" style="color:#7D8799">→</span>{{ t.to }}</div>
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ t.trigger }}</div>
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ t.visual }}</div>
+        <div style="font-size:12.5px;line-height:19px;color:#101720;text-wrap:pretty">{{ t.say }}<span style="display:inline-flex;align-items:center;height:17px;padding:0 5px;margin-left:6px;border-radius:3px;background:{{ t.polBg }};border:1px solid {{ t.polBd }};font-family:'IBM Plex Mono',monospace;font-size:10px;color:{{ t.polFg }}">{{ t.pol }}</span></div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="max-width:1500px;margin:0 auto;padding:16px 32px 0">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600">The chip in all six states</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ chipGallery }}" as="c" hint-placeholder-count="6">
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <span style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;flex:none;border-radius:999px;background:{{ c.bg }};border:1px solid {{ c.bd }}"><span aria-hidden="true" style="font-size:11px;color:{{ c.fg }}">{{ c.glyph }}</span><span style="font-size:12px;font-weight:600;color:{{ c.fg }}">{{ c.label }}</span><span style="font-size:11px;color:{{ c.metaFg }};font-variant-numeric:tabular-nums">{{ c.meta }}</span></span>
+            <span style="font-size:12px;line-height:18px;color:#4B5563;text-wrap:pretty">{{ c.note }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid #E4E7EC;font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">The chip is a button whose accessible name is the whole state sentence; activating it opens the sync popover with pending changes, last successful sync, queue size and Retry. It appears in the top bar of every authenticated screen at every breakpoint — at 320px it keeps the glyph and one word and drops the timestamp.</div>
+    </div>
+
+    <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 14px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Dark chips, with ratios</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ darkChips }}" as="c" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;flex:none;border-radius:999px;background:{{ c.bg }};border:1px solid {{ c.bd }}"><span aria-hidden="true" style="font-size:11px;color:{{ c.fg }}">{{ c.glyph }}</span><span style="font-size:12px;font-weight:600;color:{{ c.fg }}">{{ c.label }}</span></span>
+            <span style="font-size:11.5px;line-height:17px;color:#AFBACA;font-variant-numeric:tabular-nums">{{ c.ratio }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:14px;font-size:12px;line-height:18px;color:#8592A6;text-wrap:pretty">Each dark chip pairs a status hue with its own subtle fill and a border at or above 3:1, so the chip stays a distinct object on surface/raised rather than a coloured word floating on the bar.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Rules</h3>
+      <sc-for list="{{ rules }}" as="r" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:8px;padding:6px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#0B57D0;line-height:19px">§</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1500px;margin:0 auto;padding:16px 32px 96px">
+  <div style="border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF;overflow:hidden">
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid #CBD2DC;background:#FDE9E7">
+      <span aria-hidden="true" style="font-size:13px;color:#B3261E;padding-top:2px">⚠</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:600;color:#B3261E">Resolve conflict — “Data cleansing sign-off”</div>
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:3px;text-wrap:pretty">You and <span style="font-weight:600;color:#101720">Rajesh Menon</span> edited this task while you were offline. Rajesh’s version reached the server at 13:58; yours has been queued locally since 13:41. Sync is paused for the whole project until this is resolved.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex:none">
+        <button onClick="{{ takeAllMine }}" style="height:30px;padding:0 11px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Take all mine</button>
+        <button onClick="{{ takeAllTheirs }}" style="height:30px;padding:0 11px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Take all Rajesh’s</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:170px 1fr 1fr;gap:0;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+      <div style="padding:9px 14px;font-size:11.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563">Field</div>
+      <div style="padding:9px 14px;font-size:11.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563;border-left:1px solid #E4E7EC">Your version <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#667085">· queued locally 13:41</span></div>
+      <div style="padding:9px 14px;font-size:11.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563;border-left:1px solid #E4E7EC">Rajesh Menon <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#667085">· on server 13:58</span></div>
+    </div>
+
+    <sc-for list="{{ fields }}" as="f" hint-placeholder-count="4">
+      <div style="display:grid;grid-template-columns:170px 1fr 1fr;border-bottom:1px solid #E4E7EC">
+        <div style="padding:12px 14px">
+          <div style="font-size:13px;font-weight:500;color:#101720">{{ f.label }}</div>
+          <div style="font-size:11.5px;line-height:17px;color:#667085;margin-top:3px;text-wrap:pretty">{{ f.note }}</div>
+        </div>
+        <sc-if value="{{ f.same }}" hint-placeholder-val="{{ false }}">
+          <div style="grid-column:2 / span 2;padding:12px 14px;border-left:1px solid #E4E7EC;background:#F6F7F9;display:flex;align-items:center;gap:10px">
+            <span style="font-size:13px;color:#4B5563">{{ f.mine }}</span>
+            <span style="display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:3px;background:#FFFFFF;border:1px solid #CBD2DC;font-size:11px;font-weight:500;color:#4B5563">Unchanged on both sides — no decision needed</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ f.isConflict }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:10px 14px;border-left:1px solid #E4E7EC">
+            <button onClick="{{ f.pickMine }}" style="width:100%;text-align:left;background:{{ f.mineBg }};border:{{ f.mineBd }};border-radius:6px;padding:9px 11px;cursor:pointer">
+              <span style="display:block;font-size:13px;color:#101720">{{ f.mine }}</span>
+              <span style="display:block;font-size:11.5px;font-weight:600;color:{{ f.mineFg }};margin-top:5px">{{ f.mineMark }}</span>
+            </button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ f.isConflict }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:10px 14px;border-left:1px solid #E4E7EC">
+            <button onClick="{{ f.pickTheirs }}" style="width:100%;text-align:left;background:{{ f.theirsBg }};border:{{ f.theirsBd }};border-radius:6px;padding:9px 11px;cursor:pointer">
+              <span style="display:block;font-size:13px;color:#101720">{{ f.theirs }}</span>
+              <span style="display:block;font-size:11.5px;font-weight:600;color:{{ f.theirsFg }};margin-top:5px">{{ f.theirsMark }}</span>
+            </button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:#F6F7F9;flex-wrap:wrap">
+      <span style="font-size:12.5px;color:#4B5563;font-variant-numeric:tabular-nums">{{ resolvedCount }} of {{ conflictCount }} conflicted fields resolved · 1 field unchanged and carried through</span>
+      <span style="font-size:12px;color:#667085">↑↓ field · ← yours · → theirs · Enter merge</span>
+      <span style="margin-left:auto;display:flex;gap:8px">
+        <button style="height:34px;padding:0 13px;border-radius:6px;border:none;background:transparent;font-size:13px;font-weight:500;color:#0B57D0;cursor:pointer">Keep both as separate tasks</button>
+        <button style="height:34px;padding:0 14px;border-radius:6px;background:{{ resolveBg }};color:{{ resolveFg }};border:1px solid {{ resolveBd }};font-size:13px;font-weight:500;cursor:pointer">{{ resolveLabel }}</button>
+      </span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-top:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Conflict-resolution rules</h3>
+      <sc-for list="{{ conflictRules }}" as="r" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:126px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ r.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r.v }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600;color:#E9EEF6">Conflict rows — dark</h3>
+      <div style="border:1px solid #333C4A;border-radius:6px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:110px 1fr 1fr;background:#0A0D12;border-bottom:1px solid #333C4A;font-size:10.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#AFBACA"><div style="padding:7px 10px">Field</div><div style="padding:7px 10px">Yours</div><div style="padding:7px 10px">Rajesh</div></div>
+        <div style="display:grid;grid-template-columns:110px 1fr 1fr;border-bottom:1px solid #232A35">
+          <div style="padding:9px 10px;font-size:12px;color:#E9EEF6">Dates</div>
+          <div style="padding:7px 10px"><div style="border:1px solid #3D4757;border-radius:5px;padding:7px 9px;font-size:12px;color:#E9EEF6;background:#171C24">12 – 16 Jan 2027</div></div>
+          <div style="padding:7px 10px"><div style="border:1.5px solid #7FB0FF;border-radius:5px;padding:7px 9px;font-size:12px;color:#E9EEF6;background:#16294A">19 – 23 Jan 2027<span style="display:block;font-size:11px;font-weight:600;color:#7FB0FF;margin-top:4px">✓ Keeping Rajesh’s</span></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px 1fr 1fr">
+          <div style="padding:9px 10px;font-size:12px;color:#E9EEF6">Owner</div>
+          <div style="grid-column:2 / span 2;padding:9px 10px;background:#0A0D12;font-size:12px;color:#AFBACA">Daniel Okafor — unchanged on both sides</div>
+        </div>
+      </div>
+      <div style="font-size:12px;line-height:18px;color:#8592A6;margin-top:10px">The chosen side is accent/subtle with a 1.5px accent border and the word “Keeping” — three signals, so the choice is not carried by fill alone at a glance or on a projector.</div>
+    </div>
+  </div>
+</section></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:960}}">
+const STATES = {
+  local: { label: 'Saved locally', glyph: '●', meta: '3 pending', blurb: 'Edits are on this device and not yet sent. The resting state while working.',
+    bg: '#F1F3F7', bd: '#7D8799', fg: '#4B5563', metaFg: '#667085', glyphBg: '#E4E7EC', glyphFg: '#4B5563',
+    say: 'Saved locally. 3 changes pending sync.', pol: 'polite' },
+  syncing: { label: 'Syncing', glyph: '◐', meta: '148 changes', blurb: 'Changes are in flight; the count falls as batches are acknowledged.',
+    bg: '#E8F0FE', bd: '#BBD0F6', fg: '#0B57D0', metaFg: '#0B57D0', glyphBg: '#D6E4FD', glyphFg: '#0B57D0',
+    say: 'Syncing 148 changes.', pol: 'polite' },
+  synced: { label: 'Synced', glyph: '✓', meta: '14:32', blurb: 'Local and server agree. The timestamp is the last acknowledgement.',
+    bg: '#E3F5EB', bd: '#9AD9BB', fg: '#0A7A47', metaFg: '#0A7A47', glyphBg: '#CDEBDB', glyphFg: '#0A7A47',
+    say: 'Synced. All 148 changes saved to the server at 14:32.', pol: 'polite' },
+  offline: { label: 'Offline', glyph: '⌁', meta: '148 queued', blurb: 'No connection. Editing continues; everything queues locally and nothing is lost.',
+    bg: '#FBF0DC', bd: '#E0C089', fg: '#8A5200', metaFg: '#8A5200', glyphBg: '#F5E2BE', glyphFg: '#8A5200',
+    say: 'Offline. Editing continues; 148 changes are queued locally.', pol: 'polite' },
+  conflict: { label: 'Conflict', glyph: '⚠', meta: '1 to resolve', blurb: 'Someone else changed the same fields. Sync pauses until a version is chosen.',
+    bg: '#FDE9E7', bd: '#F0B5AF', fg: '#B3261E', metaFg: '#B3261E', glyphBg: '#F9D4D0', glyphFg: '#B3261E',
+    say: 'Sync stopped. Two people edited “Data cleansing sign-off”. Choose a version to keep. Press G then R to open conflict resolution.', pol: 'assertive' },
+  error: { label: 'Sync failed', glyph: '✕', meta: 'PRJ-2291', blurb: 'The server rejected the batch. Retrying has stopped; the local copy is intact.',
+    bg: '#FDE9E7', bd: '#B3261E', fg: '#B3261E', metaFg: '#B3261E', glyphBg: '#B3261E', glyphFg: '#FFFFFF',
+    say: 'Sync failed permanently. The server rejected 148 changes. Your local copy is intact. Reference PRJ-2291 / 14:32.', pol: 'assertive' }
+};
+const POS = { synced: { x: 40, y: 34 }, local: { x: 320, y: 34 }, syncing: { x: 600, y: 34 }, offline: { x: 320, y: 186 }, conflict: { x: 600, y: 292 }, error: { x: 880, y: 186 } };
+const EDGES = [
+  ['synced', 'local', 'edit'], ['local', 'syncing', 'autosync 3s'], ['syncing', 'synced', 'ack'],
+  ['local', 'offline', 'connection lost'], ['offline', 'syncing', 'reconnect'], ['syncing', 'conflict', 'version clash'],
+  ['conflict', 'local', 'resolved'], ['syncing', 'error', '5 retries failed'], ['error', 'local', 'manual retry']
+];
+const JOURNEY = [
+  ['local', 'You drag “Cutover rehearsal” one week later.'],
+  ['syncing', 'Autosync fires 3 seconds after the last edit.'],
+  ['conflict', 'The server returns a version clash on two fields.'],
+  ['local', 'You resolve the conflict; the merged version is queued.'],
+  ['syncing', 'The merged batch is sent.'],
+  ['synced', 'The server acknowledges every change.']
+];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { current: 'local', announce: STATES.local.say, urgent: false, playing: false, picks: { owner: 'mine' } };
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+  go(k, note) { this.setState({ current: k, announce: (note ? note + ' ' : '') + STATES[k].say, urgent: STATES[k].pol === 'assertive' }); }
+  sayPolite(m) { this.setState({ announce: m, urgent: false }); }
+  play() {
+    if (this.state.playing) { clearInterval(this._t); this.setState({ playing: false }); return; }
+    this.setState({ playing: true });
+    let i = 0;
+    const tick = () => {
+      if (i >= JOURNEY.length) { clearInterval(this._t); this.setState({ playing: false }); return; }
+      this.go(JOURNEY[i][0], JOURNEY[i][1]);
+      i++;
+    };
+    tick();
+    this._t = setInterval(tick, 1900);
+  }
+
+  renderVals() {
+    const cur = this.state.current;
+    const s = STATES[cur];
+    const NW = 212, NH = 74;
+    const c = (k) => ({ x: POS[k].x + NW / 2, y: POS[k].y + NH / 2 });
+    const edges = [], edgeLabels = [];
+    EDGES.forEach(([a, b, label]) => {
+      const A = c(a), B = c(b);
+      const active = cur === a || cur === b;
+      const color = active ? '#0B57D0' : '#98A2B3';
+      const op = active ? '1' : '0.5';
+      edges.push({ left: Math.min(A.x, B.x) + 'px', top: A.y + 'px', w: Math.abs(B.x - A.x) + 'px', h: '1.5px', color, op });
+      edges.push({ left: B.x + 'px', top: Math.min(A.y, B.y) + 'px', w: '1.5px', h: Math.abs(B.y - A.y) + 'px', color, op });
+      edgeLabels.push({ left: ((A.x + B.x) / 2) + 'px', top: (A.y === B.y ? A.y : (A.y + B.y) / 2) + 'px', label, color: active ? '#0B57D0' : '#4B5563' });
+    });
+
+    const stateNodes = Object.keys(STATES).map(k => {
+      const st = STATES[k], sel = cur === k;
+      return {
+        x: POS[k].x + 'px', y: POS[k].y + 'px', label: st.label, blurb: st.blurb,
+        glyph: st.glyph, glyphBg: st.glyphBg, glyphFg: st.glyphFg,
+        bg: sel ? st.bg : '#FFFFFF',
+        border: sel ? '1.5px solid ' + st.bd : '1px solid #7D8799',
+        shadow: sel ? '0 4px 12px rgba(16,23,32,.10)' : '0 1px 2px rgba(16,23,32,.06)',
+        pressed: sel ? 'true' : 'false',
+        on: () => this.go(k, '')
+      };
+    });
+
+    const T = (from, to, trigger, visual, say, pol) => ({
+      from, to, trigger, visual, say, pol,
+      polBg: pol === 'assertive' ? '#FDE9E7' : '#F1F3F7',
+      polBd: pol === 'assertive' ? '#F0B5AF' : '#CBD2DC',
+      polFg: pol === 'assertive' ? '#B3261E' : '#4B5563'
+    });
+
+    const FIELDS = [
+      { id: 'dates', label: 'Dates', mine: '12 – 16 Jan 2027', theirs: '19 – 23 Jan 2027', base: '12 – 16 Jan 2027', note: 'Rajesh moved it a week to clear the integration freeze.' },
+      { id: 'pct', label: 'Percent complete', mine: '65%', theirs: '40%', base: '40%', note: 'You updated this after yesterday’s stand-up.' },
+      { id: 'owner', label: 'Owner', mine: 'Daniel Okafor', theirs: 'Daniel Okafor', base: 'Daniel Okafor', note: 'Unchanged on both sides — shown for context, not a decision.' },
+      { id: 'note', label: 'Assumption', mine: 'Client provides cleansed vendor master by 30 Sep.', theirs: 'Client provides cleansed vendor master by 15 Oct.', base: 'Client provides cleansed vendor master by 30 Sep.', note: 'Both edited the same sentence; there is no safe automatic merge.' }
+    ];
+    const picks = this.state.picks;
+    const conflicted = FIELDS.filter(f => f.mine !== f.theirs);
+    const chosen = conflicted.filter(f => picks[f.id]).length;
+
+    return {
+      stateNodes, edges, edgeLabels,
+      chipBg: s.bg, chipBd: s.bd, chipFg: s.fg, chipMetaFg: s.metaFg,
+      chipGlyph: s.glyph, chipLabel: s.label, chipMeta: s.meta,
+      chipSpin: cur === 'syncing', chipGlyphShown: cur !== 'syncing',
+      stateSummary: s.blurb,
+      announce: this.state.announce,
+      statusBg: this.state.urgent ? '#FDE9E7' : '#FFFFFF',
+      liveRole: this.state.urgent ? 'alert' : 'status',
+      livePoliteness: this.state.urgent ? 'assertive' : 'polite',
+      liveLabel: this.state.urgent ? 'Announced — assertive' : 'Announced — polite',
+      journeyLabel: this.state.playing ? 'Stop journey' : 'Run scripted journey',
+      runJourney: () => this.play(),
+      reset: () => { clearInterval(this._t); this.setState({ playing: false }); this.go('local', ''); },
+
+      transitions: [
+        T('Synced', 'Saved locally', 'Any edit — a drag, a cell commit, a rename.', 'Chip flips to neutral within 120ms; the pending counter appears and increments.', 'Saved locally. 3 changes pending sync. Coalesced to at most one announcement every 5s.', 'polite'),
+        T('Saved locally', 'Syncing', 'Autosync 3s after the last edit, ⌘S, or Retry.', 'Glyph becomes a 12px spinner; label “Syncing”; the counter shows the batch size.', 'Syncing 148 changes. Suppressed entirely if the round trip finishes inside 400ms.', 'polite'),
+        T('Syncing', 'Synced', 'Server acknowledges the whole batch.', 'Spinner replaced by ✓, fill becomes success/subtle, timestamp replaces the counter. No toast.', 'Synced. All 148 changes saved to the server at 14:32.', 'polite'),
+        T('Syncing', 'Saved locally', 'A later edit lands mid-flight; the batch completes but new work is pending.', 'Chip returns to neutral with the new count, with no success flash in between.', 'Saved locally. 2 changes pending sync.', 'polite'),
+        T('Saved locally', 'Offline', 'Connection lost and still absent after a 2s confirmation window.', 'Fill becomes warning/subtle with ⌁; queue count replaces pending count; an offline banner pins above the workspace.', 'Offline. Editing continues; 148 changes are queued locally.', 'polite'),
+        T('Offline', 'Syncing', 'Connection returns.', 'Chip goes straight to the spinner; the offline banner is replaced by a progress bar in the same slot, so nothing moves.', 'Back online. Sending 148 queued changes.', 'polite'),
+        T('Syncing', 'Conflict', 'Server rejects one or more changes with a version clash.', 'Fill becomes danger/subtle with ⚠; a conflict banner pins above the workspace; affected rows take a 1.5px danger left edge.', 'Sync stopped. Two people edited “Data cleansing sign-off”. Choose a version to keep. Press G then R to open conflict resolution.', 'assertive'),
+        T('Conflict', 'Conflict', 'A second conflict arrives within 10s.', 'The banner count increments; no second banner appears and no row markers re-animate.', '3 conflicts need resolution.', 'assertive'),
+        T('Conflict', 'Saved locally', 'Every field is resolved and the merge confirmed.', 'Chip returns to neutral; row markers clear; resolved rows carry a 2px accent left edge for 240ms.', 'Conflict resolved. Merged version of “Data cleansing sign-off” queued. 1 change pending sync.', 'polite'),
+        T('Syncing', 'Sync failed', 'Five retries fail, or the server returns a non-retryable error.', 'Fill stays danger/subtle, border goes full-strength danger, glyph becomes ✕, reference code replaces the counter.', 'Sync failed permanently. The server rejected 148 changes. Your local copy is intact. Reference PRJ-2291 / 14:32.', 'assertive'),
+        T('Sync failed', 'Syncing', 'The user presses Retry in the sync popover.', 'Spinner returns; the failure stays in the popover history rather than vanishing.', 'Retrying 148 changes.', 'polite'),
+        T('Sync failed', 'Saved locally', 'The user exports a local backup and dismisses the failure.', 'Chip returns to neutral; the popover keeps a “Last failure 14:32” entry.', 'Failure dismissed. 148 changes are still held locally and unsent.', 'polite'),
+        T('Any', 'Synced', 'A background refresh finds nothing pending and nothing changed.', 'Chip settles to ✓ with a new timestamp. No motion, no flash.', 'Nothing is announced — the user perceived no change, so the region is not written.', 'polite')
+      ],
+
+      chipGallery: Object.keys(STATES).map(k => ({
+        label: STATES[k].label, glyph: STATES[k].glyph, meta: STATES[k].meta,
+        bg: STATES[k].bg, bd: STATES[k].bd, fg: STATES[k].fg, metaFg: STATES[k].metaFg,
+        note: k === 'local' ? 'Neutral, not warning — unsent work is normal in a local-first product and must not read as an error.'
+          : k === 'syncing' ? 'The only animated chip. Under reduced motion the spinner becomes a static ◐ and the count carries progress.'
+          : k === 'synced' ? 'Success is quiet: no toast, no flash, just the state and the time it happened.'
+          : k === 'offline' ? 'Warning, because the user should know — but the copy states that nothing is lost, because nothing is.'
+          : k === 'conflict' ? 'Danger with a soft border: the work is safe, but it cannot proceed without a decision.'
+          : 'Danger with a full-strength border and a reference code — the only chip that asks the user to contact someone.'
+      })),
+
+      darkChips: [
+        { label: 'Saved locally', glyph: '●', bg: '#1B222C', bd: '#748196', fg: '#AFBACA', ratio: 'text 8.35:1 · border 4.03:1 on surface/raised' },
+        { label: 'Syncing', glyph: '◐', bg: '#16294A', bd: '#2F4E82', fg: '#7FB0FF', ratio: 'text 6.59:1 · border 3.16:1' },
+        { label: 'Synced', glyph: '✓', bg: '#0F2E22', bd: '#2C6B4E', fg: '#56D69A', ratio: 'text 8.01:1 · border 3.24:1' },
+        { label: 'Offline', glyph: '⌁', bg: '#33240B', bd: '#7A5A22', fg: '#E9B45A', ratio: 'text 7.97:1 · border 3.09:1' },
+        { label: 'Conflict', glyph: '⚠', bg: '#3A1512', bd: '#8A3A33', fg: '#FF8A80', ratio: 'text 7.10:1 · border 3.05:1' },
+        { label: 'Sync failed', glyph: '✕', bg: '#3A1512', bd: '#FF8A80', fg: '#FF8A80', ratio: 'text 7.10:1 · border 8.28:1 (full strength)' }
+      ],
+
+      rules: [
+        'One owner: the chip owns every sync statement. A toast that mirrors it renders its text aria-hidden and announces nothing, so a state change is never read twice.',
+        'The chip never disappears, never becomes a bare dot, and never moves — its position in the top bar is fixed at every breakpoint so the eye can return to it without searching.',
+        'Editing is never blocked. Offline, conflict and permanent failure all keep the workspace fully editable; only the act of sending is paused.',
+        'Retry is exponential — 1s, 2s, 4s, 8s, 16s — and stops after five attempts. The chip states which attempt it is on in the popover, never in the chip itself.',
+        'A conflict pauses the whole queue, not just the conflicted record: shipping half a batch would leave the plan in a state neither person authored.',
+        'Nothing auto-merges. Two edits to the same field are a decision, and the product’s job is to make the decision cheap, not to guess.',
+        'Assertive is rationed: conflict, permanent failure and completed destructive actions only. Everything else is polite, including all six routine transitions.',
+        'The queue survives reload, crash and browser restart. The popover states the queue’s age — “oldest change 41 minutes old” — because a stale queue is the real risk in a local-first product.'
+      ],
+
+      fields: FIELDS.map(f => {
+        const isConflict = f.mine !== f.theirs;
+        const pick = picks[f.id];
+        return {
+          label: f.label, mine: f.mine, theirs: f.theirs, note: f.note,
+          isConflict, same: !isConflict,
+          mineBg: pick === 'mine' ? '#E8F0FE' : '#FFFFFF',
+          mineBd: pick === 'mine' ? '1.5px solid #0B57D0' : '1px solid #CBD2DC',
+          mineMark: pick === 'mine' ? '✓ Keeping yours' : 'Keep yours',
+          mineFg: pick === 'mine' ? '#0B57D0' : '#4B5563',
+          theirsBg: pick === 'theirs' ? '#E8F0FE' : '#FFFFFF',
+          theirsBd: pick === 'theirs' ? '1.5px solid #0B57D0' : '1px solid #CBD2DC',
+          theirsMark: pick === 'theirs' ? '✓ Keeping Rajesh’s' : 'Keep Rajesh’s',
+          theirsFg: pick === 'theirs' ? '#0B57D0' : '#4B5563',
+          pickMine: () => {
+            const p = Object.assign({}, this.state.picks); p[f.id] = 'mine';
+            const n = conflicted.filter(x => p[x.id]).length;
+            this.setState({ picks: p, urgent: false, announce: f.label + ': keeping your version, ' + f.mine + '. ' + n + ' of ' + conflicted.length + ' fields resolved.' });
+          },
+          pickTheirs: () => {
+            const p = Object.assign({}, this.state.picks); p[f.id] = 'theirs';
+            const n = conflicted.filter(x => p[x.id]).length;
+            this.setState({ picks: p, urgent: false, announce: f.label + ': keeping Rajesh Menon’s version, ' + f.theirs + '. ' + n + ' of ' + conflicted.length + ' fields resolved.' });
+          }
+        };
+      }),
+      conflictCount: conflicted.length,
+      resolvedCount: chosen,
+      resolveReady: chosen === conflicted.length,
+      resolveLabel: chosen === conflicted.length ? 'Merge and sync' : 'Choose ' + (conflicted.length - chosen) + ' more field' + ((conflicted.length - chosen) === 1 ? '' : 's'),
+      resolveBg: chosen === conflicted.length ? '#0B57D0' : '#F1F3F7',
+      resolveFg: chosen === conflicted.length ? '#FFFFFF' : '#98A2B3',
+      resolveBd: chosen === conflicted.length ? '#0B57D0' : '#E4E7EC',
+      takeAllMine: () => { const p = {}; FIELDS.forEach(f => { p[f.id] = 'mine'; }); this.setState({ picks: p, urgent: false, announce: 'All ' + conflicted.length + ' conflicted fields set to your version.' }); },
+      takeAllTheirs: () => { const p = {}; FIELDS.forEach(f => { p[f.id] = 'theirs'; }); this.setState({ picks: p, urgent: false, announce: 'All ' + conflicted.length + ' conflicted fields set to Rajesh Menon’s version.' }); },
+
+      conflictRules: [
+        { k: 'Scope', v: 'Field-level, never record-level. “Keep mine / keep theirs” on a whole task would silently discard someone’s unrelated edit to a different field.' },
+        { k: 'Unchanged fields', v: 'Shown greyed with a single value and no choice, so the user can see the record whole and confirm that nothing else moved.' },
+        { k: 'Base version', v: 'Each row can expand to show the common ancestor, which is what makes “who changed what” answerable rather than a guess.' },
+        { k: 'No auto-merge', v: 'Even non-overlapping text edits are presented as a choice. A merged sentence neither person wrote is worse than a decision.' },
+        { k: 'Keyboard', v: '↑↓ moves between fields, ← chooses yours, → chooses theirs, Enter merges when every field is resolved. The merge button states how many remain rather than sitting silently disabled.' },
+        { k: 'Announcement', v: 'Every pick is announced with the field, the chosen value and the running count; the merge announces the record name and the resulting queue size.' },
+        { k: 'Audit', v: 'A resolution writes an audit entry naming both authors, the fields taken from each and the timestamp — recoverable later from the task’s History tab.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

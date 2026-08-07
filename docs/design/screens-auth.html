@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; } a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition-duration:1ms !important; } }
+</style>
+</helmet>
+
+<header style="max-width:1560px;margin:0 auto;padding:56px 32px 26px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — layer 5, part 1 of 3</div>
+  <h1 style="margin:14px 0 0;font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em">Authentication &amp; system screens</h1>
+  <p style="margin:16px 0 0;max-width:80ch;font-size:15px;line-height:24px;color:#4B5563;text-wrap:pretty">Passkey-first sign-in with its magic-link and one-time-code fallbacks and every failure state, access-code registration with passkey enrolment, collaboration-invite acceptance, and the five system screens — each with its loading, empty and error behaviour and its 320px form.</p>
+</header>
+
+<section style="max-width:1560px;margin:0 auto;padding:0 32px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:20px">
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/login</span>
+        <span style="font-size:12px;color:#4B5563">Passkey primary</span>
+      </div>
+      <div style="padding:32px;background:#F6F7F9;display:flex;justify-content:center">
+        <div style="width:100%;max-width:380px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;box-shadow:0 1px 2px rgba(16,23,32,.06);padding:28px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:7px;background:#101720;color:#FFFFFF;font-size:14px;font-weight:600">C</span>
+          <h2 style="margin:16px 0 0;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em">Sign in to Cockpit</h2>
+          <p style="margin:8px 0 0;font-size:13.5px;line-height:21px;color:#4B5563">Use the passkey on this device. Nothing to remember, nothing to type.</p>
+          <label for="lg-email" style="display:block;font-size:12px;font-weight:500;margin:20px 0 4px">Work email</label>
+          <div id="lg-email" style="display:flex;align-items:center;height:44px;padding:0 14px;border-radius:6px;border:1px solid #0B57D0;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #0B57D0;font-size:15px;color:#101720">chan.weiling@abeam.com</div>
+          <button style="width:100%;height:44px;margin-top:16px;border-radius:6px;background:#0B57D0;border:1px solid #0B57D0;color:#FFFFFF;font-size:15px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer"><span aria-hidden="true" style="font-family:'IBM Plex Mono',monospace">⚿</span>Continue with passkey</button>
+          <div style="display:flex;align-items:center;gap:12px;margin:18px 0"><span aria-hidden="true" style="height:1px;flex:1;background:#E4E7EC"></span><span style="font-size:12px;color:#667085">or</span><span aria-hidden="true" style="height:1px;flex:1;background:#E4E7EC"></span></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button style="width:100%;height:40px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:14px;font-weight:500;cursor:pointer">Email me a sign-in link</button>
+            <button style="width:100%;height:40px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:14px;font-weight:500;cursor:pointer">Send a one-time code</button>
+          </div>
+          <p style="margin:18px 0 0;font-size:12px;line-height:18px;color:#667085">New to Cockpit? <a href="#">Enter your access code</a> — accounts are issued by your delivery lead, not self-served.</p>
+        </div>
+      </div>
+      <sc-for list="{{ loginNotes }}" as="n" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:104px 1fr;gap:12px;padding:9px 14px;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ n.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ n.v }}</div></div>
+      </sc-for>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/login</span>
+        <span style="font-size:12px;color:#4B5563">Fallbacks and every failure state</span>
+      </div>
+      <div style="padding:18px;background:#F6F7F9;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ authStates }}" as="s" hint-placeholder-count="7">
+          <div role="{{ s.role }}" style="background:#FFFFFF;border:1px solid {{ s.bd }};border-radius:8px;padding:15px 17px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none;border-radius:999px;background:{{ s.glyphBg }};color:{{ s.glyphFg }};font-size:11px;font-weight:700">{{ s.glyph }}</span>
+              <span style="font-size:14px;font-weight:600;color:#101720">{{ s.title }}</span>
+              <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#667085">{{ s.tag }}</span>
+            </div>
+            <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:6px;text-wrap:pretty">{{ s.body }}</div>
+            <sc-if value="{{ s.action }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:8px;margin-top:11px">
+                <button style="height:34px;padding:0 13px;border-radius:6px;background:#0B57D0;border:1px solid #0B57D0;color:#FFFFFF;font-size:13px;font-weight:500;cursor:pointer">{{ s.action }}</button>
+                <sc-if value="{{ s.action2 }}" hint-placeholder-val="{{ false }}"><button style="height:34px;padding:0 13px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:13px;font-weight:500;cursor:pointer">{{ s.action2 }}</button></sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/register</span>
+        <span style="font-size:12px;color:#4B5563">Access code → passkey enrolment</span>
+      </div>
+      <div style="padding:24px;background:#F6F7F9">
+        <div style="max-width:420px;margin:0 auto;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:26px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+            <sc-for list="{{ steps }}" as="st" hint-placeholder-count="3">
+              <span style="display:flex;align-items:center;gap:7px">
+                <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:{{ st.bg }};color:{{ st.fg }};border:1px solid {{ st.bd }};font-size:11px;font-weight:600">{{ st.n }}</span>
+                <span style="font-size:12px;font-weight:{{ st.fw }};color:{{ st.labelFg }}">{{ st.label }}</span>
+                <sc-if value="{{ st.sep }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="width:14px;height:1px;background:#CBD2DC"></span></sc-if>
+              </span>
+            </sc-for>
+          </div>
+          <h2 style="margin:0;font-size:20px;line-height:26px;font-weight:600;letter-spacing:-0.015em">Create your passkey</h2>
+          <p style="margin:8px 0 0;font-size:13.5px;line-height:21px;color:#4B5563">Access code accepted for <span style="font-weight:600;color:#101720">amirul.shah@abeam.com</span>, issued by Wong Jia Hui on 05 Aug 2026. Your browser will ask for the device unlock you already use.</p>
+          <div style="margin-top:18px;border:1px solid #CBD2DC;border-radius:6px;background:#F6F7F9;padding:14px">
+            <div style="font-size:12.5px;font-weight:600;color:#101720">This passkey will be stored on</div>
+            <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:4px">MacBook Pro · Touch ID · Safari 19 · Kuala Lumpur</div>
+          </div>
+          <button style="width:100%;height:44px;margin-top:16px;border-radius:6px;background:#0B57D0;border:1px solid #0B57D0;color:#FFFFFF;font-size:15px;font-weight:500;cursor:pointer">Create passkey</button>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button style="flex:1;height:40px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:13.5px;font-weight:500;cursor:pointer">Use a security key</button>
+            <button style="flex:1;height:40px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:13.5px;font-weight:500;cursor:pointer">Set up on my phone</button>
+          </div>
+          <p style="margin:14px 0 0;font-size:12px;line-height:18px;color:#667085">Add a second passkey later in Settings → Security. Cockpit asks every account to hold two, so a lost laptop is an inconvenience rather than a recovery request.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/gantt-tool/invite/[token]</span>
+        <span style="font-size:12px;color:#4B5563">Accept · expired · already used</span>
+      </div>
+      <div style="padding:18px;background:#F6F7F9;display:flex;flex-direction:column;gap:12px">
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:20px">
+          <div style="font-size:11.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085">Invitation</div>
+          <h3 style="margin:8px 0 0;font-size:19px;line-height:26px;font-weight:600;letter-spacing:-0.015em">Chan Wei Ling invited you to S/4HANA Migration — Sarawak Energy</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+            <span style="display:inline-flex;align-items:center;height:26px;padding:0 9px;border-radius:4px;background:#E8F0FE;border:1px solid #BBD0F6;font-size:12px;font-weight:500;color:#0B57D0">Role: EDITOR</span>
+            <span style="display:inline-flex;align-items:center;height:26px;padding:0 9px;border-radius:4px;background:#F1F3F7;border:1px solid #CBD2DC;font-size:12px;font-weight:500;color:#4B5563">Cost visibility: level 1 of 3</span>
+            <span style="display:inline-flex;align-items:center;height:26px;padding:0 9px;border-radius:4px;background:#F1F3F7;border:1px solid #CBD2DC;font-size:12px;font-weight:500;color:#4B5563">Expires 09 Aug 2026, 17:00 MYT</span>
+          </div>
+          <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:12px;text-wrap:pretty">As an editor you can change the timeline, staffing and assumptions. Rates, margin and the cost breakdown stay hidden at level 1; the timeline and resource plan do not.</div>
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button style="height:40px;padding:0 16px;border-radius:6px;background:#0B57D0;border:1px solid #0B57D0;color:#FFFFFF;font-size:14px;font-weight:500;cursor:pointer">Accept and open the project</button>
+            <button style="height:40px;padding:0 14px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:14px;font-weight:500;cursor:pointer">Decline</button>
+          </div>
+        </div>
+        <sc-for list="{{ inviteStates }}" as="s" hint-placeholder-count="2">
+          <div style="background:#FFFFFF;border:1px solid {{ s.bd }};border-radius:8px;padding:15px 17px">
+            <div style="display:flex;align-items:center;gap:9px"><span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none;border-radius:999px;background:{{ s.glyphBg }};color:{{ s.glyphFg }};font-size:11px;font-weight:700">{{ s.glyph }}</span><span style="font-size:14px;font-weight:600">{{ s.title }}</span></div>
+            <div style="font-size:12.5px;line-height:19px;color:#4B5563;margin-top:6px;text-wrap:pretty">{{ s.body }}</div>
+            <button style="height:34px;padding:0 13px;margin-top:11px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:13px;font-weight:500;cursor:pointer">{{ s.action }}</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:20px 32px 0">
+  <h2 style="margin:0 0 4px;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em">System screens</h2>
+  <p style="margin:0 0 16px;font-size:14px;line-height:21px;color:#4B5563;max-width:78ch">Held to the same standard as the workspace: each states what happened, what it means for the user’s unsaved work, and the next action — with a reference code wherever support might be involved.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <sc-for list="{{ systemScreens }}" as="s" hint-placeholder-count="5">
+      <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:10px;padding:10px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">{{ s.route }}</span>
+          <span style="font-size:12px;color:#4B5563">{{ s.kind }}</span>
+        </div>
+        <div role="main" aria-label="{{ s.route }} — {{ s.kind }}" style="flex:1;padding:26px 22px;background:#F6F7F9;display:flex;flex-direction:column;align-items:{{ s.align }};text-align:{{ s.textAlign }}">
+          <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:8px;background:{{ s.iconBg }};border:1px solid {{ s.iconBd }};color:{{ s.iconFg }};font-size:17px">{{ s.glyph }}</span>
+          <h3 style="margin:13px 0 0;font-size:17px;line-height:24px;font-weight:600;letter-spacing:-0.01em">{{ s.title }}</h3>
+          <p style="margin:7px 0 0;font-size:13px;line-height:20px;color:#4B5563;max-width:46ch;text-wrap:pretty">{{ s.body }}</p>
+          <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;justify-content:{{ s.justify }}">
+            <button style="height:36px;padding:0 14px;border-radius:6px;background:#0B57D0;border:1px solid #0B57D0;color:#FFFFFF;font-size:13.5px;font-weight:500;cursor:pointer">{{ s.primary }}</button>
+            <button aria-label="{{ s.secondaryAria }}" style="height:36px;padding:0 14px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:13.5px;font-weight:500;cursor:pointer">{{ s.secondary }}</button>
+          </div>
+          <sc-if value="{{ s.ref }}" hint-placeholder-val="{{ false }}">
+            <code style="margin-top:14px;display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#667085">{{ s.ref }}</code>
+          </sc-if>
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid #E4E7EC;font-size:12px;line-height:18px;color:#4B5563;text-wrap:pretty">{{ s.note }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:20px 32px 96px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Loading, empty and error per screen</h3>
+      <sc-for list="{{ statesTable }}" as="r" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:118px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ r.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r.v }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Responsive</h3>
+      <sc-for list="{{ responsive }}" as="r" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:74px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ r.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ r.v }}</div></div>
+      </sc-for>
+      <h3 style="margin:18px 0 10px;font-size:16px;line-height:22px;font-weight:600">320px sign-in</h3>
+      <div style="width:320px;max-width:100%;border:1px solid #CBD2DC;border-radius:8px;background:#FFFFFF;padding:18px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:#101720;color:#FFFFFF;font-size:13px;font-weight:600">C</span>
+        <h4 style="margin:12px 0 0;font-size:19px;line-height:25px;font-weight:600;letter-spacing:-0.015em">Sign in</h4>
+        <div style="display:flex;align-items:center;height:44px;margin-top:12px;padding:0 12px;border-radius:6px;border:1px solid #7D8799;font-size:15px;color:#667085">Work email</div>
+        <button style="width:100%;height:44px;margin-top:10px;border-radius:6px;background:#0B57D0;border:1px solid #0B57D0;color:#FFFFFF;font-size:15px;font-weight:500;cursor:pointer">Continue with passkey</button>
+        <button style="width:100%;height:44px;margin-top:8px;border-radius:6px;background:#FFFFFF;border:1px solid #7D8799;font-size:14px;font-weight:500;cursor:pointer">Other ways to sign in</button>
+      </div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Accessibility &amp; focus</h3>
+      <sc-for list="{{ a11y }}" as="a" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:112px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ a.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ a.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560,&quot;height&quot;:980}}">
+class Component extends DCLogic {
+  renderVals() {
+    const S = (glyph, tone) => ({
+      glyph,
+      role: (tone === 'danger' || tone === 'warn') ? 'alert' : 'status',
+      bd: tone === 'danger' ? '#F0B5AF' : tone === 'warn' ? '#E0C089' : tone === 'ok' ? '#9AD9BB' : '#E4E7EC',
+      glyphBg: tone === 'danger' ? '#FDE9E7' : tone === 'warn' ? '#FBF0DC' : tone === 'ok' ? '#E3F5EB' : '#E8F0FE',
+      glyphFg: tone === 'danger' ? '#B3261E' : tone === 'warn' ? '#8A5200' : tone === 'ok' ? '#0A7A47' : '#0B57D0'
+    });
+
+    const authStates = [
+      Object.assign({ title: 'Check your email', tag: 'magic link sent', body: 'A sign-in link is on its way to chan.weiling@abeam.com. It works once and expires in 15 minutes. Keep this tab open — it will sign you in automatically when you click the link.', action: 'Resend in 0:47', action2: 'Use a different email' }, S('✉', 'info')),
+      Object.assign({ title: 'Enter the 6-digit code', tag: 'OTP', body: 'Sent to chan.weiling@abeam.com at 14:29. The code expires in 10 minutes; three wrong attempts locks this method for an hour and the passkey route stays available.', action: 'Verify', action2: 'Send a new code' }, S('#', 'info')),
+      Object.assign({ title: 'That sign-in link has expired', tag: 'expired', body: 'Links last 15 minutes and this one was sent at 13:44. Nothing is wrong with your account. Request a new link, or use the passkey on this device.', action: 'Send a new link', action2: 'Use passkey instead' }, S('⌛', 'warn')),
+      Object.assign({ title: 'That link has already been used', tag: 'used', body: 'Sign-in links work once. If you did not just sign in, someone else may have opened your email — request a new link and tell your security administrator.', action: 'Send a new link', action2: 'Report this' }, S('⚠', 'warn')),
+      Object.assign({ title: 'This link is not valid', tag: 'invalid', body: 'The address may have been broken across two lines by an email client. Copy the whole link, or start again from the sign-in page.', action: 'Back to sign in', action2: '' }, S('✕', 'danger')),
+      Object.assign({ title: 'Too many attempts', tag: 'rate-limited', body: 'Sign-in is paused for this address until 15:04 MYT — 12 minutes from now — after 5 failed attempts. Your account is not locked and your passkey still works from a device you have already registered.', action: 'Try a passkey', action2: 'Contact your administrator' }, S('⏸', 'danger')),
+      Object.assign({ title: 'This device has no passkey for Cockpit', tag: 'no credential', body: 'Passkeys are stored per device. Sign in with an emailed link on this device, then add a passkey in Settings → Security so this only happens once.', action: 'Email me a sign-in link', action2: 'Use my phone’s passkey' }, S('⚿', 'warn'))
+    ];
+
+    const inviteStates = [
+      Object.assign({ title: 'This invitation expired on 09 Aug 2026', body: 'Invitations last 72 hours so a forwarded email cannot grant access indefinitely. Chan Wei Ling can send a new one; the request below is pre-filled and goes straight to them.', action: 'Request a new invitation' }, S('⌛', 'warn')),
+      Object.assign({ title: 'This invitation has already been accepted', body: 'It was accepted by amirul.shah@abeam.com on 06 Aug 2026 at 09:12. If that was not you, tell your security administrator — the address on an invitation cannot be changed after acceptance.', action: 'Open my projects' }, S('✓', 'ok'))
+    ];
+
+    const steps = [
+      { n: '1', label: 'Access code', bg: '#E3F5EB', fg: '#0A7A47', bd: '#9AD9BB', fw: 500, labelFg: '#4B5563', sep: true },
+      { n: '2', label: 'Passkey', bg: '#0B57D0', fg: '#FFFFFF', bd: '#0B57D0', fw: 600, labelFg: '#101720', sep: true },
+      { n: '3', label: 'Backup codes', bg: '#FFFFFF', fg: '#4B5563', bd: '#CBD2DC', fw: 500, labelFg: '#667085', sep: false }
+    ];
+
+    const loginNotes = [
+      { k: 'Focus', v: 'Focus lands on the email field, not the passkey button — a keyboard user should not have to shift-tab to type their address.' },
+      { k: 'Autofill', v: 'autocomplete="username webauthn" so the browser can offer the passkey inline; the button remains for browsers that do not.' },
+      { k: 'Announce', v: 'Every state change writes to a polite region: “Sign-in link sent to chan.weiling@abeam.com. It expires in 15 minutes.”' },
+      { k: 'Fallback order', v: 'Passkey, then link, then code — never a password. There is no password field anywhere in Cockpit, so no phishing surface exists to protect.' }
+    ];
+
+    const sys = (route, kind, glyph, tone, title, body, primary, secondary, ref, note, centred) => ({
+      route, kind, glyph, title, body, primary, secondary, ref, note,
+      secondaryAria: ref ? 'Copy error reference ' + ref : secondary,
+      align: centred ? 'center' : 'flex-start',
+      textAlign: centred ? 'center' : 'left',
+      justify: centred ? 'center' : 'flex-start',
+      iconBg: tone === 'danger' ? '#FDE9E7' : tone === 'warn' ? '#FBF0DC' : '#E8F0FE',
+      iconBd: tone === 'danger' ? '#F0B5AF' : tone === 'warn' ? '#E0C089' : '#BBD0F6',
+      iconFg: tone === 'danger' ? '#B3261E' : tone === 'warn' ? '#8A5200' : '#0B57D0'
+    });
+
+    const systemScreens = [
+      sys('/404', 'Not found', '⌕', 'info', 'That page does not exist',
+        'The link may be from an older version of Cockpit, or the project may have been renamed. Nothing has been deleted — search finds projects by their old names for 90 days.',
+        'Go to my dashboard', 'Search projects', '', 'Never blames the user and never says “oops”. Offers search because a wrong URL is usually a moved object.', true),
+      sys('/500', 'Unexpected error', '✕', 'danger', 'Something failed on our side',
+        'The request could not be completed. Your unsaved work is safe in this browser and 148 changes are still queued locally — do not reload if you can avoid it. Support can trace this with the reference below.',
+        'Try again', 'Copy reference', 'PRJ-2291 · 07 Aug 2026 14:32 · e2f0-91c4', 'The reference code is copyable, not just printed. Reassurance about queued work comes before the action.', false),
+      sys('/offline', 'Offline', '⌁', 'warn', 'You are offline — keep working',
+        'Cockpit is local-first. Editing, dragging and costing all continue; 148 changes are queued on this device and will sync when the connection returns. The last sync was at 13:41.',
+        'Retry connection', 'View queued changes', '', 'Not a blocking screen: it appears as a banner over a fully usable workspace, and is shown here full-page only for the case where the app is opened cold with no cached project.', false),
+      sys('/session-expired', 'Session expired', '⌛', 'warn', 'Your session ended after 8 hours',
+        'You were signed out for security, not for inactivity. Nothing was lost: 3 changes are held locally and will sync the moment you are back in. Sign in with your passkey and you will return to this exact view.',
+        'Sign in with passkey', 'Use a sign-in link', '', 'Returns the user to the same route and scroll position after sign-in. The unsaved-work sentence is the first thing after the headline.', false),
+      sys('/no-permission', 'Insufficient permission', '🔒', 'info', 'You do not have access to this project',
+        'S/4HANA Migration — Sarawak Energy is restricted to its delivery team. Chan Wei Ling owns access. Requesting takes one click and includes your name, email and the page you were trying to reach.',
+        'Request access', 'Back to my projects', '', 'Deliberate, not broken: it names the object, the owner and the route to access, and never implies the project does not exist.', false)
+    ];
+
+    const statesTable = [
+      { k: '/login', v: 'Loading — the passkey button shows a spinner and the label becomes “Waiting for your device…”, with a 30-second timeout that offers the link fallback. Empty — never empty; the form is the content. Error — the six failure states above, each replacing the helper text rather than stacking a banner.' },
+      { k: '/register', v: 'Loading — the access code field disables with a spinner during validation. Empty — a blank code field with the format hint “8 characters, letters and digits”. Error — “That access code is not recognised. Codes expire 7 days after issue; ask Wong Jia Hui for a new one.”' },
+      { k: '/invite', v: 'Loading — a skeleton of the project name and two chips, so the shape of the decision appears before the data. Empty — impossible; a token always resolves to accept, expired or used. Error — token verification failure falls back to the 500 screen with the invite reference attached.' },
+      { k: '/404 · /500', v: 'No loading state — they are terminal. Both keep the top bar with the sync chip, so a user can still see that their queued work is safe.' },
+      { k: '/offline', v: 'Loading — none; the state is instantaneous. It resolves itself when connectivity returns, announcing “Back online. Sending 148 queued changes.”' },
+      { k: '/session-expired', v: 'Reached only by an expired token, so it has no loading state. Signing in again restores route, scroll position and any open drawer.' }
+    ];
+
+    const responsive = [
+      { k: '1920+', v: 'Auth card stays 380px and centres; the surrounding canvas carries no marketing content — this is an internal tool.' },
+      { k: '1440', v: 'Identical. Auth screens are deliberately width-independent.' },
+      { k: '1024', v: 'Identical; system screens narrow their body copy to 46ch.' },
+      { k: '768', v: 'Card goes edge-to-edge with 24px gutters; buttons become full-width.' },
+      { k: '320', v: 'Single column, 44px controls, 16px gutters, no horizontal scroll. Secondary sign-in methods collapse behind one “Other ways to sign in” button so the primary path stays above the fold.' }
+    ];
+
+    const a11y = [
+      { k: 'Landmarks', v: 'In the shipped screen each frame is a single <main> with an <h1>; in this gallery the frames carry role="main" with a route label and their headings are h3, because the page itself owns the h1. Auth screens have no navigation landmark at all — there is nowhere else to go before signing in.' },
+      { k: 'Focus on load', v: 'Focus goes to the email field on /login, to the code field on /register, and to the <h1> on every system screen so the reason is read before the actions.' },
+      { k: 'Errors', v: 'role="alert" on the failure card; the message names what happened, why, and the next action in that order. Rate-limit messages state the exact time access returns.' },
+      { k: 'Timers', v: 'The resend countdown is aria-live="off" and polled only on focus, so a screen reader is not interrupted every second; the button’s accessible name carries the remaining time.' },
+      { k: 'Passkey', v: 'The WebAuthn prompt is browser-owned; Cockpit announces before and after — “Waiting for your device” and “Signed in as Chan Wei Ling” — so the silent gap is explained.' },
+      { k: 'Reference codes', v: 'Rendered in a <code> element with a copy button whose accessible name is “Copy error reference PRJ-2291 e2f0-91c4”, because reading a hex string aloud is not a usable path.' }
+    ];
+
+    return { authStates, inviteStates, steps, loginNotes, systemScreens, statesTable, responsive, a11y };
+  }
+}
+</script>
+</body>
+</html>
