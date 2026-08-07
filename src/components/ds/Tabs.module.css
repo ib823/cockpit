@@ -1,0 +1,52 @@
+/* Design system — Tabs (layer 3) */
+
+.wrap { display: flex; flex-direction: column; min-width: 0; }
+
+.strip {
+  display: flex;
+  gap: var(--ds-space-1);
+  overflow-x: auto;
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-default);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  height: 40px;
+  padding: 0 var(--ds-space-4);
+  border: none;
+  background: none;
+  font: var(--ds-type-body-sm);
+  font-weight: 500;
+  color: var(--ds-content-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  /* Reserved so the 2px active rule does not shift the row when it appears. */
+  border-bottom: 2px solid transparent;
+}
+
+.tab:hover { color: var(--ds-content-primary); }
+
+.tab:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: -2px;
+}
+
+/* Accent AND an underline — never colour alone. */
+.tabActive {
+  color: var(--ds-accent-default);
+  border-bottom-color: var(--ds-accent-default);
+}
+
+.badge {
+  font-variant-numeric: var(--ds-numeric-feature);
+  color: var(--ds-content-tertiary);
+}
+
+.panel { padding-top: var(--ds-space-5); min-width: 0; }
+
+.panel:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: 2px;
+}

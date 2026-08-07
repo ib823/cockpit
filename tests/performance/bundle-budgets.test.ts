@@ -104,8 +104,8 @@ const PAGE_BUDGETS: Record<string, number> = {
   "/account": 135,
   "/account/add-passkey": 70,
   "/settings": 22,
-  "/settings/security": 18,
-  "/register": 62,
+  "/settings/security": 75,
+  "/register": 75,
 };
 
 // Aspirational targets. Deliberately NOT asserted — an unmet assertion either

@@ -4,17 +4,14 @@ import { useEffect, useState, useCallback } from "react";
 import { logger } from "@/lib/logger";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Button, Spin, Result, Card, Descriptions, Typography, Space } from "antd";
-import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  LoadingOutlined,
-  TeamOutlined,
-  UserOutlined,
-  CalendarOutlined,
-} from "@ant-design/icons";
+import { AuthShell, AuthStatus, AuthActions } from "@/components/ds/AuthShell";
+import { Button } from "@/components/ds/Button";
+import { Banner } from "@/components/ds/Banner";
+import { StatusPill } from "@/components/ds/Display";
+import { EmptyState } from "@/components/ds/Feedback";
+import styles from "./invite.module.css";
 
-const { Title, Text, Paragraph } = Typography;
+
 
 interface InviteDetails {
   project: {
@@ -138,189 +135,130 @@ export default function AcceptInvitePage() {
   };
 
   // Show loading state while checking authentication
-  if (sessionStatus === "loading") {
+  if (sessionStatus === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spin size="large" tip="Loading..." />
-      </div>
+      <AuthShell title="Project invitation">
+        <AuthStatus
+          message={sessionStatus === "loading" ? "Checking your session…" : "Loading invite…"}
+        />
+      </AuthShell>
     );
   }
 
-  // Show loading state while fetching invite details
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spin size="large" tip="Loading invite details..." />
-      </div>
-    );
-  }
-
-  // Show error state
   if (error && !inviteDetails) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Result
-          status="error"
-          title="Unable to Load Invite"
-          subTitle={error}
-          extra={[
-            <Button type="primary" key="dashboard" onClick={() => router.push("/dashboard")}>
-              Go to Dashboard
-            </Button>,
-          ]}
+      <AuthShell title="Project invitation">
+        <EmptyState
+          kind="error"
+          title="This invite could not be opened"
+          body={error}
+          reference={`invite / ${String(params?.token ?? "").slice(0, 8)}`}
+          primaryAction={
+            <Button variant="primary" onClick={() => router.push("/dashboard")}>
+              Go to dashboard
+            </Button>
+          }
         />
-      </div>
+      </AuthShell>
     );
   }
 
-  // Show success state after accepting
   if (accepted && inviteDetails) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Result
-          status="success"
-          title="Successfully Joined Project!"
-          subTitle={`You now have ${inviteDetails.role} access to "${inviteDetails.project.name}". Redirecting to project...`}
-          icon={<CheckCircleOutlined />}
+      <AuthShell title="Project invitation">
+        <AuthStatus
+          variant="success"
+          message={`You now have ${inviteDetails.role} access to ${inviteDetails.project.name}. Opening it…`}
         />
-      </div>
+      </AuthShell>
     );
   }
 
-  // Show invite details and accept button
   if (inviteDetails) {
-    const roleColors: Record<string, string> = {
-      OWNER: "purple",
-      EDITOR: "blue",
-      VIEWER: "green",
+    const ROLE_DESCRIPTIONS: Record<string, string> = {
+      OWNER: "Full access, including sharing and deleting the project.",
+      EDITOR: "Can view and edit everything in the project.",
+      VIEWER: "Can view the project. Cannot change anything.",
     };
 
-    const roleDescriptions: Record<string, string> = {
-      OWNER: "Full access including sharing and deleting the project",
-      EDITOR: "Can view and edit all project content",
-      VIEWER: "Can view project content (read-only access)",
-    };
+    const wrongAccount =
+      Boolean(session?.user?.email) && session!.user!.email !== inviteDetails.invitedEmail;
 
     return (
-      <div className="flex items-center justify-center min-h-screen p-4 bg-gray-50">
-        <Card
-          className="max-w-2xl w-full"
-          title={
-            <Space direction="vertical" size={0}>
-              <Title level={3} style={{ margin: 0 }}>
-                <TeamOutlined /> Project Invitation
-              </Title>
-              <Text type="secondary">
-                You've been invited to collaborate on a project
-              </Text>
-            </Space>
-          }
-        >
-          <Space direction="vertical" size="large" style={{ width: "100%" }}>
-            <Descriptions column={1} bordered>
-              <Descriptions.Item label="Project Name">
-                <Text strong>{inviteDetails.project.name}</Text>
-              </Descriptions.Item>
+      <AuthShell
+        title="Project invitation"
+        subtitle={`You have been invited to collaborate on ${inviteDetails.project.name}.`}
+      >
+        {wrongAccount && (
+          // Accepting from the wrong account is the single most likely way
+          // this flow fails, so it is said before the button, not after it.
+          <Banner tone="warning" title="You are signed in as a different person">
+            This invite was sent to <strong>{inviteDetails.invitedEmail}</strong>, but you
+            are signed in as <strong>{session!.user!.email}</strong>. Sign in with the
+            invited address if accepting fails.
+          </Banner>
+        )}
 
-              {inviteDetails.project.description && (
-                <Descriptions.Item label="Description">
-                  {inviteDetails.project.description}
-                </Descriptions.Item>
-              )}
+        {error && (
+          <Banner tone="danger" title="Could not accept the invitation">
+            {error}
+          </Banner>
+        )}
 
-              <Descriptions.Item label="Project Owner">
-                <Space>
-                  <UserOutlined />
-                  <Text>
-                    {inviteDetails.project.owner.name || inviteDetails.project.owner.email}
-                  </Text>
-                </Space>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Invited By">
-                <Space>
-                  <UserOutlined />
-                  <Text>
-                    {inviteDetails.invitedBy.name || inviteDetails.invitedBy.email}
-                  </Text>
-                </Space>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Your Role">
-                <Space direction="vertical" size={4}>
-                  <Text
-                    strong
-                    style={{
-                      color:
-                        roleColors[inviteDetails.role] === "purple"
-                          ? "#722ed1"
-                          : roleColors[inviteDetails.role] === "blue"
-                          ? "#1890ff"
-                          : "#52c41a",
-                    }}
-                  >
-                    {inviteDetails.role}
-                  </Text>
-                  <Text type="secondary" style={{ fontSize: "12px" }}>
-                    {roleDescriptions[inviteDetails.role]}
-                  </Text>
-                </Space>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Invited Email">
-                <Text code>{inviteDetails.invitedEmail}</Text>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Invited On">
-                <Space>
-                  <CalendarOutlined />
-                  <Text>{new Date(inviteDetails.createdAt).toLocaleString()}</Text>
-                </Space>
-              </Descriptions.Item>
-
-              {inviteDetails.expiresAt && (
-                <Descriptions.Item label="Expires On">
-                  <Space>
-                    <CalendarOutlined />
-                    <Text>{new Date(inviteDetails.expiresAt).toLocaleString()}</Text>
-                  </Space>
-                </Descriptions.Item>
-              )}
-            </Descriptions>
-
-            {error && (
-              <Result
-                status="warning"
-                title={error}
-                icon={<CloseCircleOutlined />}
-              />
-            )}
-
-            <div className="flex gap-3 justify-end">
-              <Button onClick={() => router.push("/dashboard")}>
-                Decline
-              </Button>
-              <Button
-                type="primary"
-                icon={accepting ? <LoadingOutlined /> : <CheckCircleOutlined />}
-                loading={accepting}
-                onClick={acceptInvite}
-                size="large"
-              >
-                Accept Invitation
-              </Button>
+        <dl className={styles.details}>
+          <div className={styles.detailRow}>
+            <dt>Project</dt>
+            <dd>{inviteDetails.project.name}</dd>
+          </div>
+          {inviteDetails.project.description && (
+            <div className={styles.detailRow}>
+              <dt>Description</dt>
+              <dd>{inviteDetails.project.description}</dd>
             </div>
+          )}
+          <div className={styles.detailRow}>
+            <dt>Owner</dt>
+            <dd>
+              {inviteDetails.project.owner.name || inviteDetails.project.owner.email}
+            </dd>
+          </div>
+          <div className={styles.detailRow}>
+            <dt>Invited by</dt>
+            <dd>{inviteDetails.invitedBy.name || inviteDetails.invitedBy.email}</dd>
+          </div>
+          <div className={styles.detailRow}>
+            <dt>Your role</dt>
+            <dd>
+              <StatusPill tone={inviteDetails.role === "VIEWER" ? "neutral" : "info"}>
+                {inviteDetails.role}
+              </StatusPill>
+              <span className={styles.roleNote}>
+                {ROLE_DESCRIPTIONS[inviteDetails.role]}
+              </span>
+            </dd>
+          </div>
+        </dl>
 
-            {session?.user?.email && session.user.email !== inviteDetails.invitedEmail && (
-              <Paragraph type="warning" style={{ marginTop: 16 }}>
-                Note: This invite was sent to <Text code>{inviteDetails.invitedEmail}</Text> but
-                you are logged in as <Text code>{session.user.email}</Text>. You may need to log in
-                with the invited email address to accept this invitation.
-              </Paragraph>
-            )}
-          </Space>
-        </Card>
-      </div>
+        <AuthActions row>
+          <Button
+            variant="primary"
+            size="lg"
+            loading={accepting}
+            loadingLabel="Joining…"
+            onClick={acceptInvite}
+          >
+            Accept invitation
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            loading={accepting}
+            onClick={() => router.push("/dashboard")}
+          >
+            Decline
+          </Button>
+        </AuthActions>
+      </AuthShell>
     );
   }
 
