@@ -1,0 +1,238 @@
+/* Design system — choice controls (layer 2, Primitives)
+ *
+ * Checkbox, Radio and Toggle. The native input stays in the DOM, focusable and
+ * operable; it is visually replaced, not hidden from assistive technology. */
+
+.row {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  cursor: pointer;
+}
+
+.row.disabled {
+  cursor: not-allowed;
+}
+
+.row.readOnly {
+  cursor: default;
+}
+
+/* The real control. `opacity: 0` over the visual box rather than
+ * `display: none` — a hidden input is not focusable, and the focus ring below
+ * is driven by :focus-visible on this element. */
+.input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.control {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-strong);
+  color: var(--ds-accent-on);
+  transition:
+    background-color var(--ds-duration-fast) var(--ds-easing-standard),
+    border-color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+/* 18px keeps the box on the 2px grid while staying visually level with 14px
+ * body text; the 8px gap plus the label makes the real hit area far larger. */
+.box {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--ds-radius-xs);
+  /* Nudge down so the box aligns with the first line of a wrapping label
+   * rather than the middle of the block. */
+  margin-top: 1px;
+}
+
+.circle {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--ds-radius-full);
+  margin-top: 1px;
+}
+
+.row:hover .control:not(.checkedControl):not(.disabledControl):not(.readOnlyControl) {
+  border-color: var(--ds-border-strong-hover);
+  background: var(--ds-surface-hover);
+}
+
+.input:focus-visible + .control {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+.checkedControl {
+  background: var(--ds-accent-default);
+  border-color: var(--ds-accent-default);
+}
+
+.row:hover .checkedControl:not(.disabledControl):not(.readOnlyControl) {
+  background: var(--ds-accent-hover);
+  border-color: var(--ds-accent-hover);
+}
+
+.errorControl {
+  border-color: var(--ds-danger-default);
+  background: var(--ds-danger-subtle);
+}
+
+/* Disabled-and-checked stays filled, just muted. A disabled checkbox that
+ * renders empty reads as unchecked, which is a different fact. */
+.disabledControl {
+  background: var(--ds-surface-active);
+  border-color: var(--ds-border-default);
+  color: var(--ds-content-disabled);
+}
+
+.readOnlyControl {
+  background: var(--ds-surface-sunken);
+  border-color: var(--ds-border-default);
+  color: var(--ds-content-secondary);
+}
+
+.glyph {
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+/* The radio's inner dot. Sized in the same ramp as the check glyph. */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--ds-radius-full);
+  background: currentColor;
+  pointer-events: none;
+}
+
+.labelWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.label {
+  font: var(--ds-type-body);
+  color: var(--ds-content-primary);
+}
+
+.labelError {
+  color: var(--ds-danger-default);
+}
+
+.labelDisabled {
+  color: var(--ds-content-disabled);
+}
+
+.description {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-tertiary);
+}
+
+/* ---------------------------------------------------------------------------
+ * Toggle
+ *
+ * A switch, not a checkbox: it commits immediately, so it is used only where
+ * there is no Save button to press.
+ * -------------------------------------------------------------------------*/
+.track {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 22px;
+  margin-top: 0;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-border-default);
+  border: var(--ds-border-hairline) solid var(--ds-border-strong);
+  transition: background-color var(--ds-duration-base) var(--ds-easing-standard);
+}
+
+.trackOn {
+  background: var(--ds-accent-default);
+  border-color: var(--ds-accent-default);
+}
+
+.trackDisabled {
+  background: var(--ds-surface-active);
+  border-color: var(--ds-border-default);
+}
+
+/* Pending is its own colour, distinct from both on and disabled: the user's
+ * intent is recorded but the server has not confirmed it, and showing it as
+ * already-on would be a lie the next refresh corrects. */
+.trackPending {
+  background: var(--ds-content-disabled);
+  border-color: var(--ds-border-strong);
+}
+
+.knob {
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-surface-raised);
+  box-shadow: var(--ds-elevation-1);
+  transform: translate(0, -50%);
+  transition: transform var(--ds-duration-base) var(--ds-easing-standard);
+}
+
+.knobOn {
+  transform: translate(18px, -50%);
+}
+
+.knobDisabled {
+  background: var(--ds-surface-disabled);
+}
+
+/* ---------------------------------------------------------------------------
+ * Group
+ * -------------------------------------------------------------------------*/
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.groupHorizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--ds-space-4);
+}
+
+.legend {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-secondary);
+  padding: 0;
+  margin-bottom: var(--ds-space-1);
+}
+
+.groupHelper {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-tertiary);
+  margin-top: var(--ds-space-1);
+}
+
+.groupError {
+  color: var(--ds-danger-default);
+}

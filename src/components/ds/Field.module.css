@@ -1,0 +1,286 @@
+/* Design system — field family (layer 2, Primitives)
+ *
+ * Shared by Input, Textarea, NumberInput, SearchInput and Select so the five
+ * cannot drift apart. Reads only `--ds-*` tokens. */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  min-width: 0;
+}
+
+.label {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-secondary);
+}
+
+/* The required marker is decorative; the input carries `required`, which is
+ * what assistive technology actually announces. */
+.required {
+  color: var(--ds-danger-default);
+  margin-left: 2px;
+}
+
+.optional {
+  color: var(--ds-content-tertiary);
+  font-weight: 400;
+}
+
+/* The bordered box. The control inside is borderless and transparent so a
+ * prefix, suffix or icon sits *within* the border rather than beside it —
+ * "a static adornment inside the border, never a separate control". */
+.box {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-content-primary);
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-standard),
+    background-color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.box:hover:not(.error):not(.readOnly):not(.disabled) {
+  border-color: var(--ds-border-strong-hover);
+}
+
+/* The ring sits outside the border (outline + offset) so focusing a field
+ * never changes its size and never nudges the row it lives in. */
+.box:focus-within:not(.disabled) {
+  border-color: var(--ds-border-focus);
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+.sm {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.md {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.lg {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* The control itself: no border, no background, no ring. The box owns all
+ * three, so the two can never disagree. */
+.control {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  font-family: var(--ds-font-sans);
+  width: 100%;
+}
+
+.control::placeholder {
+  color: var(--ds-content-tertiary);
+  opacity: 1; /* Firefox dims placeholders by default. */
+}
+
+.control:disabled {
+  cursor: not-allowed;
+  color: var(--ds-content-disabled);
+  -webkit-text-fill-color: var(--ds-content-disabled); /* Safari */
+}
+
+.textarea {
+  resize: vertical;
+  padding: var(--ds-space-2) 0;
+  min-height: 72px;
+}
+
+/* Any figure in a field is a figure in a column somewhere: tabular, right
+ * aligned, so digits line up between rows (principle P1). */
+.numeric {
+  font-variant-numeric: var(--ds-numeric-feature);
+  text-align: right;
+}
+
+/* Native spinners are inconsistent across browsers and unreachable by
+ * keyboard in some; NumberInput supplies its own controls. */
+.numeric::-webkit-outer-spin-button,
+.numeric::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.numeric[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ---------------------------------------------------------------------------
+ * States
+ * -------------------------------------------------------------------------*/
+
+.error {
+  border-color: var(--ds-danger-default);
+  background: var(--ds-danger-subtle);
+}
+
+/* Read-only keeps text at content/primary. The value is real — it is simply
+ * not editable here, and greying it would suggest it is absent. */
+.readOnly {
+  background: var(--ds-surface-sunken);
+  border-color: var(--ds-border-default);
+  cursor: default;
+}
+
+.disabled {
+  background: var(--ds-surface-disabled);
+  border-color: var(--ds-border-disabled);
+  color: var(--ds-content-disabled);
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------------
+ * Adornments
+ * -------------------------------------------------------------------------*/
+
+.adornment {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  color: var(--ds-content-tertiary);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.errorIcon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  color: var(--ds-danger-default);
+}
+
+/* ---------------------------------------------------------------------------
+ * Helper and error text
+ *
+ * One element, not two: the helper slot becomes the error message when
+ * invalid, so the field never grows a second line and shifts the form.
+ * -------------------------------------------------------------------------*/
+.helper {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-tertiary);
+}
+
+.helperError {
+  color: var(--ds-danger-default);
+}
+
+/* ---------------------------------------------------------------------------
+ * NumberInput stepper
+ * -------------------------------------------------------------------------*/
+.steppers {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  margin-right: -4px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 12px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ds-content-tertiary);
+  cursor: pointer;
+  border-radius: var(--ds-radius-xs);
+}
+
+.stepper:hover:not(:disabled) {
+  color: var(--ds-content-primary);
+  background: var(--ds-surface-hover);
+}
+
+.stepper:disabled {
+  color: var(--ds-content-disabled);
+  cursor: not-allowed;
+}
+
+.stepper:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: 1px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Select
+ * -------------------------------------------------------------------------*/
+.select {
+  appearance: none;
+  cursor: pointer;
+  /* Room for the chevron, which is absolutely positioned by the box's gap. */
+  padding-right: var(--ds-space-1);
+}
+
+.select:disabled {
+  cursor: not-allowed;
+}
+
+.chevron {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  color: var(--ds-content-tertiary);
+  pointer-events: none;
+}
+
+.searchIcon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--ds-content-tertiary);
+}
+
+.clear {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--ds-radius-full);
+  color: var(--ds-content-tertiary);
+  cursor: pointer;
+}
+
+.clear:hover {
+  color: var(--ds-content-primary);
+  background: var(--ds-surface-hover);
+}
+
+.clear:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: 1px;
+}
