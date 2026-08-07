@@ -1,0 +1,178 @@
+/* Design system — DataTable (layer 3, Composites)
+ *
+ * Density without noise (principle P2): no zebra striping, no vertical
+ * gridlines. Separation comes from alignment and space. At most two border
+ * weights are visible at once. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The toolbar stays operational in every state, including empty and error, so
+ * the user can undo the filter that emptied the table. */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  min-height: 52px;
+  flex-wrap: wrap;
+}
+
+/* The bulk bar REPLACES the toolbar rather than stacking beneath it, so the
+ * table never loses vertical space when a row is selected. */
+.bulkBar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  min-height: 52px;
+  background: var(--ds-accent-subtle);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-accent-border);
+}
+
+.bulkCount {
+  font: var(--ds-type-body-sm);
+  font-weight: 500;
+  color: var(--ds-accent-default);
+}
+
+.toolbarSpacer {
+  flex: 1 1 auto;
+}
+
+.scroll {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--ds-type-body-sm);
+}
+
+.headerCell {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ds-surface-sunken);
+  color: var(--ds-content-secondary);
+  font: var(--ds-type-heading-sm);
+  letter-spacing: var(--ds-ls-heading-sm);
+  text-transform: uppercase;
+  text-align: left;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  white-space: nowrap;
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-default);
+}
+
+.headerCellNumeric {
+  text-align: right;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sortButton:hover {
+  color: var(--ds-content-primary);
+}
+
+.sortButton:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+/* The active sort column turns accent AND shows an arrow — not colour alone. */
+.sortActive {
+  color: var(--ds-accent-default);
+}
+
+.sortArrow {
+  width: 10px;
+  height: 10px;
+  flex: none;
+}
+
+.row {
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
+}
+
+.row:hover {
+  background: var(--ds-surface-hover);
+}
+
+.rowSelected {
+  background: var(--ds-accent-subtle);
+}
+
+.rowSelected:hover {
+  background: var(--ds-accent-subtle-active);
+}
+
+.cell {
+  padding: var(--ds-space-2) var(--ds-space-3);
+  color: var(--ds-content-primary);
+  vertical-align: middle;
+}
+
+/* Figures line up vertically and never reflow between rows (principle P1). */
+.cellNumeric {
+  font-variant-numeric: var(--ds-numeric-feature);
+  text-align: right;
+}
+
+.checkboxCell {
+  width: 40px;
+  padding-left: var(--ds-space-4);
+}
+
+/* Empty and error states render INSIDE the table body, so the header and
+ * toolbar stay operational. */
+.stateCell {
+  padding: 0;
+}
+
+.caption {
+  /* Visually hidden, but present: a table with no caption is announced only
+   * as "table" with a column count. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-top: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-tertiary);
+  flex-wrap: wrap;
+}
+
+.footerSpacer {
+  flex: 1 1 auto;
+}

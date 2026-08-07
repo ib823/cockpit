@@ -1,0 +1,286 @@
+/* Design system — display primitives (layer 2)
+ *
+ * StatusPill, Badge, Chip, Avatar, Progress, Skeleton. */
+
+/* ---------------------------------------------------------------------------
+ * StatusPill
+ *
+ * Principle P4: "Colour is the second channel." Every pill carries a glyph and
+ * a word, so it survives a projector, a monochrome print and any colour-vision
+ * deficiency. The glyph is not decoration.
+ * -------------------------------------------------------------------------*/
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px var(--ds-space-2);
+  border-radius: var(--ds-radius-sm);
+  border: var(--ds-border-hairline) solid transparent;
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  white-space: nowrap;
+}
+
+.pillGlyph {
+  flex: none;
+  width: 10px;
+  height: 10px;
+}
+
+.success {
+  color: var(--ds-success-default);
+  background: var(--ds-success-subtle);
+  border-color: var(--ds-success-border);
+}
+
+.warning {
+  color: var(--ds-warning-default);
+  background: var(--ds-warning-subtle);
+  border-color: var(--ds-warning-border);
+}
+
+.danger {
+  color: var(--ds-danger-default);
+  background: var(--ds-danger-subtle);
+  border-color: var(--ds-danger-border);
+}
+
+.info {
+  color: var(--ds-info-default);
+  background: var(--ds-info-subtle);
+  border-color: var(--ds-info-border);
+}
+
+/* Neutral is a real status, not an absence of one — "not started" must not be
+ * grey-on-grey or it reads as disabled. */
+.neutral {
+  color: var(--ds-content-secondary);
+  background: var(--ds-surface-sunken);
+  border-color: var(--ds-border-default);
+}
+
+/* ---------------------------------------------------------------------------
+ * Badge — a count, not a status
+ * -------------------------------------------------------------------------*/
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-accent-default);
+  color: var(--ds-accent-on);
+  font: var(--ds-type-label);
+  font-variant-numeric: var(--ds-numeric-feature);
+  letter-spacing: 0;
+}
+
+.badgeNeutral {
+  background: var(--ds-surface-active);
+  color: var(--ds-content-secondary);
+}
+
+.badgeDanger {
+  background: var(--ds-danger-default);
+  color: var(--ds-danger-on);
+}
+
+/* ---------------------------------------------------------------------------
+ * Chip — a removable filter token
+ * -------------------------------------------------------------------------*/
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  height: 24px;
+  padding: 0 var(--ds-space-1) 0 var(--ds-space-2);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-accent-subtle);
+  border: var(--ds-border-hairline) solid var(--ds-accent-border);
+  color: var(--ds-accent-default);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  white-space: nowrap;
+}
+
+.chipStatic {
+  padding-right: var(--ds-space-2);
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: var(--ds-radius-full);
+  color: inherit;
+  cursor: pointer;
+}
+
+.chipRemove:hover {
+  background: var(--ds-accent-subtle-active);
+}
+
+.chipRemove:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: 1px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Avatar
+ * -------------------------------------------------------------------------*/
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-accent-subtle);
+  color: var(--ds-accent-default);
+  font: var(--ds-type-label);
+  letter-spacing: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+.avatarSm {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.avatarMd {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.avatarLg {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------------------------------------------------------------------------
+ * Progress
+ *
+ * The figure is printed beside the bar, never encoded in width alone —
+ * a bar with no number cannot be read off a projector or a printout.
+ * -------------------------------------------------------------------------*/
+.progressWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-width: 0;
+}
+
+.progressTrack {
+  position: relative;
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-surface-sunken);
+  border: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--ds-accent-default);
+  transition: width var(--ds-duration-base) var(--ds-easing-standard);
+}
+
+.progressFillSuccess {
+  background: var(--ds-success-default);
+}
+
+.progressFillWarning {
+  background: var(--ds-warning-default);
+}
+
+.progressFillDanger {
+  background: var(--ds-danger-default);
+}
+
+/* Over 100% is an exception, not a bigger bar: the hatch makes it legible
+ * without colour, per P4. */
+.progressOver {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(255, 255, 255, 0.45) 3px,
+    rgba(255, 255, 255, 0.45) 6px
+  );
+}
+
+.progressValue {
+  flex: none;
+  font: var(--ds-type-numeric);
+  font-variant-numeric: var(--ds-numeric-feature);
+  color: var(--ds-content-secondary);
+  font-size: 12px;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------------------
+ * Skeleton
+ * -------------------------------------------------------------------------*/
+.skeleton {
+  display: block;
+  background: var(--ds-surface-sunken);
+  border-radius: var(--ds-radius-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--ds-surface-hover),
+    transparent
+  );
+  animation: ds-skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes ds-skeleton-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* A sweeping highlight is exactly the kind of motion that triggers vestibular
+ * symptoms. Under reduced motion the block still reads as a placeholder. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+    background: none;
+  }
+}
+
+.skeletonText {
+  height: 12px;
+  border-radius: var(--ds-radius-xs);
+}
+
+.skeletonCircle {
+  border-radius: var(--ds-radius-full);
+}

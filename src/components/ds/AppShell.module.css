@@ -1,0 +1,348 @@
+/* Design system — AppShell (layer 3, Composites) */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--ds-surface-app);
+  color: var(--ds-content-primary);
+  font: var(--ds-type-body);
+}
+
+/* ---------------------------------------------------------------------------
+ * Top bar — the only global surface.
+ *
+ * Project switcher, global search, sync chip, presence, account. Nothing
+ * project-specific ever moves in here; that is what the sub-nav is for.
+ * -------------------------------------------------------------------------*/
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: var(--ds-z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  height: 52px;
+  padding: 0 var(--ds-space-4);
+  background: var(--ds-surface-raised);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-default);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  font: var(--ds-type-heading-md);
+  letter-spacing: var(--ds-ls-heading-md);
+  color: var(--ds-content-primary);
+  text-decoration: none;
+  flex: none;
+}
+
+.projectName {
+  font: var(--ds-type-body);
+  font-weight: 500;
+  color: var(--ds-content-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+/* Below 480 the full name is replaced by the project code, which is short
+ * enough to stay legible and unique enough to identify. */
+.projectCode {
+  display: none;
+  font: var(--ds-type-mono);
+  color: var(--ds-content-secondary);
+}
+
+.topBarSpacer {
+  flex: 1 1 auto;
+}
+
+.topBarSearch {
+  flex: 0 1 320px;
+  min-width: 0;
+}
+
+.topBarEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  flex: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Primary nav — destinations
+ * -------------------------------------------------------------------------*/
+.primaryNav {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  flex: none;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  height: 32px;
+  padding: 0 var(--ds-space-3);
+  border-radius: var(--ds-radius-md);
+  font: var(--ds-type-body-sm);
+  font-weight: 500;
+  color: var(--ds-content-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  background: var(--ds-surface-hover);
+  color: var(--ds-content-primary);
+}
+
+.navLink:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+/* The active destination is filled *and* carries aria-current, so it is not
+ * signalled by colour alone. */
+.navLinkActive {
+  background: var(--ds-accent-subtle);
+  color: var(--ds-accent-default);
+}
+
+.menuButton {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Sub-nav — views of the current destination, plus the two facts that change
+ * what everything below means: role and cost visibility.
+ * -------------------------------------------------------------------------*/
+.subBar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  min-height: 40px;
+  padding: 0 var(--ds-space-4);
+  background: var(--ds-surface-raised);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  overflow-x: auto;
+}
+
+.subNav {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+}
+
+.subLink {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 var(--ds-space-2);
+  border-radius: var(--ds-radius-sm);
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+}
+
+.subLink:hover {
+  color: var(--ds-content-primary);
+}
+
+.subLink:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: -2px;
+}
+
+.subLinkActive {
+  color: var(--ds-accent-default);
+  border-bottom-color: var(--ds-accent-default);
+  font-weight: 500;
+}
+
+.subBarEnd {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  flex: none;
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-tertiary);
+  white-space: nowrap;
+}
+
+.metaValue {
+  color: var(--ds-content-secondary);
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------------------
+ * Sync chip — present on every authenticated screen (principle P3)
+ * -------------------------------------------------------------------------*/
+.syncChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 var(--ds-space-2);
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-hairline) solid;
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  white-space: nowrap;
+}
+
+.syncSynced {
+  color: var(--ds-success-default);
+  background: var(--ds-success-subtle);
+  border-color: var(--ds-success-border);
+}
+
+.syncPending {
+  color: var(--ds-warning-default);
+  background: var(--ds-warning-subtle);
+  border-color: var(--ds-warning-border);
+}
+
+.syncOffline {
+  color: var(--ds-content-secondary);
+  background: var(--ds-surface-sunken);
+  border-color: var(--ds-border-default);
+}
+
+.syncError {
+  color: var(--ds-danger-default);
+  background: var(--ds-danger-subtle);
+  border-color: var(--ds-danger-border);
+}
+
+.syncGlyph {
+  flex: none;
+  width: 10px;
+  height: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Main
+ * -------------------------------------------------------------------------*/
+.main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--ds-space-6) var(--ds-space-4);
+}
+
+.mainInner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-5);
+  flex-wrap: wrap;
+}
+
+.pageTitleWrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pageTitle {
+  font: var(--ds-type-display);
+  letter-spacing: var(--ds-ls-display);
+  color: var(--ds-content-primary);
+  margin: 0;
+}
+
+.pageDescription {
+  font: var(--ds-type-body);
+  color: var(--ds-content-secondary);
+  margin: var(--ds-space-1) 0 0;
+}
+
+.pageActions {
+  display: flex;
+  gap: var(--ds-space-2);
+  flex: none;
+}
+
+/* A card is the default panel: raised surface, hairline edge, 8px radius. */
+.card {
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-elevation-1);
+}
+
+.cardPadded {
+  padding: var(--ds-space-5);
+}
+
+/* ---------------------------------------------------------------------------
+ * Responsive
+ * -------------------------------------------------------------------------*/
+@media (max-width: 900px) {
+  .topBarSearch {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Primary nav collapses into a menu button. It moves into the sub-bar
+   * rather than into an off-canvas drawer, so destinations stay one tap away. */
+  .primaryNav {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .primaryNavOpen {
+    display: flex;
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: var(--ds-space-2);
+    background: var(--ds-surface-raised);
+    border-bottom: var(--ds-border-hairline) solid var(--ds-border-default);
+    box-shadow: var(--ds-elevation-2);
+    z-index: var(--ds-z-dropdown);
+  }
+}
+
+@media (max-width: 480px) {
+  .projectName {
+    display: none;
+  }
+
+  .projectCode {
+    display: inline;
+  }
+
+  /* The chip keeps its glyph and one word — the state must never disappear. */
+  .syncLabelLong {
+    display: none;
+  }
+}
