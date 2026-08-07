@@ -1,14 +1,16 @@
 /**
- * Settings - Redirect to Security Settings
+ * Settings — redirects to security settings.
  *
- * Main settings page that redirects to the security settings.
+ * Kept as a real page rather than a Next.js redirect so the transition is
+ * announced: a redirect that happens in an effect leaves a screen-reader user
+ * on a silent page for as long as the navigation takes.
  */
 
 "use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { HexLoader } from "@/components/ui/HexLoader";
+import { AuthShell, AuthStatus } from "@/components/ds/AuthShell";
 
 export default function SettingsRedirect() {
   const router = useRouter();
@@ -19,11 +21,8 @@ export default function SettingsRedirect() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <HexLoader size="xl" />
-        <p className="mt-4 text-gray-600">Loading settings...</p>
-      </div>
-    </div>
+    <AuthShell title="Settings">
+      <AuthStatus message="Opening security settings…" />
+    </AuthShell>
   );
 }

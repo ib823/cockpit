@@ -64,6 +64,31 @@ import { join } from "path";
 // rather than the ~8% they had, which is what the file's own header always
 // said budgets are for -- "measured values with headroom, not targets".
 //
+// -----------------------------------------------------------------------
+// MIGRATION-WIDE EFFECT (2026-08-07). Read this before raising another number.
+//
+// Every route migrated to the design system crosses its old budget, and the
+// reason is the same each time rather than a new problem each time. Measured
+// per route, own page code versus shared design-system chunks:
+//
+//     /settings              own  4.3kB   (old budget 6kB,  measured 16.4kB)
+//     /account/add-passkey   own  4.9kB   (old budget 15kB, measured 59.7kB)
+//     /admin                 own 10.6kB   (old budget 290kB, measured 306.4kB)
+//
+// The own-code figures are SMALL -- /settings' page code is smaller than its
+// entire old budget. The overage is shared chunks, which this metric bills to
+// every route that touches them even though the user downloads them once and
+// caches them across the whole app. The first-load budgets, which are the
+// figure a user actually waits for, all still pass at their existing values.
+//
+// These are therefore re-baselined as one migration-wide effect, not three
+// separate regressions. THE ACTION THIS CREATES: once every route is migrated,
+// the shared chunks move into the common baseline and these numbers should
+// FALL. Re-measure all per-route budgets downward at that point -- leaving
+// these inflated values in place afterwards would turn the guard back into
+// something that cannot fail, which is the exact defect this file was
+// rewritten to remove.
+//
 // The distinction that matters, same as the coverage floors: re-baselining
 // after a deliberate composition change is legitimate; raising a budget to make
 // a red build pass is not. These pages genuinely changed composition -- from
@@ -74,11 +99,11 @@ const PAGE_BUDGETS: Record<string, number> = {
   "/login": 70,
   "/dashboard": 110,
   "/gantt-tool": 700,
-  "/admin": 290,
+  "/admin": 340,
   "/admin/users": 620,
   "/account": 58,
-  "/account/add-passkey": 15,
-  "/settings": 6,
+  "/account/add-passkey": 70,
+  "/settings": 22,
   "/settings/security": 18,
   "/register": 62,
 };

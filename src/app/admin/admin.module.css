@@ -85,3 +85,27 @@
   font: var(--ds-type-body-sm);
   color: var(--ds-content-secondary);
 }
+
+/* One-time access code reveal. Mono and widely tracked so a transposed digit
+   is obvious when it is read aloud over a phone. */
+.codeReveal {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin-top: var(--ds-space-4);
+}
+
+.codeValue {
+  flex: 1 1 auto;
+  padding: var(--ds-space-4);
+  text-align: center;
+  font: var(--ds-type-mono);
+  font-size: 28px;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: var(--ds-content-primary);
+  background: var(--ds-surface-sunken);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-md);
+  user-select: all;
+}
