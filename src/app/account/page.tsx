@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { useSessionGuard } from "@/hooks/useSessionGuard";
+import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
+import { AuthShell, AuthStatus } from "@/components/ds/AuthShell";
+import { DataTable } from "@/components/ds/DataTable";
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Input";
+import { Banner } from "@/components/ds/Banner";
+import { StatusPill } from "@/components/ds/Display";
+import { EmptyState } from "@/components/ds/Feedback";
+import styles from "./account.module.css";
 
 interface UserProfile {
   id: string;
@@ -164,208 +173,218 @@ export default function AccountPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading account settings...</p>
-        </div>
-      </div>
+      <AuthShell title="Account">
+        <AuthStatus message="Loading account settings…" />
+      </AuthShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => router.push("/")}
-            className="mb-4 text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-          >
-            ← Back to Home
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-          <p className="mt-2 text-gray-600">Manage your profile, passkeys, and active sessions</p>
-        </div>
+    <AppShell brand="Account">
+      <PageHeader
+        title="Account"
+        description="Your profile, the passkeys that can sign in as you, and where you are currently signed in."
+      />
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      {error && (
+        <div className={styles.slot}>
+          <Banner tone="danger" title="Something went wrong" onDismiss={() => setError(null)}>
             {error}
-          </div>
-        )}
-
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-            {successMessage}
-          </div>
-        )}
-
-        {/* Profile Section */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile</h2>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <p className="mt-1 text-gray-900">{profile?.email}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Display Name</label>
-              {isEditingName ? (
-                <div className="mt-1 flex gap-2">
-                  <input
-                    type="text"
-                    value={editedName}
-                    onChange={(e) => setEditedName(e.target.value)}
-                    className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter your name"
-                  />
-                  <button
-                    onClick={handleSaveName}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditingName(false);
-                      setEditedName(profile?.name || "");
-                    }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div className="mt-1 flex items-center gap-2">
-                  <p className="text-gray-900">{profile?.name || "Not set"}</p>
-                  <button
-                    onClick={() => setIsEditingName(true)}
-                    className="text-sm text-blue-600 hover:text-blue-700"
-                  >
-                    Edit
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
-              <p className="mt-1 text-gray-900 capitalize">{profile?.role.toLowerCase()}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Member Since</label>
-              <p className="mt-1 text-gray-900">
-                {profile?.createdAt &&
-                  new Date(profile.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-              </p>
-            </div>
-
-            {profile?.lastLoginAt && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Last Login</label>
-                <p className="mt-1 text-gray-900">
-                  {formatDistanceToNow(new Date(profile.lastLoginAt), { addSuffix: true })}
-                </p>
-              </div>
-            )}
-          </div>
+          </Banner>
         </div>
+      )}
+      {successMessage && (
+        <div className={styles.slot}>
+          <Banner tone="success" title={successMessage} onDismiss={() => setSuccessMessage(null)} />
+        </div>
+      )}
 
-        {/* Passkeys Section */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Passkeys</h2>
-            <button
-              onClick={() => router.push("/account/add-passkey")}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-            >
-              + Add Passkey
-            </button>
+      <Card label="Profile" className={styles.slot}>
+        <h2 className={styles.cardTitle}>Profile</h2>
+        <dl className={styles.defList}>
+          <div className={styles.defRow}>
+            <dt>Email</dt>
+            <dd>{profile?.email}</dd>
           </div>
+          <div className={styles.defRow}>
+            <dt>Role</dt>
+            <dd>{profile?.role}</dd>
+          </div>
+          <div className={styles.defRow}>
+            <dt>Member since</dt>
+            <dd>{profile ? new Date(profile.createdAt).toLocaleDateString() : "—"}</dd>
+          </div>
+          <div className={styles.defRow}>
+            <dt>Last sign-in</dt>
+            <dd>
+              {profile?.lastLoginAt
+                ? new Date(profile.lastLoginAt).toLocaleString()
+                : "—"}
+            </dd>
+          </div>
+        </dl>
 
-          {passkeys.length === 0 ? (
-            <p className="text-gray-600 text-sm">No passkeys registered</p>
+        <div className={styles.nameRow}>
+          {isEditingName ? (
+            <>
+              <Input
+                label="Display name"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                className={styles.nameField}
+              />
+              <Button variant="primary" onClick={handleSaveName}>
+                Save
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setIsEditingName(false);
+                  setEditedName(profile?.name || "");
+                }}
+              >
+                Cancel
+              </Button>
+            </>
           ) : (
-            <div className="space-y-3">
-              {passkeys.map((passkey) => (
-                <div
-                  key={passkey.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
-                >
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      {passkey.nickname || "Unnamed Passkey"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {passkey.deviceType} • Last used{" "}
-                      {formatDistanceToNow(new Date(passkey.lastUsedAt), { addSuffix: true })}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleDeletePasskey(passkey.id)}
-                    className="px-3 py-1 text-sm text-red-600 hover:text-red-700 border border-red-600 rounded-md hover:bg-red-50"
+            <>
+              <Input
+                label="Display name"
+                readOnly
+                value={profile?.name || "Not set"}
+                className={styles.nameField}
+              />
+              <Button variant="secondary" onClick={() => setIsEditingName(true)}>
+                Edit
+              </Button>
+            </>
+          )}
+        </div>
+      </Card>
+
+      <Card label="Passkeys" padded={false} className={styles.slot}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Passkeys</h2>
+          <Button variant="primary" size="sm" onClick={() => router.push("/account/add-passkey")}>
+            Add passkey
+          </Button>
+        </div>
+        <DataTable
+          caption="Passkeys registered to this account"
+          columns={[
+            {
+              key: "nickname",
+              header: "Device",
+              render: (p: Passkey) => p.nickname || p.deviceType || "Unnamed passkey",
+            },
+            {
+              key: "createdAt",
+              header: "Added",
+              render: (p: Passkey) => new Date(p.createdAt).toLocaleDateString(),
+            },
+            {
+              key: "lastUsedAt",
+              header: "Last used",
+              render: (p: Passkey) =>
+                p.lastUsedAt ? new Date(p.lastUsedAt).toLocaleString() : "Never",
+            },
+            {
+              key: "actions",
+              header: "Actions",
+              render: (p: Passkey) => (
+                <div className={styles.rowActions}>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    // Removing your only passkey locks you out, so it is
+                    // blocked here rather than explained after the fact.
+                    disabled={passkeys.length === 1}
+                    onClick={() => handleDeletePasskey(p.id)}
                   >
                     Remove
-                  </button>
+                  </Button>
                 </div>
-              ))}
-            </div>
-          )}
+              ),
+            },
+          ]}
+          rows={passkeys}
+          rowKey={(p) => p.id}
+          emptyState={
+            <EmptyState
+              kind="first-run"
+              title="No passkeys yet"
+              body="A passkey signs you in with your device's fingerprint, face or PIN."
+              primaryAction={
+                <Button variant="primary" onClick={() => router.push("/account/add-passkey")}>
+                  Add your first passkey
+                </Button>
+              }
+            />
+          }
+          footer={
+            passkeys.length === 1
+              ? "Your last passkey cannot be removed — doing so would lock you out."
+              : undefined
+          }
+        />
+      </Card>
+
+      <Card label="Active sessions" padded={false} className={styles.slot}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Active sessions</h2>
         </div>
-
-        {/* Active Sessions Section */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Sessions</h2>
-
-          {sessions.length === 0 ? (
-            <p className="text-gray-600 text-sm">No active sessions</p>
-          ) : (
-            <div className="space-y-3">
-              {sessions.map((session) => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900">
-                        {session.deviceInfo?.browser || "Unknown Browser"} on{" "}
-                        {session.deviceInfo?.os || "Unknown OS"}
-                      </p>
-                      {session.current && (
-                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
-                          Current
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      {session.ipAddress} • Last active{" "}
-                      {formatDistanceToNow(new Date(session.lastActivity), { addSuffix: true })}
-                    </p>
-                  </div>
-                  {!session.current && (
-                    <button
-                      onClick={() => handleRevokeSession(session.id)}
-                      className="px-3 py-1 text-sm text-red-600 hover:text-red-700 border border-red-600 rounded-md hover:bg-red-50"
-                    >
-                      Revoke
-                    </button>
+        <DataTable
+          caption="Devices currently signed in to this account"
+          columns={[
+            {
+              key: "device",
+              header: "Device",
+              render: (s: Session) => (
+                <span>
+                  {s.deviceInfo
+                    ? `${s.deviceInfo.browser} on ${s.deviceInfo.os}`
+                    : "Unknown device"}
+                  {s.current && (
+                    <>
+                      {" "}
+                      <StatusPill tone="info">This device</StatusPill>
+                    </>
+                  )}
+                </span>
+              ),
+            },
+            { key: "ip", header: "IP address", render: (s: Session) => s.ipAddress || "—" },
+            {
+              key: "lastActivity",
+              header: "Last active",
+              render: (s: Session) =>
+                s.lastActivity ? new Date(s.lastActivity).toLocaleString() : "—",
+            },
+            {
+              key: "actions",
+              header: "Actions",
+              render: (s: Session) => (
+                <div className={styles.rowActions}>
+                  {!s.current && (
+                    <Button size="sm" variant="danger" onClick={() => handleRevokeSession(s.id)}>
+                      Sign out
+                    </Button>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+              ),
+            },
+          ]}
+          rows={sessions}
+          rowKey={(s) => s.id}
+          emptyState={
+            <EmptyState
+              kind="no-results"
+              title="No other sessions"
+              body="You are only signed in on this device."
+            />
+          }
+        />
+      </Card>
+    </AppShell>
   );
 }

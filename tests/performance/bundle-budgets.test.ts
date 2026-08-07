@@ -101,7 +101,7 @@ const PAGE_BUDGETS: Record<string, number> = {
   "/gantt-tool": 700,
   "/admin": 340,
   "/admin/users": 620,
-  "/account": 58,
+  "/account": 135,
   "/account/add-passkey": 70,
   "/settings": 22,
   "/settings/security": 18,

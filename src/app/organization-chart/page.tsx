@@ -12,6 +12,7 @@ import { OrgChartHarmonyV2 } from "@/components/gantt-tool/OrgChartHarmonyV2";
 import { useGanttToolStoreV2 } from "@/stores/gantt-tool-store-v2";
 import { logger } from "@/lib/logger";
 import { useEffect } from "react";
+import { AuthShell, AuthStatus } from "@/components/ds/AuthShell";
 
 export default function OrganizationChartPage() {
   const router = useRouter();
@@ -33,17 +34,13 @@ export default function OrganizationChartPage() {
   }, [currentProject, router]);
 
   if (!currentProject) {
+    // The store may still be hydrating from IndexedDB, so this is a wait
+    // rather than an error. It is a live region: without one, a screen-reader
+    // user gets silence and then, a second later, a different page.
     return (
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-        color: "#86868B",
-      }}>
-        Loading project...
-      </div>
+      <AuthShell title="Organization chart">
+        <AuthStatus message="Loading project…" />
+      </AuthShell>
     );
   }
 
