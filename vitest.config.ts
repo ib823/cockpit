@@ -26,10 +26,17 @@ export default defineConfig({
     ],
     // Coverage configuration (B-05: regression floor thresholds)
     //
-    // Floors are set just below MEASURED coverage (2026-08-06: statements 10.1%,
-    // branches 77.59%, functions 62.66%, lines 10.1%) so they act as a real
-    // regression floor. They were previously all 0, which meant coverage could
-    // fall to nothing with CI still green — the gate could not fail.
+    // Floors are set just below MEASURED coverage (2026-08-07, after the dead-code
+    // deletion: statements 16.42%, branches 76.06%, functions 54.81%, lines 16.42%)
+    // so they act as a real regression floor. They were previously all 0, which
+    // meant coverage could fall to nothing with CI still green.
+    //
+    // Re-baselined once: the first floors were measured BEFORE 262 unreachable
+    // files were deleted, and removing that much code changes the denominator.
+    // Statements/lines rose sharply (10.1% -> 16.42%) because most deleted files
+    // reported 0%; functions fell (62.66% -> 54.81%). Re-baselining after a
+    // deliberate composition change is legitimate; lowering a floor to make a
+    // red build pass is not. Do the former, never the latter.
     //
     // Raise these as coverage improves; never lower them to make a build pass.
     //
@@ -41,10 +48,10 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary"],
       thresholds: {
-        statements: 9,
-        branches: 74,
-        functions: 59,
-        lines: 9,
+        statements: 15,
+        branches: 73,
+        functions: 52,
+        lines: 15,
       },
     },
   },
