@@ -1,0 +1,79 @@
+/* Design system — timeline axis (layer 4) */
+
+.axis {
+  position: relative;
+  height: 44px;
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-default);
+  background: var(--ds-surface-sunken);
+  user-select: none;
+  overflow: hidden;
+}
+
+.major, .minor {
+  position: absolute;
+  top: 0;
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  white-space: nowrap;
+  padding-left: 5px;
+}
+
+.major {
+  height: 22px;
+  line-height: 22px;
+  color: var(--ds-content-primary);
+  font-weight: 500;
+  border-left: var(--ds-border-hairline) solid var(--ds-border-default);
+}
+
+.minor {
+  top: 22px;
+  height: 22px;
+  line-height: 22px;
+  color: var(--ds-content-tertiary);
+  border-left: var(--ds-border-hairline) solid var(--ds-border-subtle);
+}
+
+/* Non-working shading. Decorative in the canvas: the same information is in
+   every bar's accessible name as a working-day count, so a screen reader
+   never depends on seeing it. */
+.shade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.weekend { background: var(--ds-surface-app); }
+
+/* Holidays are distinguishable from weekends without relying on hue alone —
+   they carry a top rule as well as a slightly stronger fill. */
+.holiday {
+  background: var(--ds-warning-subtle);
+  border-top: 2px solid var(--ds-warning-default);
+}
+
+/* Today. A 1.5px accent rule plus a label, never a pulse: a permanently
+   animating marker on a plan people stare at for an hour is an accessibility
+   problem, not a delight. */
+.today {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--ds-accent-default);
+  pointer-events: none;
+}
+
+.todayLabel {
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+  padding: 0 4px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-accent-default);
+  color: var(--ds-accent-on);
+  font: var(--ds-type-label);
+  font-size: 10px;
+  line-height: 14px;
+}

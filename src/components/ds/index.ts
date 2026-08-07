@@ -84,6 +84,24 @@ export {
   nudgeDays,
 } from "./gantt/scale";
 export type { ZoomGrain } from "./gantt/scale";
+export { TimelineAxis } from "./gantt/TimelineAxis";
+export type { TimelineAxisProps, AxisTick, NonWorkingDay } from "./gantt/TimelineAxis";
+export { DependencyArrow, DependencyStub } from "./gantt/DependencyArrow";
+export type { DependencyArrowProps, LinkType } from "./gantt/DependencyArrow";
+export { GanttStatus } from "./gantt/GanttStatus";
+export { useMoveMode } from "./gantt/useMoveMode";
+export {
+  sayCursorMove,
+  sayMoveModeOn,
+  sayNudge,
+  sayCommit,
+  sayRevert,
+  sayExpand,
+  saySelection,
+  barAccessibleName,
+  describePredecessors,
+} from "./gantt/announce";
+export type { BarFacts } from "./gantt/announce";
 
 export { Tabs } from "./Tabs";
 export type { TabsProps, TabItem } from "./Tabs";
