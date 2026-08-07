@@ -777,15 +777,44 @@ fixed before the remainder was accepted:
 **The tailwind-merge finding is the one that generalises**: it benefits every
 route that will ever import a design-system component, not just these two.
 
-### Remaining reduction, not yet done
+### Correction: the Field hypothesis was wrong (2026-08-07)
 
-`Field.tsx` holds `Input`, `Textarea`, `NumberInput`, `SearchInput` and
-`Select`. A page wanting one gets all five. Splitting it per component is the
-next reduction and should bring `/login` toward its 30kB target.
+The paragraph that stood here predicted that splitting `Field.tsx` per
+component would be "the next reduction" and bring `/login` toward its 30kB
+target. **It was stated as fact and it was wrong.** The split was done and
+measured:
 
-Splitting `Banner` out of `Feedback.tsx` was tried and yielded only 0.1kB, so
-`Feedback` is not the remaining weight — `Field` is. That was measured, not
-assumed.
+```
+before split: /login 50.8kB · /register 43.7kB
+after  split: /login 50.8kB · /register 43.7kB
+```
+
+**No measurable change.** The same reasoning that correctly ruled out
+`Feedback` (0.1kB) was applied to `Field` without measuring first, and it did
+not hold. The split is kept anyway — one module per control is better hygiene
+and costs nothing — but it must not be credited with a saving it did not make.
+
+### What the bundle is actually made of
+
+Measured from `.next/app-build-manifest.json`:
+
+| Chunk | Size | Paid |
+|---|---|---|
+| Design system shared by `/login` + `/register` | **11.4kB** | once, across both |
+| `/login` page code | 10.0kB | per route |
+| `/register` page code | 3.0kB | per route |
+
+So the design system's own marginal cost is **11.4kB shared**, not the ~23kB
+the per-route budget delta implies. The budget metric sums every chunk a route
+loads, which attributes shared code to each route that touches it — that makes
+the *first* migrations look worse than the steady state, because there is
+nothing yet to amortise against. Each additional migrated route should add its
+own page code and little else.
+
+That is a prediction, and unlike the last one it is written down as a
+prediction: **check it when the third and fourth routes migrate.** If per-route
+JS keeps climbing by ~20kB each, this explanation is also wrong and the real
+cause is still unfound.
 
 ### The rule applied
 
