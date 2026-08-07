@@ -5,7 +5,7 @@
  * Use ?status=connected|disconnected|none to change appearance.
  *
  * Status colors:
- * - connected: Blue (#0062CC) - Active/online state
+ * - connected: Blue (#0B57D0) - Active/online state
  * - disconnected: Amber (#FF9500) - Warning/offline state
  * - none/default: Dark (#0F172A) - Default brand state
  */
@@ -18,7 +18,7 @@ export const runtime = "edge";
 // Status color configuration
 const STATUS_COLORS = {
   connected: {
-    background: "#0062CC", // Apple HIG Blue
+    background: "#0B57D0", // Apple HIG Blue
     foreground: "#FFFFFF", // White
   },
   disconnected: {

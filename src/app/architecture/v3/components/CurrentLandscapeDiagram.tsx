@@ -25,7 +25,7 @@ export function CurrentLandscapeDiagram({
     switch (settings.visualStyle) {
       case "clean":
         return {
-          primary: "#0062CC",
+          primary: "#0B57D0",
           primaryLight: "rgba(0, 122, 255, 0.08)",
           bg: "#fff",
           border: "var(--color-border-subtle)",
@@ -37,9 +37,9 @@ export function CurrentLandscapeDiagram({
         };
       case "bold":
         return {
-          primary: "#0062CC",
+          primary: "#0B57D0",
           primaryLight: "#005EC4",
-          bg: "#0062CC",
+          bg: "#0B57D0",
           border: "#005EC4",
           text: "#fff",
           textSecondary: "#f0f0f0",
@@ -49,10 +49,10 @@ export function CurrentLandscapeDiagram({
         };
       case "gradient":
         return {
-          primary: "#0062CC",
+          primary: "#0B57D0",
           primaryLight: "#AF52DE",
-          bg: "linear-gradient(135deg, #0062CC 0%, #AF52DE 100%)",
-          border: "#0062CC",
+          bg: "linear-gradient(135deg, #0B57D0 0%, #AF52DE 100%)",
+          border: "#0B57D0",
           text: "#fff",
           textSecondary: "#f0f0f0",
           shadow: "0 4px 12px rgba(0, 122, 255, 0.3)",

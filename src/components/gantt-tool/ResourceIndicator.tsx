@@ -113,7 +113,7 @@ export function ResourceIndicator({
           fontFamily: "var(--font-text)",
           fontSize: "12px",
           fontWeight: 500,
-          color: isOverallocated ? "#FF3B30" : "#0062CC",
+          color: isOverallocated ? "#FF3B30" : "#0B57D0",
           cursor: "pointer",
           transition: "all 0.15s ease",
           maxWidth: "100%",
@@ -202,7 +202,7 @@ export function ResourceIndicator({
                   alignItems: "center",
                   gap: "4px",
                   padding: "6px 12px",
-                  backgroundColor: "#0062CC",
+                  backgroundColor: "#0B57D0",
                   color: "#fff",
                   border: "none",
                   borderRadius: "6px",
@@ -215,7 +215,7 @@ export function ResourceIndicator({
                   e.currentTarget.style.backgroundColor = "#0051D5";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#0062CC";
+                  e.currentTarget.style.backgroundColor = "#0B57D0";
                 }}
               >
                 <Settings2 className="w-3.5 h-3.5" />
@@ -284,7 +284,7 @@ export function ResourceIndicator({
                             fontFamily: "SF Mono, Monaco, Consolas, monospace",
                             fontSize: "13px",
                             fontWeight: 700,
-                            color: isOver ? "#FF3B30" : "#0062CC",
+                            color: isOver ? "#FF3B30" : "#0B57D0",
                           }}
                         >
                           {allocation}%
@@ -349,7 +349,7 @@ export function ResourceIndicator({
                           width: "100%",
                           height: "4px",
                           borderRadius: "2px",
-                          background: `linear-gradient(to right, ${isOver ? "#FF3B30" : "#0062CC"} 0%, ${isOver ? "#FF3B30" : "#0062CC"} ${allocation}%, #E5E7EB ${allocation}%, #E5E7EB 100%)`,
+                          background: `linear-gradient(to right, ${isOver ? "#FF3B30" : "#0B57D0"} 0%, ${isOver ? "#FF3B30" : "#0B57D0"} ${allocation}%, #E5E7EB ${allocation}%, #E5E7EB 100%)`,
                           cursor: "pointer",
                           appearance: "none",
                         }}

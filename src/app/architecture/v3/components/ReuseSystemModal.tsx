@@ -65,7 +65,7 @@ export function ReuseSystemModal({
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#E8E8ED";
-                  e.currentTarget.style.borderColor = "#0062CC";
+                  e.currentTarget.style.borderColor = "#0B57D0";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = "#F5F5F7";
@@ -73,7 +73,7 @@ export function ReuseSystemModal({
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <Package className="w-5 h-5" style={{ color: "#0062CC", flexShrink: 0 }} />
+                  <Package className="w-5 h-5" style={{ color: "#0B57D0", flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{

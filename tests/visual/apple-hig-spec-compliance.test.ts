@@ -53,8 +53,9 @@ describe('Apple HIG Specification - PIXEL PERFECT Tests', () => {
       // Deliberately NOT Apple's rgb(0,122,255): that is 4.02:1 on white and
       // fails WCAG 2.2 AA for normal text (needs 4.5:1), which matters because
       // this token is the background of every primary button and carries white
-      // text. rgb(0,98,204) is 5.8:1. Do not "restore" the Apple value.
-      expect(designSystemCSS).toContain('--color-blue: rgb(0, 98, 204)');
+      // text. rgb(11,87,208) is 6.39:1 and matches the Layer 1 design token
+      // (docs/DESIGN_BRIEF_PROMPT.md). Do not "restore" the Apple value.
+      expect(designSystemCSS).toContain('--color-blue: rgb(11, 87, 208)');
     });
 
     it('should have EXACT Apple System Green color rgb(52, 199, 89)', () => {

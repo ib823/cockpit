@@ -54,8 +54,9 @@ describe('Extended Specification Compliance - 100k+ Tests', () => {
 
   // Color permutations (4 colors × 10 opacity levels × 5 usage contexts = 200 tests)
   const semanticColors = [
-    // AA-compliant: 5.8:1 on white. Apple's rgb(0,122,255) is 4.02:1 and fails AA.
-    { name: 'blue', r: 0, g: 98, b: 204 },
+    // AA-compliant: 6.39:1 on white, matching the Layer 1 design token.
+    // Apple's rgb(0,122,255) is 4.02:1 and fails AA.
+    { name: 'blue', r: 11, g: 87, b: 208 },
     { name: 'green', r: 52, g: 199, b: 89 },
     { name: 'orange', r: 255, g: 149, b: 0 },
     { name: 'red', r: 255, g: 59, b: 48 },

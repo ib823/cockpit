@@ -256,7 +256,7 @@ export function ImpactWarning({ severity, message }: { severity: "low" | "medium
 
 export function ColorPickerExample({ value, onChange }: { value: string; onChange?: (color: string) => void }) {
   const colors = [
-    "#0062CC", "#34C759", "#FF9500", "#AF52DE", "#FF3B30",
+    "#0B57D0", "#34C759", "#FF9500", "#AF52DE", "#FF3B30",
     "#00C7BE", "#FFD60A", "#FF2D55", "#5E5CE6", "#32ADE6",
   ];
 

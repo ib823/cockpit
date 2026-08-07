@@ -3379,7 +3379,7 @@ export function GanttCanvasV3({
                                 ? "rgb(52, 199, 89)"
                                 : task.isAMS
                                   ? "rgb(142, 142, 147)" // Gray for AMS tasks
-                                  : "rgb(0, 98, 204)",
+                                  : "rgb(11, 87, 208)",
                               borderRadius: "6px",
                               border: isSelected
                                 ? "2px solid #000"

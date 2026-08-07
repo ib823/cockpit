@@ -196,13 +196,13 @@ describe('Design System Integration - Modal + Button', () => {
     const confirmButton = screen.getByText('Confirm') as HTMLButtonElement;
     const initialColor = confirmButton.style.backgroundColor;
 
-    expect(initialColor).toBe('rgb(0, 98, 204)'); // COLORS.blue
+    expect(initialColor).toBe('rgb(11, 87, 208)'); // COLORS.blue
 
     fireEvent.mouseEnter(confirmButton);
     expect(confirmButton.style.backgroundColor).toBe('rgb(0, 81, 213)'); // blueHover
 
     fireEvent.mouseLeave(confirmButton);
-    expect(confirmButton.style.backgroundColor).toBe('rgb(0, 98, 204)');
+    expect(confirmButton.style.backgroundColor).toBe('rgb(11, 87, 208)');
   });
 
   it('INTEGRATION 8: modal and buttons both use same typography', () => {
@@ -328,11 +328,11 @@ describe('Design System Integration - Token Consistency', () => {
 
     // Primary button should be blue
     const primaryButton = screen.getByText('Confirm') as HTMLButtonElement;
-    expect(primaryButton.style.backgroundColor).toBe('rgb(0, 98, 204)');
+    expect(primaryButton.style.backgroundColor).toBe('rgb(11, 87, 208)');
 
     // Selected date should have blue indicator
     const selectedDateIndicators = Array.from(dateContainer.querySelectorAll('div')).filter(
-      div => (div as HTMLElement).style.backgroundColor?.includes('rgb(0, 98, 204)')
+      div => (div as HTMLElement).style.backgroundColor?.includes('rgb(11, 87, 208)')
     );
     expect(selectedDateIndicators.length).toBeGreaterThan(0);
   });

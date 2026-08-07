@@ -127,7 +127,7 @@ function precomputeTaskWeekOverlaps(
               taskName: `${phase.name} (Phase)`,
               phaseId: phase.id,
               phaseName: phase.name,
-              phaseColor: phase.color || "#0062CC",
+              phaseColor: phase.color || "#0B57D0",
               overlap,
               allocationPercent: assignment.allocationPercentage,
               isPhaseLevel: true,
@@ -161,7 +161,7 @@ function precomputeTaskWeekOverlaps(
               taskName: task.name,
               phaseId: phase.id,
               phaseName: phase.name,
-              phaseColor: phase.color || "#0062CC",
+              phaseColor: phase.color || "#0B57D0",
               overlap,
               allocationPercent: assignment.allocationPercentage,
               isPhaseLevel: false,
@@ -354,7 +354,7 @@ function calculateResourceWeekAllocations(
             taskName: `${phase.name} (Phase)`,
             phaseId: phase.id,
             phaseName: phase.name,
-            phaseColor: phase.color || "#0062CC",
+            phaseColor: phase.color || "#0B57D0",
             allocationPercent: Math.round(weekAllocation),
             overlapDays: overlap,
           });
@@ -383,7 +383,7 @@ function calculateResourceWeekAllocations(
               taskName: task.name,
               phaseId: phase.id,
               phaseName: phase.name,
-              phaseColor: phase.color || "#0062CC",
+              phaseColor: phase.color || "#0B57D0",
               allocationPercent: Math.round(weekAllocation),
               overlapDays: overlap,
             });
@@ -496,7 +496,7 @@ export function getAllocationStatusColor(percent: number): string {
   if (percent > 100) return "#FF3B30"; // Red - overallocated
   if (percent > 80) return "#FF9500"; // Orange - at risk
   if (percent > 50) return "#34C759"; // Green - healthy
-  if (percent > 0) return "#0062CC"; // Blue - light load
+  if (percent > 0) return "#0B57D0"; // Blue - light load
   return "transparent"; // No allocation
 }
 
@@ -505,7 +505,7 @@ export function getAllocationStatusColor(percent: number): string {
  */
 export function getAvailabilityStatusColor(availablePercent: number): string {
   if (availablePercent >= 80) return "#34C759"; // Green - highly available
-  if (availablePercent >= 50) return "#0062CC"; // Blue - moderately available
+  if (availablePercent >= 50) return "#0B57D0"; // Blue - moderately available
   if (availablePercent >= 20) return "#FF9500"; // Orange - limited availability
   if (availablePercent > 0) return "#FF3B30"; // Red - almost full
   return "#8E8E93"; // Gray - fully allocated
