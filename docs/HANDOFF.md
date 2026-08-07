@@ -200,6 +200,48 @@ far below branches/functions because a large share of `src/` is unreachable from
 any route and reports 0% — deleting that dead code raises the figure without
 writing a single test.
 
+### Ninth batch — Sentry error reporting (2026-08-07)
+
+Closes the audit's #1 production blocker: the app had no error visibility at
+all. Wired the SDK across client/server/edge, plus `onRequestError` so RSC,
+route-handler and middleware failures are captured. `ErrorBoundary`,
+`error.tsx` and `global-error.tsx` all logged but reached nothing off-box; they
+now report.
+
+`src/instrumentation.ts` also imports `@/lib/env`, which finally makes that
+module's "fails loudly at startup" claim true — it previously ran only when one
+of five routes imported it.
+
+Credential scrubbing is a security control, not hygiene: this app hands users
+URLs carrying live bearer tokens (account lockdown, email-change revocation,
+magic links, cron secret), so an error on those routes would have shipped a
+working credential to a third party. `scrubUrl` redacts them in the event URL
+and every breadcrumb; cookies/headers/body are dropped wholesale.
+`sendDefaultPii: false`; Session Replay deliberately not enabled.
+
+Bundle cost, measured: +186kB on the shared baseline (343 -> 529kB), paid by
+every route. Tree-shaking tracing out recovered ~82kB. The budget gate caught
+this unaided — which is what it was rebuilt for. Per-route budgets unchanged;
+only the first-load ceiling moved (1050 -> 1300kB).
+
+### Design system — complete and reviewed (2026-08-07)
+
+All five layers delivered (11 canonical documents). Reviewed against the brief:
+16 of 17 routes, all five breakpoints, sync state machine complete, redaction
+implemented as specified ("Visible subtotal — N of M lines", never a bare
+total). Three findings raised and all three fixed: a WCAG AA failure in Sync
+(invented `#CDEBDB` at 4.24:1, replaced with Layer 1's `#E3F5EB`), five missing
+system screens, and absent dark mode on the Auth and Core screens.
+
+Final audit: 237 colour pairs checked programmatically, **zero real failures** —
+every candidate was an extraction artifact or the documented `content/disabled`
+exemption. Every contrast ratio spot-checked against the documents' own claims
+matched exactly.
+
+The design is a specification, not an implementation. Building it into the app
+is a substantial programme, and the Gantt and org chart remain bespoke
+engineering regardless of how well they are specified.
+
 ### Remaining known issues (audited, NOT fixed)
 
 Ranked, with the reason each was deferred rather than attempted here:
