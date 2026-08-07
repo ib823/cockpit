@@ -55,6 +55,7 @@ async function assertDeltaOwnership(
   delta: {
     resources?: { updated?: unknown[] };
     phases?: { updated?: unknown[] };
+    tasks?: { updated?: unknown[]; deleted?: string[] };
     milestones?: { updated?: unknown[] };
     holidays?: { updated?: unknown[] };
   }
@@ -72,6 +73,13 @@ async function assertDeltaOwnership(
       entity: "phase",
       ids: ids(delta.phases?.updated),
       count: (list) => tx.ganttPhase.count({ where: { id: { in: list }, projectId } }),
+    },
+    {
+      // Tasks are owned transitively, through their phase.
+      entity: "task",
+      ids: [...ids(delta.tasks?.updated), ...(delta.tasks?.deleted ?? [])],
+      count: (list) =>
+        tx.ganttTask.count({ where: { id: { in: list }, phase: { projectId } } }),
     },
     {
       entity: "milestone",
@@ -402,53 +410,117 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
             });
           }
 
-          // Re-sync tasks for phases that provided a `tasks` array. Deleting a
-          // task cascades to its resource assignments, so we delete-then-recreate
-          // in batched set-based queries instead of per-phase/per-task loops.
+          // Re-sync tasks for phases that provided a `tasks` array.
+          //
+          // This diffs rather than replaces. It used to delete every task in
+          // the phase and recreate whatever the payload contained, which meant
+          // a payload missing a task silently destroyed it — and destroyed its
+          // resource assignments with it via cascade. Nothing on the server
+          // guarantees the client sends a complete array, so that invariant was
+          // implicit and unguarded. Proven against a real database in
+          // tests/integration/delta-task-persistence.int.test.ts.
           const phasesWithTasks = updatedPhases.filter((p) => p.tasks !== undefined);
           if (phasesWithTasks.length > 0) {
-            await tx.ganttTask.deleteMany({
-              where: {
-                phaseId: { in: phasesWithTasks.map((p) => p.id) },
-                phase: { projectId },
-              },
-            });
+            const syncedPhaseIds = phasesWithTasks.map((p) => p.id);
 
-            const tasksToCreate = phasesWithTasks.flatMap((phase) =>
+            // Existing rows, scoped through the phase relation so a foreign
+            // phase id can never widen the set (see assertDeltaOwnership).
+            const existingTasks = await tx.ganttTask.findMany({
+              where: { phaseId: { in: syncedPhaseIds }, phase: { projectId } },
+              select: { id: true, phaseId: true },
+            });
+            const existingTaskIds = new Set(existingTasks.map((t) => t.id));
+
+            const payloadTasks = phasesWithTasks.flatMap((phase) =>
               (phase.tasks ?? []).map((task, index: number) => ({
-                id: task.id,
-                phaseId: phase.id,
-                name: task.name,
-                description: task.description,
-                startDate: new Date(task.startDate),
-                endDate: new Date(task.endDate),
-                progress: task.progress || 0,
-                assignee: task.assignee,
-                order: task.order !== undefined ? task.order : index,
-                dependencies: task.dependencies || [],
+                phase,
+                task,
+                row: {
+                  id: task.id,
+                  phaseId: phase.id,
+                  name: task.name,
+                  description: task.description,
+                  startDate: new Date(task.startDate),
+                  endDate: new Date(task.endDate),
+                  progress: task.progress || 0,
+                  assignee: task.assignee,
+                  order: task.order !== undefined ? task.order : index,
+                  dependencies: task.dependencies || [],
+                },
               }))
             );
-            if (tasksToCreate.length > 0) {
-              await tx.ganttTask.createMany({ data: tasksToCreate, skipDuplicates: true });
+
+            // Deliberately NO delete-by-omission.
+            //
+            // A phase payload cannot distinguish "the user deleted this task"
+            // from "the client did not send it". Treating absence as deletion
+            // is what destroyed data here, and a diff alone does not fix that —
+            // it only makes the destruction tidier. In a local-first app whose
+            // client may hold a partial or stale copy, absence must mean
+            // "unchanged".
+            //
+            // Deletion is therefore explicit only, via `delta.tasks.deleted`,
+            // where the client states the intent rather than implying it.
+
+            // Create the genuinely new ones.
+            const newTaskRows = payloadTasks
+              .filter((t) => !existingTaskIds.has(t.row.id))
+              .map((t) => t.row);
+            if (newTaskRows.length > 0) {
+              await tx.ganttTask.createMany({ data: newTaskRows, skipDuplicates: true });
             }
 
-            const taskAssignmentsToCreate = phasesWithTasks.flatMap((phase) =>
-              (phase.tasks ?? []).flatMap((task) =>
-                (task.resourceAssignments ?? []).map((ra) => ({
+            // Update the survivors in place, so their identity — and anything
+            // referencing it — is preserved.
+            for (const { row } of payloadTasks.filter((t) => existingTaskIds.has(t.row.id))) {
+              const { id, ...fields } = row;
+              await tx.ganttTask.updateMany({
+                where: { id, phase: { projectId } },
+                data: fields,
+              });
+            }
+
+            // Resource assignments now need explicit reconciliation. While tasks
+            // were delete-and-recreated their assignments were swept away by
+            // cascade, so a bare createMany sufficed. Surviving tasks keep their
+            // assignments, so an assignment the user removed would otherwise
+            // persist forever.
+            //
+            // Only tasks that actually supplied `resourceAssignments` are
+            // touched; `undefined` means "not specified", not "empty".
+            const tasksWithAssignments = payloadTasks.filter(
+              (t) => t.task.resourceAssignments !== undefined
+            );
+            if (tasksWithAssignments.length > 0) {
+              const assignmentTaskIds = tasksWithAssignments.map((t) => t.row.id);
+              const keepAssignmentIds = tasksWithAssignments.flatMap((t) =>
+                (t.task.resourceAssignments ?? []).map((ra) => ra.id)
+              );
+
+              await tx.ganttTaskResourceAssignment.deleteMany({
+                where: {
+                  taskId: { in: assignmentTaskIds },
+                  ...(keepAssignmentIds.length > 0 ? { id: { notIn: keepAssignmentIds } } : {}),
+                  task: { phase: { projectId } },
+                },
+              });
+
+              const assignmentRows = tasksWithAssignments.flatMap((t) =>
+                (t.task.resourceAssignments ?? []).map((ra) => ({
                   id: ra.id,
-                  taskId: task.id,
+                  taskId: t.row.id,
                   resourceId: ra.resourceId,
                   assignmentNotes: ra.assignmentNotes || "",
                   allocationPercentage: ra.allocationPercentage || 100,
                   assignedAt: new Date(ra.assignedAt || Date.now()),
                 }))
-              )
-            );
-            if (taskAssignmentsToCreate.length > 0) {
-              await tx.ganttTaskResourceAssignment.createMany({
-                data: taskAssignmentsToCreate,
-                skipDuplicates: true,
-              });
+              );
+              if (assignmentRows.length > 0) {
+                await tx.ganttTaskResourceAssignment.createMany({
+                  data: assignmentRows,
+                  skipDuplicates: true,
+                });
+              }
             }
           }
 
@@ -480,6 +552,60 @@ export const PATCH = withAuth<{ params: Promise<{ projectId: string }> }>(
                 skipDuplicates: true,
               });
             }
+          }
+        }
+      }
+
+      // 3b. Handle task-level changes.
+      //
+      // `delta.tasks` was accepted by DeltaSaveSchema and read by nothing, so a
+      // task edit could only reach the database through the phase path — which
+      // is why a partial phase payload destroyed siblings. Handling tasks
+      // directly lets a client change one task without restating its phase.
+      if (delta.tasks) {
+        if (delta.tasks.deleted && delta.tasks.deleted.length > 0) {
+          await tx.ganttTask.deleteMany({
+            where: { id: { in: delta.tasks.deleted }, phase: { projectId } },
+          });
+        }
+
+        if (delta.tasks.created && delta.tasks.created.length > 0) {
+          await tx.ganttTask.createMany({
+            data: (delta.tasks.created as unknown as (GanttTask & { phaseId: string })[]).map(
+              (t, index) => ({
+                id: t.id,
+                phaseId: t.phaseId,
+                name: t.name,
+                description: t.description,
+                startDate: new Date(t.startDate),
+                endDate: new Date(t.endDate),
+                progress: t.progress || 0,
+                assignee: t.assignee,
+                order: t.order !== undefined ? t.order : index,
+                dependencies: t.dependencies || [],
+              })
+            ),
+            skipDuplicates: true,
+          });
+        }
+
+        if (delta.tasks.updated && delta.tasks.updated.length > 0) {
+          for (const t of delta.tasks.updated as unknown as GanttTask[]) {
+            await tx.ganttTask.updateMany({
+              // Scoped through the phase relation, so a foreign task id cannot
+              // be written even though the caller owns this project.
+              where: { id: t.id, phase: { projectId } },
+              data: {
+                name: t.name,
+                description: t.description,
+                startDate: new Date(t.startDate),
+                endDate: new Date(t.endDate),
+                progress: t.progress || 0,
+                assignee: t.assignee,
+                ...(t.order !== undefined ? { order: t.order } : {}),
+                dependencies: t.dependencies || [],
+              },
+            });
           }
         }
       }
