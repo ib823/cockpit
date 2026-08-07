@@ -65,3 +65,25 @@ export type {
   ProgressProps,
   SkeletonProps,
 } from "./Display";
+
+/* Layer 4 — domain surfaces. Imported from their own paths in routes that
+ * need them; re-exported here for discoverability. */
+export { GanttBar } from "./gantt/GanttBar";
+export type { GanttBarProps, BarKind } from "./gantt/GanttBar";
+export { AllocationCell } from "./gantt/AllocationCell";
+export type { AllocationCellProps } from "./gantt/AllocationCell";
+export {
+  PX_PER_DAY,
+  DAYS_PER_TICK,
+  ROW_HEIGHT,
+  BAR_HEIGHT,
+  daysToPx,
+  pxToDays,
+  labelFitsInside,
+  showsDayShading,
+  nudgeDays,
+} from "./gantt/scale";
+export type { ZoomGrain } from "./gantt/scale";
+
+export { Tabs } from "./Tabs";
+export type { TabsProps, TabItem } from "./Tabs";

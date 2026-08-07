@@ -1,0 +1,59 @@
+/* Design system — allocation heat cell (layer 4) */
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 44px;
+  height: 28px;
+  padding: 0 var(--ds-space-2);
+  border: none;
+  background: none;
+  font: var(--ds-type-numeric);
+  font-size: 12px;
+  font-variant-numeric: var(--ds-numeric-feature);
+  color: var(--ds-content-primary);
+  cursor: pointer;
+}
+
+.cell:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: -2px;
+}
+
+/* Heat bands. Each is a token pair chosen so the printed figure clears 4.5:1
+   on its own fill — the number is never decorative. */
+.free      { background: var(--ds-surface-base);    color: var(--ds-content-tertiary); }
+.light     { background: var(--ds-accent-subtle);   color: var(--ds-accent-default); }
+.healthy   { background: var(--ds-success-subtle);  color: var(--ds-success-default); }
+.full      { background: var(--ds-warning-subtle);  color: var(--ds-warning-default); }
+.over      { background: var(--ds-danger-subtle);   color: var(--ds-danger-default); }
+
+/* Above 100% adds a diagonal hatch, so over-allocation survives a monochrome
+   print and any colour-vision deficiency. The figure is already printed; this
+   is the third channel. */
+.hatch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 3px,
+    currentColor 3px 4px
+  );
+  opacity: 0.28;
+}
+
+/* A cell whose figure is hidden by cost visibility. Fixed width so the column
+   does not reflow between users with different levels. */
+.redacted {
+  background: var(--ds-surface-sunken);
+  color: var(--ds-content-tertiary);
+  cursor: not-allowed;
+  justify-content: center;
+  gap: 4px;
+}
+
+.lock { width: 10px; height: 10px; flex: none; }
