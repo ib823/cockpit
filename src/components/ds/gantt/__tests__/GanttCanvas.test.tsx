@@ -285,16 +285,17 @@ describe("zoom", () => {
 
     grid.focus();
     await userEvent.keyboard("-");
-    expect(screen.getByText("Month")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Month" })).toBeChecked();
 
     await userEvent.keyboard("+");
-    expect(screen.getByText("Week")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Week" })).toBeChecked();
   });
 
   test("zoom controls are reachable by pointer too", async () => {
     render(<Harness phases={plan(2, 0)} />);
-    await userEvent.click(screen.getByRole("button", { name: "Zoom out" }));
-    expect(screen.getByText("Month")).toBeInTheDocument();
+    // The spec's segmented control: one radio per grain, the active one checked.
+    await userEvent.click(screen.getByRole("radio", { name: "Month" }));
+    expect(screen.getByRole("radio", { name: "Month" })).toBeChecked();
   });
 });
 
@@ -316,19 +317,22 @@ describe("detail columns", () => {
   it("stays a name-only tree when no details are given", () => {
     render(<Harness phases={plan(1, 0)} />);
 
-    // The pre-existing callers and the showcase must be untouched by the new
-    // prop: no column headers appear unless details do.
-    expect(screen.queryByText("Work Days")).not.toBeInTheDocument();
+    // The pre-existing callers and the showcase must be untouched by the
+    // prop: no dates column appears unless details do.
+    expect(screen.queryByText("Dates")).not.toBeInTheDocument();
   });
 
-  it("renders legacy's four-column grid when details are given", () => {
+  it("renders the spec's two-column pane — name and dates — when details are given", () => {
     render(<Harness phases={plan(1, 0)} details={details} />);
 
-    expect(screen.getByText("Duration")).toBeInTheDocument();
-    expect(screen.getByText("Work Days")).toBeInTheDocument();
-    expect(screen.getByText("Start-End")).toBeInTheDocument();
-    expect(screen.getByText("20 d")).toBeInTheDocument();
-    expect(screen.getByText("0.9 m")).toBeInTheDocument();
+    expect(screen.getByText("Dates")).toBeInTheDocument();
+    expect(
+      screen.getByText("05-Jan-26 (Mon) - 30-Jan-26 (Fri)")
+    ).toBeInTheDocument();
+    // Duration and working days are not columns; they live in the bar's
+    // accessible description (asserted below), per the layer-4a pane.
+    expect(screen.queryByText("Duration")).not.toBeInTheDocument();
+    expect(screen.queryByText("Work Days")).not.toBeInTheDocument();
   });
 
   it("adds working days to the bar's accessible name", () => {

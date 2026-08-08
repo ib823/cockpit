@@ -1,16 +1,106 @@
 /* Design system — Gantt canvas (layer 4) */
 
-.canvas {
-  display: flex;
-  min-width: 0;
-  border: var(--ds-border-hairline) solid var(--ds-border-subtle);
+/* One frame around toolbar, panes and legend, so the timeline reads as a
+   single instrument rather than a stack of unrelated strips. */
+.frame {
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
   border-radius: var(--ds-radius-lg);
   background: var(--ds-surface-raised);
   overflow: hidden;
 }
 
-/* The tree pane never scrolls horizontally away. It is the reliable place to
-   read a name when a bar's label has been dropped for lack of room. */
+.canvas {
+  display: flex;
+  min-width: 0;
+  background: var(--ds-surface-raised);
+}
+
+/* ---------------------------------------------------------------------------
+ * Toolbar — zoom, page actions, row count
+ * -------------------------------------------------------------------------*/
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-default);
+  background: var(--ds-surface-raised);
+  flex-wrap: wrap;
+}
+
+/* The segmented zoom control: a sunken track, the active grain raised. */
+.zoomGroup {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-sunken);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+}
+
+.zoomCell {
+  height: 26px;
+  padding: 0 var(--ds-space-3);
+  border-radius: var(--ds-radius-sm);
+  border: var(--ds-border-hairline) solid transparent;
+  background: transparent;
+  font: var(--ds-type-body-sm);
+  font-weight: 500;
+  color: var(--ds-content-secondary);
+  cursor: pointer;
+}
+
+.zoomCell:hover {
+  color: var(--ds-content-primary);
+}
+
+.zoomCell:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+/* Raised white, bordered and shadowed — the state is carried by three
+   channels, not colour alone. aria-checked carries the fourth. */
+.zoomCellActive {
+  background: var(--ds-surface-raised);
+  color: var(--ds-content-primary);
+  border-color: var(--ds-border-default);
+  box-shadow: var(--ds-elevation-1);
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 20px;
+  background: var(--ds-border-default);
+  flex: none;
+}
+
+.spacer { flex: 1 1 auto; }
+
+.rowCount {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.moveHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 var(--ds-space-2);
+  height: 20px;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-accent-default);
+  color: var(--ds-accent-on);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+}
+
+/* ---------------------------------------------------------------------------
+ * Tree pane — name and dates; 392px per the spec
+ * -------------------------------------------------------------------------*/
 .treePane {
   flex: none;
   width: 280px;
@@ -19,18 +109,27 @@
   background: var(--ds-surface-raised);
 }
 
-.treeHeader, .timelineHeader {
-  height: 44px;
+/* Matches the axis' two 28px tiers so the panes' first rows align. */
+.treeHeader {
+  height: 56px;
   border-bottom: var(--ds-border-hairline) solid var(--ds-border-default);
   background: var(--ds-surface-sunken);
   display: flex;
   align-items: center;
+  gap: var(--ds-space-2);
   padding: 0 var(--ds-space-3);
-  font: var(--ds-type-heading-sm);
-  letter-spacing: var(--ds-ls-heading-sm);
+}
+
+.treeHeaderLabel,
+.treeHeaderDates {
+  font: var(--ds-type-label);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ds-content-secondary);
+  font-weight: 600;
 }
+
+.treeHeaderDates { margin-left: auto; }
 
 .treeBody, .timelineBody {
   overflow: auto;
@@ -43,16 +142,18 @@
 
 .timelinePane { flex: 1 1 auto; min-width: 0; overflow: hidden; }
 
-.rowsLayer { position: relative; }
-
 .row {
   display: flex;
   align-items: center;
   gap: var(--ds-space-1);
-  padding-right: var(--ds-space-2);
+  padding-right: var(--ds-space-3);
   border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
   cursor: default;
 }
+
+/* A phase row is a summary; its tint spans both panes so the grouping reads
+   across the split. */
+.rowPhase { background: var(--ds-surface-sunken); }
 
 .rowSelected { background: var(--ds-accent-subtle); }
 .rowCursor { box-shadow: inset 2px 0 0 var(--ds-accent-default); }
@@ -92,54 +193,113 @@
   color: var(--ds-content-primary);
 }
 
-.treeNamePhase { font-weight: 500; }
+.treeNamePhase { font-weight: 600; }
 
-/* Detail columns, at legacy's widths. Fixed rather than fluid so a long task
- * name can never squeeze the numbers into ambiguity. */
-.detailCell,
-.detailCellWide {
+/* The dates column: right-aligned, tabular, quiet. */
+.treeDates {
   flex: none;
-  text-align: center;
+  margin-left: auto;
   font: var(--ds-type-label);
   color: var(--ds-content-secondary);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.detailCell { width: 90px; }
-.detailCellWide { width: 180px; }
-
+/* ---------------------------------------------------------------------------
+ * Timeline rows and full-height marking
+ * -------------------------------------------------------------------------*/
 .timelineRow {
   position: relative;
   border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
 }
 
+.timelineRowPhase { background: var(--ds-surface-sunken); }
+
 .timelineRowSelected { background: var(--ds-accent-subtle); }
 
-.moveHint {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 var(--ds-space-2);
-  height: 20px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-accent-default);
-  color: var(--ds-accent-on);
-  font: var(--ds-type-label);
-  letter-spacing: var(--ds-ls-label);
+/* Weekend and holiday bands span every row, not just the axis strip. */
+.shadeBand {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
 }
 
-.toolbar {
+.shadeWeekend { background: var(--ds-surface-app); }
+
+.shadeHoliday { background: var(--ds-warning-subtle); }
+
+/* Continues the axis' today marker down the canvas. Never pulses. */
+.todayRule {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--ds-accent-default);
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Legend — only the marks this plan actually draws
+ * -------------------------------------------------------------------------*/
+.legend {
   display: flex;
   align-items: center;
-  gap: var(--ds-space-2);
-  padding: var(--ds-space-3) var(--ds-space-4);
-  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border-top: var(--ds-border-hairline) solid var(--ds-border-default);
+  background: var(--ds-surface-raised);
   flex-wrap: wrap;
 }
 
-.spacer { flex: 1 1 auto; }
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--ds-type-label);
+  color: var(--ds-content-secondary);
+  white-space: nowrap;
+}
+
+.legendSwatch {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.legendPhase { background: var(--ds-content-secondary); height: 8px; }
+
+.legendTask {
+  background: var(--ds-accent-subtle);
+  border: 1px solid var(--ds-accent-default);
+}
+
+.legendMilestone {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  background: var(--ds-content-primary);
+  transform: rotate(45deg);
+}
+
+.legendAms {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid #ff6b35;
+}
+
+.legendHoliday { background: var(--ds-warning-subtle); border: 1px solid var(--ds-warning-border); }
+
+.legendToday {
+  width: 2px;
+  height: 12px;
+  flex: none;
+  background: var(--ds-accent-default);
+}
 
 .srOnly {
   position: absolute;

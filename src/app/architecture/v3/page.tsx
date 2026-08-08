@@ -12,9 +12,10 @@ import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { AppShell } from "@/components/ds/AppShell";
+import { Button } from "@/components/ds/Button";
 import { UserMenu } from "@/components/navigation/UserMenu";
 import { globalNav, toSyncChip } from "@/components/navigation/global-nav";
-import { Tier2Header } from "@/components/navigation/Tier2Header";
+import { ProjectSwitcher } from "@/components/gantt-tool/ProjectSwitcher";
 import { NewProjectModal } from "@/components/gantt-tool/NewProjectModal";
 import { OrgChartBuilder } from "@/components/gantt-tool/OrgChartBuilder";
 import { BeaconLoader } from "@/components/ds/BeaconLoader";
@@ -271,10 +272,8 @@ export default function ArchitectureV3Page() {
       primaryNav={globalNav("/architecture/v3")}
       sync={toSyncChip(syncStatus)}
       topBarEnd={<UserMenu session={session} />}
-    >
-      <div className={styles.container}>
-        {/* Tool Navigation - Tier 2 */}
-        <Tier2Header
+      projectSlot={
+        <ProjectSwitcher
           currentProject={currentProject}
           projects={projects}
           onSelectProject={loadProject}
@@ -282,50 +281,24 @@ export default function ArchitectureV3Page() {
           onUpdateProjectName={handleUpdateProjectName}
           onDeleteProject={handleDeleteProject}
           isLoading={isLoading}
-          version="v3.0"
-          lastSyncAt={lastSyncAt}
-          syncStatus={syncStatus}
-          showMetrics={false}
-          rightContent={
-            <>
-              {/* Team Allocation Panel Toggle */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowOrgChart(!showOrgChart);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--line)",
-                  backgroundColor: showOrgChart ? "var(--color-blue-light)" : "transparent",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => { if (!showOrgChart) e.currentTarget.style.backgroundColor = "var(--color-gray-6)" }}
-                onMouseLeave={(e) => { if (!showOrgChart) e.currentTarget.style.backgroundColor = "transparent" }}
-                aria-label={showOrgChart ? "Close team allocation panel" : "Open team allocation panel"}
-                aria-pressed={showOrgChart}
-              >
-                <Users className="w-4 h-4" style={{ color: showOrgChart ? "var(--color-blue)" : "var(--color-text-secondary)" }} aria-hidden="true" />
-              </button>
-
-              {/* Share & Export */}
-              <button
-                className={styles.iconButton}
-                aria-label="Share and export architecture diagram"
-              >
-                <Share2 className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </>
-          }
         />
+      }
+    >
+      <div className={styles.container}>
+        {/* Tool actions: labelled ds buttons, no icon strip. */}
+        <div className="ds" style={{ display: "flex", alignItems: "center", gap: "var(--ds-space-2)", padding: "var(--ds-space-2) var(--ds-space-4)", borderBottom: "var(--ds-border-hairline) solid var(--ds-border-default)", background: "var(--ds-surface-raised)" }}>
+          <span style={{ flex: "1 1 auto" }} />
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={<Users size={14} aria-hidden="true" />}
+            aria-pressed={showOrgChart}
+            onClick={() => setShowOrgChart(!showOrgChart)}
+            title="Team structure"
+          >
+            Team
+          </Button>
+        </div>
 
       {/* Main Layout with optional sidebar */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>

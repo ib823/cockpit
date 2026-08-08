@@ -9,15 +9,13 @@
 
 ```
 /gantt-tool (page.tsx)
-├── AppShell (ds top bar) · Tier2Header
-│   └── ProjectTabNavigation (timeline | context | financials)
-│       └── ViewModeSelector (zoom segmented control)
-├── [timeline] GanttCanvasV3            ← the single primary canvas
-│   ├── GanttMinimap · DependencyArrows · MilestoneMarker ×n · HeatmapPhaseBar · CollapsedPhasePreview
-│   ├── PhaseRow ×n → TaskRow ×n → ResourceIndicator
-│   ├── ResourceCapacityPanel → VirtualizedResourceCapacity → ResourceRowMemoized
-│   ├── ResourceDrawer · MobileGanttView (responsive)
-│   └── inline modals (Edit/Delete Phase·Task, Milestone, Allocation, ResourceEdit, TaskResource)
+├── AppShell (ds top bar: ProjectSwitcher · sync chip · UserMenu)
+│   └── ds Tabs (timeline | context | financials)
+├── [timeline] GanttCanvasNext → ds GanttCanvas   ← the single canvas (legacy V3 and its
+│   │          Tier2Header/ProjectTabNavigation/ViewModeSelector chrome deleted in the spec revamp)
+│   ├── ds toolbar (zoom radiogroup + labelled actions) · GanttBar · GanttMilestones · GanttAmsChevron
+│   ├── GanttCapacityPanel (toggle) · EditPhaseModal/EditTaskModal via row activation
+│   └── MilestoneModal (shared editing surface)
 ├── [context]    ProjectContextTab
 ├── [financials] FinancialsTab → CostDashboard + CostingConfigModal
 └── route-level lazy modals: NewProject · Import(V1/V2/Excel) · Add Phase/Task · Export ·

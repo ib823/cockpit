@@ -163,6 +163,11 @@ export interface AppShellProps {
 
   /** Product name shown at the far left. */
   brand?: ReactNode;
+  /**
+   * An interactive project control (switcher menu) in the project position.
+   * Takes precedence over `projectName`, which stays for read-only shells.
+   */
+  projectSlot?: ReactNode;
   /** Full project name; replaced by `projectCode` on narrow screens. */
   projectName?: string;
   projectCode?: string;
@@ -198,6 +203,7 @@ export interface AppShellProps {
 export function AppShell({
   children,
   brand = DEFAULT_BRAND,
+  projectSlot,
   projectName,
   projectCode,
   role,
@@ -219,7 +225,8 @@ export function AppShell({
           {brand}
         </Link>
 
-        {projectName && (
+        {projectSlot}
+        {!projectSlot && projectName && (
           <>
             <span className={styles.projectName} title={projectName}>
               {projectName}

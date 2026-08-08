@@ -37,15 +37,16 @@
  * comparison on real plans, not another slice.
  */
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, type ReactNode } from "react";
 import { addDays, differenceInDays, format } from "date-fns";
 import { GanttCanvas } from "@/components/ds/gantt/GanttCanvas";
 import { MilestoneModal } from "@/components/gantt-tool/MilestoneModal";
+import { EditPhaseModal } from "@/components/gantt-tool/EditPhaseModal";
+import { EditTaskModal } from "@/components/gantt-tool/EditTaskModal";
 import type { MilestoneFormData } from "@/types/gantt-tool";
 import { logger } from "@/lib/logger";
 import type { ZoomGrain } from "@/components/ds/gantt/scale";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
-import type { ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { toCanvasMilestones, toCanvasModel } from "./adapter";
 import { buildAxisTicks, buildNonWorkingDays } from "./axis";
 import { buildRowDetails } from "./details";
@@ -54,25 +55,20 @@ import { GanttCapacityPanel } from "@/components/ds/gantt/GanttCapacityPanel";
 import { calculateResourceCapacity } from "@/lib/gantt-tool/resource-capacity-calculator";
 
 /**
- * The legacy zoom vocabulary has an "auto" and a "year"; the canvas grain has a
- * "Day" and no "year". Mapping rather than widening the canvas keeps the two
- * vocabularies from leaking into each other while both exist.
- *
- * "auto" resolves to Week because that is what the legacy canvas picks for the
- * great majority of plans, and a comparison view that silently chose a
- * different zoom would make every bar look wrong.
+ * The starting grain follows the plan's span: a two-month plan at Quarter is
+ * an empty screen, a three-year programme at Day is an endless corridor. The
+ * user's explicit choice in the zoom control always overrides this.
  */
-const GRAIN_BY_ZOOM: Record<ZoomMode, ZoomGrain> = {
-  auto: "Week",
-  week: "Week",
-  month: "Month",
-  quarter: "Quarter",
-  year: "Quarter",
-};
+function autoGrain(durationDays: number): ZoomGrain {
+  if (durationDays <= 180) return "Week";
+  if (durationDays <= 730) return "Month";
+  return "Quarter";
+}
 
 export interface GanttCanvasNextProps {
-  zoomMode: ZoomMode;
   height?: number;
+  /** Page actions for the canvas toolbar, after the zoom control. */
+  toolbar?: ReactNode;
   /**
    * The page owns "open the milestone modal" (its toolbar button sets it), so
    * the next canvas honours the same pair of props the legacy one takes —
@@ -90,8 +86,8 @@ export interface GanttCanvasNextProps {
 }
 
 export function GanttCanvasNext({
-  zoomMode,
   height,
+  toolbar,
   showMilestoneModal,
   onShowMilestoneModalChange,
   showResourceCapacity = false,
@@ -107,15 +103,22 @@ export function GanttCanvasNext({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [grainOverride, setGrainOverride] = useState<ZoomGrain | null>(null);
 
-  // Controlled by the page when it passes the pair, local otherwise — the
-  // same arrangement GanttCanvasV3 uses for the same prop.
+  // Row activation (Enter, double-click) opens the row's editor — rename,
+  // dates, delete. The editors are store-wired, so nothing threads back up.
+  const [editing, setEditing] = useState<
+    | { kind: "phase"; phaseId: string }
+    | { kind: "task"; phaseId: string; taskId: string }
+    | null
+  >(null);
+
+  // Controlled by the page when it passes the pair, local otherwise.
   const [milestoneModalLocal, setMilestoneModalLocal] = useState(false);
   const milestoneModalOpen = showMilestoneModal ?? milestoneModalLocal;
   const setMilestoneModalOpen = onShowMilestoneModalChange ?? setMilestoneModalLocal;
 
   const bounds = getProjectDuration();
   const phases = currentProject?.phases;
-  const grain = grainOverride ?? GRAIN_BY_ZOOM[zoomMode];
+  const grain = grainOverride ?? autoGrain(bounds?.durationDays ?? 0);
 
   const model = useMemo(
     () => (bounds && phases ? toCanvasModel(phases, bounds) : null),
@@ -259,8 +262,50 @@ export function GanttCanvasNext({
         // which lists and edits all of them. A per-milestone editor would be
         // an improvement, but parity first — improvements after the flip.
         onMilestoneActivate={() => setMilestoneModalOpen(true)}
+        onRowActivate={(id) => {
+          if (!currentProject) return;
+          const phase = currentProject.phases.find((p) => p.id === id);
+          if (phase) {
+            setEditing({ kind: "phase", phaseId: id });
+            return;
+          }
+          for (const candidate of currentProject.phases) {
+            if ((candidate.tasks ?? []).some((t) => t.id === id)) {
+              setEditing({ kind: "task", phaseId: candidate.id, taskId: id });
+              return;
+            }
+          }
+        }}
+        toolbar={toolbar}
         height={height}
       />
+
+      {editing?.kind === "phase" &&
+        (() => {
+          const phase = currentProject?.phases.find((p) => p.id === editing.phaseId);
+          return phase ? (
+            <EditPhaseModal
+              isOpen
+              onClose={() => setEditing(null)}
+              phase={phase}
+              phaseId={editing.phaseId}
+            />
+          ) : null;
+        })()}
+      {editing?.kind === "task" &&
+        (() => {
+          const phase = currentProject?.phases.find((p) => p.id === editing.phaseId);
+          const task = (phase?.tasks ?? []).find((t) => t.id === editing.taskId);
+          return task ? (
+            <EditTaskModal
+              isOpen
+              onClose={() => setEditing(null)}
+              task={task}
+              taskId={editing.taskId}
+              phaseId={editing.phaseId}
+            />
+          ) : null;
+        })()}
 
       {showResourceCapacity && (
         <GanttCapacityPanel columns={capacity.columns} rows={capacity.rows} />

@@ -63,6 +63,8 @@ export interface GanttBarProps {
   description: string;
   selected?: boolean;
   onSelect?: () => void;
+  /** Opens the row's editor — double-click, matching Enter on the grid. */
+  onActivate?: () => void;
   onKeyDown?: (event: React.KeyboardEvent) => void;
 }
 
@@ -79,6 +81,7 @@ export function GanttBar({
   description,
   selected,
   onSelect,
+  onActivate,
   onKeyDown,
 }: GanttBarProps) {
   const height = BAR_HEIGHT[kind];
@@ -126,6 +129,7 @@ export function GanttBar({
         aria-label={description}
         aria-pressed={selected}
         onClick={onSelect}
+        onDoubleClick={onActivate}
         onKeyDown={onKeyDown}
       >
         <span className={cx(styles.wrap, critical && styles.critical)} style={wrapStyle}>
