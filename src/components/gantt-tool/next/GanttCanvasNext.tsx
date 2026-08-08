@@ -41,6 +41,7 @@ import type { ZoomGrain } from "@/components/ds/gantt/scale";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import type { ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { toCanvasMilestones, toCanvasModel } from "./adapter";
+import { buildAxisTicks, buildNonWorkingDays } from "./axis";
 
 /**
  * The legacy zoom vocabulary has an "auto" and a "year"; the canvas grain has a
@@ -96,6 +97,7 @@ export function GanttCanvasNext({
 
   const bounds = getProjectDuration();
   const phases = currentProject?.phases;
+  const grain = grainOverride ?? GRAIN_BY_ZOOM[zoomMode];
 
   const model = useMemo(
     () => (bounds && phases ? toCanvasModel(phases, bounds) : null),
@@ -128,6 +130,18 @@ export function GanttCanvasNext({
         ? toCanvasMilestones(currentProject.milestones, bounds, formatDay)
         : [],
     [currentProject?.milestones, bounds, formatDay]
+  );
+
+  const axis = useMemo(
+    () => (bounds ? buildAxisTicks(bounds, grain) : { majorTicks: [], minorTicks: [] }),
+    [bounds, grain]
+  );
+
+  // Same holiday source, same "ABMY" region default, as the legacy canvas —
+  // so both canvases shade identical days on the same plan.
+  const nonWorkingDays = useMemo(
+    () => (bounds ? buildNonWorkingDays(bounds, currentProject?.holidays ?? []) : []),
+    [bounds, currentProject?.holidays]
   );
 
   /**
@@ -184,8 +198,11 @@ export function GanttCanvasNext({
         placements={model.placements}
         totalDays={model.totalDays}
         formatDay={formatDay}
-        grain={grainOverride ?? GRAIN_BY_ZOOM[zoomMode]}
+        grain={grain}
         onGrainChange={setGrainOverride}
+        majorTicks={axis.majorTicks}
+        minorTicks={axis.minorTicks}
+        nonWorkingDays={nonWorkingDays}
         expandedIds={expandedIds}
         onExpandedChange={setExpandedIds}
         onMove={handleMove}
