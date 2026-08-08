@@ -287,7 +287,134 @@
     </div>
   </div>
 </section>
-</x-dc>
+
+<section style="max-width:1600px;margin:0 auto;padding:20px 32px 0">
+  <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+    <div style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#101720">/organization-chart</span>
+      <span style="font-size:12px;color:#4B5563">Hosts the layer-4c surface inside the shell</span>
+    </div>
+    <div role="main" aria-label="Organization chart screen" style="display:flex;height:290px;background:#F6F7F9">
+      <div style="width:50px;flex:none;background:#FFFFFF;border-right:1px solid #CBD2DC;display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:6px">
+        <sc-for list="{{ orgRail }}" as="r" hint-placeholder-count="6">
+          <span title="{{ r.label }}" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:{{ r.bg }};color:{{ r.fg }};border:1px solid {{ r.bd }};font-family:'IBM Plex Mono',monospace;font-size:13px">{{ r.g }}</span>
+        </sc-for>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;background:#FFFFFF;border-bottom:1px solid #E4E7EC;overflow:hidden">
+          <span style="font-size:13.5px;font-weight:600;white-space:nowrap">Delivery organisation</span>
+          <span style="font-size:12px;color:#4B5563;white-space:nowrap;font-variant-numeric:tabular-nums">30 of 42 staffed people placed</span>
+          <span style="margin-left:auto;display:flex;gap:6px;flex:none"><button style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Fit</button><button style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #7D8799;background:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Print A4</button><button style="height:28px;padding:0 10px;border-radius:6px;border:1px solid #0B57D0;background:#0B57D0;color:#FFFFFF;font-size:12.5px;font-weight:500;cursor:pointer">Add person</button></span>
+        </div>
+        <div style="flex:1;display:flex;min-height:0">
+          <div style="flex:1;position:relative;background:#FFFFFF;overflow:hidden">
+            <div aria-hidden="true" style="position:absolute;inset:0;background-image:radial-gradient(#E4E7EC 1px,transparent 1px);background-size:22px 22px"></div>
+            <sc-for list="{{ orgMini }}" as="n" hint-placeholder-count="5">
+              <div style="position:absolute;left:{{ n.x }};top:{{ n.y }};width:132px;box-sizing:border-box;background:{{ n.bg }};border:{{ n.border }};border-radius:6px;padding:7px 9px">
+                <div style="font-size:11.5px;font-weight:600;color:#101720;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.name }}</div>
+                <div style="font-size:10.5px;color:#4B5563;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.role }}</div>
+              </div>
+            </sc-for>
+            <sc-for list="{{ orgMiniLinks }}" as="l" hint-placeholder-count="6">
+              <div aria-hidden="true" style="position:absolute;left:{{ l.left }};top:{{ l.top }};width:{{ l.w }};height:{{ l.h }};background:#7D8799"></div>
+            </sc-for>
+          </div>
+          <div style="width:210px;flex:none;min-height:0;overflow-y:auto;background:#FFFFFF;border-left:1px solid #CBD2DC;padding:12px">
+            <div style="font-size:11.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#667085">Unplaced · 12</div>
+            <div style="font-size:11.5px;line-height:17px;color:#4B5563;margin-top:5px;text-wrap:pretty">Staffed on the plan but not yet in the reporting structure. Drag onto a manager, or select and press R.</div>
+            <sc-for list="{{ unplaced }}" as="u" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:7px;margin-top:8px;padding:6px 8px;border:1px solid #CBD2DC;border-radius:6px;cursor:grab"><span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none;border-radius:999px;background:#F1F3F7;color:#4B5563;font-size:9px;font-weight:600">{{ u.i }}</span><span style="min-width:0"><span style="display:block;font-size:11.5px;color:#101720;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ u.name }}</span><span style="display:block;font-size:10.5px;color:#667085;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ u.role }}</span></span></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;padding:14px;border-top:1px solid #CBD2DC">
+      <sc-for list="{{ orgStates }}" as="s" hint-placeholder-count="4">
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty"><span style="font-weight:600;color:#101720">{{ s.k }} — </span>{{ s.v }}</div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1600px;margin:0 auto;padding:20px 32px 96px">
+  <h2 style="margin:0 0 4px;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em">Dark theme</h2>
+  <p style="margin:0 0 16px;font-size:14px;line-height:21px;color:#4B5563;max-width:78ch">The same three screens on the authored dark palette — surfaces rise rather than invert, and every figure keeps its ratio.</p>
+  <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:20px">
+    <div style="border:1px solid #333C4A;border-radius:8px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;background:#171C24;border-bottom:1px solid #333C4A">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:5px;background:#E9EEF6;color:#0B1220;font-size:12px;font-weight:600">C</span>
+        <span style="font-size:13px;font-weight:600;color:#E9EEF6">Portfolio overview</span>
+        <span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:999px;background:#0F2E22;border:1px solid #2C6B4E;font-size:12px;font-weight:500;color:#56D69A"><span aria-hidden="true">✓</span>Synced</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:14px;background:#0E1116">
+        <sc-for list="{{ darkTiles }}" as="t" hint-placeholder-count="4">
+          <div style="background:#171C24;border:1px solid #232A35;border-radius:8px;padding:13px 14px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#8592A6">{{ t.label }}</div>
+            <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;color:{{ t.fg }};margin-top:5px;font-variant-numeric:tabular-nums">{{ t.value }}</div>
+            <div style="font-size:11.5px;line-height:17px;color:#AFBACA;margin-top:4px;text-wrap:pretty">{{ t.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#171C24;border-top:1px solid #232A35">
+        <div style="display:grid;grid-template-columns:2fr 110px 1fr 108px;background:#0A0D12;border-bottom:1px solid #333C4A;font-size:10.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#AFBACA">
+          <div style="padding:8px 12px">Programme</div><div style="padding:8px 12px">Health</div><div style="padding:8px 12px">Progress</div><div style="padding:8px 12px;text-align:right">Margin</div>
+        </div>
+        <sc-for list="{{ darkProjects }}" as="p" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:2fr 110px 1fr 108px;align-items:center;min-height:46px;border-bottom:1px solid #232A35;background:{{ p.bg }};box-shadow:{{ p.bar }}">
+            <div style="padding:7px 12px;min-width:0"><div style="font-size:12.5px;color:#E9EEF6;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ p.name }}</div><div style="font-size:11px;color:#8592A6">{{ p.code }}</div></div>
+            <div style="padding:7px 12px"><span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px 0 6px;border-radius:4px;background:{{ p.pillBg }};color:{{ p.pillFg }};border:1px solid {{ p.pillBd }};font-size:11px;font-weight:500"><span aria-hidden="true">{{ p.pillG }}</span>{{ p.pill }}</span></div>
+            <div style="padding:7px 12px"><div style="height:8px;border-radius:999px;background:#232A35;overflow:hidden"><div style="height:100%;width:{{ p.pct }};background:{{ p.fill }}"></div></div></div>
+            <div style="padding:7px 12px;text-align:right;font-size:12.5px;font-weight:500;color:{{ p.marginFg }};font-variant-numeric:tabular-nums">{{ p.margin }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-top:16px">
+      <div style="border:1px solid #333C4A;border-radius:8px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;background:#171C24;border-bottom:1px solid #232A35"><span style="font-size:12.5px;font-weight:600;color:#E9EEF6">S/4HANA Migration</span><span style="display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;background:#0A0D12;border:1px solid #333C4A;font-size:10px;font-weight:600;color:#AFBACA">EDITOR</span></div>
+        <div style="display:flex;height:190px">
+          <div style="width:130px;flex:none;background:#171C24;border-right:1px solid #333C4A;padding:6px 0">
+            <sc-for list="{{ darkTree }}" as="t" hint-placeholder-count="5">
+              <div style="height:28px;display:flex;align-items:center;padding-left:{{ t.indent }};padding-right:8px;background:{{ t.bg }};box-shadow:{{ t.bar }};font-size:11.5px;font-weight:{{ t.fw }};color:{{ t.fg }};overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ t.name }}</div>
+            </sc-for>
+          </div>
+          <div style="flex:1;position:relative;background:#0E1116">
+            <sc-for list="{{ darkBars }}" as="b" hint-placeholder-count="5">
+              <div style="position:absolute;top:{{ b.top }};left:{{ b.left }};width:{{ b.w }};height:{{ b.h }};border-radius:3px;background:{{ b.bg }};border:{{ b.border }}"></div>
+            </sc-for>
+            <div aria-hidden="true" style="position:absolute;top:0;bottom:0;left:40%;width:2px;background:#7FB0FF"></div>
+          </div>
+        </div>
+        <div style="height:28px;display:flex;align-items:center;gap:12px;padding:0 12px;background:#0A0D12;border-top:1px solid #333C4A;font-size:11px;color:#AFBACA"><span>80 phases · 1,200 tasks</span><span style="margin-left:auto;font-variant-numeric:tabular-nums">Saved locally · 3 pending</span></div>
+      </div>
+
+      <div style="border:1px solid #333C4A;border-radius:8px;overflow:hidden">
+        <div style="display:flex;align-items:center;height:38px;padding:0 12px;background:#171C24;border-bottom:1px solid #232A35;font-size:12.5px;font-weight:600;color:#E9EEF6">Delivery organisation</div>
+        <div style="position:relative;height:190px;background:#0E1116">
+          <div aria-hidden="true" style="position:absolute;inset:0;background-image:radial-gradient(#232A35 1px,transparent 1px);background-size:22px 22px"></div>
+          <sc-for list="{{ darkOrg }}" as="n" hint-placeholder-count="3">
+            <div style="position:absolute;left:{{ n.x }};top:{{ n.y }};width:130px;box-sizing:border-box;background:{{ n.bg }};border:{{ n.border }};border-radius:6px;padding:7px 9px">
+              <div style="font-size:11.5px;font-weight:600;color:#E9EEF6;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.name }}</div>
+              <div style="font-size:10.5px;color:#AFBACA;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">{{ n.role }}</div>
+            </div>
+          </sc-for>
+          <sc-for list="{{ darkOrgLinks }}" as="l" hint-placeholder-count="4">
+            <div aria-hidden="true" style="position:absolute;left:{{ l.left }};top:{{ l.top }};width:{{ l.w }};height:{{ l.h }};background:#748196"></div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;background:#171C24;border:1px solid #232A35;border-radius:8px;padding:20px">
+      <div style="font-size:14px;font-weight:600;color:#E9EEF6;margin-bottom:6px">What changes in dark, and the measured ratios</div>
+      <sc-for list="{{ darkNotes }}" as="n" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:120px 1fr;gap:12px;padding:7px 0;border-top:1px solid #232A35"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#E9EEF6">{{ n.k }}</div><div style="font-size:12.5px;line-height:19px;color:#AFBACA;text-wrap:pretty">{{ n.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section></x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:980}}">
 class Component extends DCLogic {
   renderVals() {
@@ -449,7 +576,94 @@ class Component extends DCLogic {
       { k: '320', v: 'Dashboard cards stack with 44px targets. Gantt is the stage list; tapping a stage opens its phases, tapping a phase opens a read-only task list. Architecture offers the exported image with pinch-zoom and an “Open on desktop to edit” link.' }
     ];
 
-    return { tiles, projCols, projects, dashNotes, skeletonRows, rail, treeRows, ganttBars, inspector, workspaceNotes, modals, palette, archNodes, archLinks, archProps, statesTable, responsive };
+    const orgStates = [
+      { k: 'Loading', v: 'The toolbar and the root card render immediately from the local copy; descendants fade in as the roster resolves. The status line reads “Loading 30 people” and is announced once on completion, not per node.' },
+      { k: 'Empty', v: '“No delivery structure yet. Add the programme director, then build downwards — or generate a starting structure from the 42 staffed resources.” Two buttons: Add first person, Generate from resource plan.' },
+      { k: 'Error', v: '“The org chart could not be loaded. The resource plan is unaffected and still open.” The palette of actions stays; the canvas is replaced by the message with a Retry, so a failure here never blocks staffing work.' },
+      { k: 'No permission', v: 'A VIEWER sees the chart complete but with reparent, collapse-state saving and rate figures disabled, and a single “Request edit access” button in place of the editing toolbar.' }
+    ];
+
+    const darkNotes = [
+      { k: 'Dashboard', v: 'Tiles and table sit on surface/raised #171C24 over a #0E1116 canvas. Figures stay content/primary #E9EEF6 at 14.68:1; the margin exception keeps warning #E9B45A at 10.03:1 rather than turning the whole row amber.' },
+      { k: 'Workspace', v: 'The icon rail and project bar are surface/raised; the Gantt canvas is surface/base so bars read as objects on a ground. Phase bars invert to #8592A6 with a #E9EEF6 border; task bars use accent/subtle #16294A with a #7FB0FF border and #7FB0FF progress.' },
+      { k: 'Selection', v: 'accent/subtle fill plus a 2px accent leading bar — the fill alone is 1.4:1 against surface/raised, so the bar is structural, not decorative.' },
+      { k: 'Status pills', v: 'On track #56D69A on #0F2E22 at 8.01:1 · At risk #E9B45A on #33240B at 7.97:1 · Late #FF8A80 on #3A1512 at 7.10:1 — each with a ≥3:1 border and its glyph and word unchanged.' },
+      { k: 'Grid lines', v: 'border/subtle #232A35 at 1.31:1 — deliberately below the boundary threshold because row rules are texture. Anything structural, like the frozen-column edge, uses border/strong #748196 at 4.33:1.' }
+    ];
+
+    const orgRail = rail.map((r, i) => Object.assign({}, r, {
+      bg: i === 3 ? '#E8F0FE' : '#FFFFFF',
+      fg: i === 3 ? '#0B57D0' : '#4B5563',
+      bd: i === 3 ? '#BBD0F6' : 'transparent'
+    }));
+
+    const ONW = 132, ONH = 44;
+    const OM = (x, y, name, role, sel) => ({ x: x + 'px', y: y + 'px', cx: x + ONW / 2, top: y, bottom: y + ONH, name, role, bg: sel ? '#E8F0FE' : '#FFFFFF', border: sel ? '1.5px solid #0B57D0' : '1px solid #7D8799' });
+    const orgMini = [
+      OM(120, 14, 'Nurul Iman', 'Programme Director', false),
+      OM(24, 100, 'Chan Wei Ling', 'Delivery Manager', true),
+      OM(216, 100, 'Rajesh Menon', 'Solution Architect', false),
+      OM(24, 178, 'Aisyah Rahman', 'Finance Lead', false),
+      OM(216, 178, 'Goh Mei Yee', 'Integration Architect', false)
+    ];
+    const connect = (p, kids) => {
+      const midY = p.bottom + (kids[0].top - p.bottom) / 2;
+      const xs = kids.map(k => k.cx);
+      const out = [{ left: (p.cx - 0.75) + 'px', top: p.bottom + 'px', w: '1.5px', h: (midY - p.bottom) + 'px' }];
+      out.push({ left: Math.min.apply(null, xs.concat([p.cx])) + 'px', top: midY + 'px', w: (Math.max.apply(null, xs.concat([p.cx])) - Math.min.apply(null, xs.concat([p.cx]))) + 'px', h: '1.5px' });
+      kids.forEach(k => out.push({ left: (k.cx - 0.75) + 'px', top: midY + 'px', w: '1.5px', h: (k.top - midY) + 'px' }));
+      return out;
+    };
+    const orgMiniLinks = connect(orgMini[0], [orgMini[1], orgMini[2]])
+      .concat(connect(orgMini[1], [orgMini[3]]))
+      .concat(connect(orgMini[2], [orgMini[4]]));
+
+    const unplaced = [
+      { i: 'AP', name: 'Arun Prakash', role: 'ABAP Developer · IN' },
+      { i: 'PR', name: 'Priya Raghavan', role: 'ABAP Developer · IN' },
+      { i: 'NL', name: 'Nguyen Thi Lan', role: 'Security · VN (subcon)' },
+      { i: 'SB', name: 'Suriani Bakar', role: 'Training Lead · MY' }
+    ];
+
+    const darkTiles = [
+      { label: 'Contracted value', value: '184.2', note: 'MYR m across 6 active programmes.', fg: '#E9EEF6' },
+      { label: 'Weighted margin', value: '26.4%', note: 'One programme below the 25% floor — Perak Water at 21.8%.', fg: '#E9B45A' },
+      { label: 'People staffed', value: '214', note: 'Of 260. 5 over-allocated in the cutover window.', fg: '#E9EEF6' },
+      { label: 'Needs attention', value: '7', note: '2 late phases, 1 conflict, 3 access requests, 1 expiring rate card.', fg: '#FF8A80' }
+    ];
+
+    const darkProjects = [
+      { name: 'S/4HANA Migration', code: 'PRJ-2291', pill: 'At risk', pillG: '⚠', pillBg: '#33240B', pillFg: '#E9B45A', pillBd: '#7A5A22', pct: '62%', fill: '#E9B45A', margin: '27.1%', marginFg: '#E9EEF6', bg: '#16294A', bar: 'inset 2px 0 0 #7FB0FF' },
+      { name: 'Finance Transformation', code: 'PRJ-2188', pill: 'On track', pillG: '✓', pillBg: '#0F2E22', pillFg: '#56D69A', pillBd: '#2C6B4E', pct: '81%', fill: '#7FB0FF', margin: '29.4%', marginFg: '#E9EEF6', bg: '#171C24', bar: 'none' },
+      { name: 'Utilities Billing Upgrade', code: 'PRJ-2140', pill: 'Late', pillG: '✕', pillBg: '#3A1512', pillFg: '#FF8A80', pillBd: '#8A3A33', pct: '48%', fill: '#FF8A80', margin: '21.8%', marginFg: '#FF8A80', bg: '#171C24', bar: 'none' }
+    ];
+
+    const darkTree = [
+      { name: 'Prepare · PMO', indent: '10px', fw: 600, fg: '#E9EEF6', bg: '#0A0D12', bar: 'none' },
+      { name: 'Realize · Finance', indent: '10px', fw: 600, fg: '#E9EEF6', bg: '#0A0D12', bar: 'none' },
+      { name: 'Chart of accounts', indent: '24px', fw: 400, fg: '#E9EEF6', bg: '#16294A', bar: 'inset 2px 0 0 #7FB0FF' },
+      { name: 'Fit-gap 2', indent: '24px', fw: 400, fg: '#AFBACA', bg: '#171C24', bar: 'none' },
+      { name: 'Deploy · Cutover', indent: '10px', fw: 600, fg: '#E9EEF6', bg: '#0A0D12', bar: 'none' }
+    ];
+
+    const darkBars = [
+      { top: '9px', left: '6%', w: '22%', h: '10px', bg: '#8592A6', border: '1px solid #E9EEF6' },
+      { top: '37px', left: '24%', w: '44%', h: '10px', bg: '#8592A6', border: '1px solid #E9EEF6' },
+      { top: '64px', left: '30%', w: '16%', h: '14px', bg: '#7FB0FF', border: '1.5px solid #7FB0FF' },
+      { top: '92px', left: '40%', w: '13%', h: '14px', bg: '#16294A', border: '1.5px solid #FF8A80' },
+      { top: '120px', left: '52%', w: '34%', h: '10px', bg: '#8592A6', border: '1px solid #E9EEF6' }
+    ];
+
+    const DNW = 130, DNH = 44;
+    const DO = (x, y, name, role, sel) => ({ x: x + 'px', y: y + 'px', cx: x + DNW / 2, top: y, bottom: y + DNH, name, role, bg: sel ? '#16294A' : '#171C24', border: sel ? '1.5px solid #7FB0FF' : '1px solid #748196' });
+    const darkOrg = [
+      DO(80, 16, 'Nurul Iman', 'Programme Director', true),
+      DO(10, 110, 'Chan Wei Ling', 'Delivery Manager', false),
+      DO(160, 110, 'Rajesh Menon', 'Solution Architect', false)
+    ];
+    const darkOrgLinks = connect(darkOrg[0], [darkOrg[1], darkOrg[2]]);
+
+    return { tiles, projCols, projects, dashNotes, skeletonRows, rail, treeRows, ganttBars, inspector, workspaceNotes, modals, palette, archNodes, archLinks, archProps, statesTable, responsive, orgStates, darkNotes, orgRail, orgMini, orgMiniLinks, unplaced, darkTiles, darkProjects, darkTree, darkBars, darkOrg, darkOrgLinks };
   }
 }
 </script>

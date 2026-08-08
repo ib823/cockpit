@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F6F7F9; font-family:'IBM Plex Sans',system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:#101720; }
+  a { color:#0B57D0; } a:hover { color:#08429E; }
+  button { font-family:inherit; }
+  @keyframes ckpt-wave { 0% { transform:scale(.42); opacity:0; } 14% { opacity:1; } 100% { transform:scale(1.92); opacity:0; } }
+  @keyframes ckpt-pulse { 0%,100% { transform:scale(1); } 46% { transform:scale(1.16); } }
+  @keyframes ckpt-sweep { to { stroke-dashoffset:0; } }
+  @media (prefers-reduced-motion: reduce) {
+    *,*::before,*::after { transition-duration:1ms !important; }
+    [data-motion] { animation:none !important; }
+  }
+</style>
+</helmet>
+
+<header style="max-width:1560px;margin:0 auto;padding:56px 32px 26px">
+  <div style="font-size:13px;line-height:18px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#667085">Cockpit — brand mark &amp; loading identity</div>
+  <h1 style="margin:14px 0 0;font-size:40px;line-height:46px;font-weight:600;letter-spacing:-0.025em">The beacon</h1>
+  <p style="margin:16px 0 0;max-width:78ch;font-size:15px;line-height:24px;color:#4B5563;text-wrap:pretty">Your mark is a good idea already: a beacon — signal, bearing, situational awareness — which is exactly what a delivery cockpit is for. What follows keeps that idea intact and rebuilds it on a stated grid, defines where it may and may not appear, and replaces the glow storyboard with an animation that says something.</p>
+</header>
+
+<section style="max-width:1560px;margin:0 auto;padding:0 32px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h2 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">What I kept</h2>
+      <sc-for list="{{ kept }}" as="k" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:9px;padding:7px 0;border-top:1px solid #E4E7EC"><span aria-hidden="true" style="font-size:12px;color:#0A7A47;line-height:19px">✓</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ k }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h2 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">What I changed, and why</h2>
+      <sc-for list="{{ changed }}" as="c" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:9px;padding:7px 0;border-top:1px solid #E4E7EC"><span aria-hidden="true" style="font-size:12px;color:#0B57D0;line-height:19px">→</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty"><span style="font-weight:600;color:#101720">{{ c.k }} </span>{{ c.v }}</div></div>
+      </sc-for>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #F0B5AF;border-radius:8px;padding:22px">
+      <h2 style="margin:0 0 6px;font-size:16px;line-height:22px;font-weight:600;color:#B3261E">The one thing to drop</h2>
+      <p style="margin:0 0 12px;font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">The eight-frame sheet renders the mark with a gradient body, a drop shadow, an inner glow and a horizontal lens flare. Four reasons that direction cannot ship:</p>
+      <sc-for list="{{ dropped }}" as="d" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:9px;padding:7px 0;border-top:1px solid #E4E7EC"><span aria-hidden="true" style="font-size:12px;color:#B3261E;line-height:19px">✕</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ d }}</div></div>
+      </sc-for>
+      <p style="margin:12px 0 0;font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">The instinct underneath it — <em>the beacon should come alive</em> — is correct. Below, it comes alive by emitting rather than by glowing.</p>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:20px 32px 0">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:600">Construction</span><span style="font-size:12px;color:#4B5563">48-unit grid · every value stated · no eyeballed curves</span></div>
+      <div style="padding:24px;background:#F6F7F9;display:flex;justify-content:center">
+        <svg viewBox="0 0 48 48" width="300" height="300" role="img" aria-label="Cockpit mark construction grid">
+          <rect x="0" y="0" width="48" height="48" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="0.25"></rect>
+          <g stroke="#BBD0F6" stroke-width="0.25" fill="none">
+            <circle cx="24" cy="21" r="16"></circle>
+            <circle cx="24" cy="21" r="9"></circle>
+            <circle cx="24" cy="21" r="4"></circle>
+            <line x1="24" y1="0" x2="24" y2="48"></line>
+            <line x1="0" y1="21" x2="48" y2="21"></line>
+            <line x1="0" y1="35.84" x2="48" y2="35.84"></line>
+            <line x1="0" y1="41" x2="48" y2="41"></line>
+          </g>
+          <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+          <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+          <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+          <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+        </svg>
+      </div>
+      <sc-for list="{{ geometry }}" as="g" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:108px 1fr;gap:12px;padding:8px 14px;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ g.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ g.v }}</div></div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+          <div style="padding:10px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12.5px;font-weight:600">Light</div>
+          <div style="padding:30px;display:flex;justify-content:center;background:#FFFFFF">
+            <svg viewBox="0 0 48 48" width="128" height="128" role="img" aria-label="Cockpit">
+              <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+            </svg>
+          </div>
+        </div>
+        <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;overflow:hidden">
+          <div style="padding:10px 14px;background:#171C24;border-bottom:1px solid #333C4A;font-size:12.5px;font-weight:600;color:#E9EEF6">Dark</div>
+          <div style="padding:30px;display:flex;justify-content:center">
+            <svg viewBox="0 0 48 48" width="128" height="128" role="img" aria-label="Cockpit">
+              <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round"></path>
+              <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round"></path>
+              <path d="M24 28 L24 41" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round"></path>
+              <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+        <h2 style="margin:0 0 4px;font-size:16px;line-height:22px;font-weight:600">Brand colour — two tokens, kept apart from the UI palette</h2>
+        <p style="margin:0 0 12px;font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">These are brand tokens, not semantic ones. A logo is exempt from WCAG 1.4.3 and 1.4.11, so the gold is allowed to sit at 1.71:1 on white — but only inside the mark, and only surrounded by slate. Everywhere else it is banned, and the rule below says why.</p>
+        <sc-for list="{{ brandTokens }}" as="t" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:34px 1fr 74px;gap:12px;align-items:center;padding:8px 0;border-top:1px solid #E4E7EC">
+            <span aria-hidden="true" style="width:34px;height:26px;border-radius:5px;background:{{ t.hex }};border:1px solid {{ t.bd }}"></span>
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ t.name }} {{ t.hex }}</div><div style="font-size:11.5px;line-height:17px;color:#4B5563;text-wrap:pretty">{{ t.note }}</div></div>
+            <div style="text-align:right;font-size:12px;font-weight:600;color:{{ t.fg }};font-variant-numeric:tabular-nums">{{ t.ratio }}</div>
+          </div>
+        </sc-for>
+        <div style="margin-top:12px;padding:11px 13px;border-radius:6px;background:#FBF0DC;border:1px solid #E0C089">
+          <div style="font-size:12.5px;line-height:19px;color:#8A5200;text-wrap:pretty"><span style="font-weight:600">Gold is brand-only.</span> It never becomes a status colour, a chart series, a selection fill or a button. It sits within 4 points of hue of status/warning <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px">#8A5200</span>, and a product where the brand accent and “at risk” look alike will get a phase read as at-risk that is not.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:20px 32px 0">
+  <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+    <div style="padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:600">Size ramp</span><span style="font-size:12px;color:#4B5563">The mark sheds parts as it shrinks. It is never simply scaled down — a 16px scaled mark turns the inner arc and the dot into one grey blob.</span></div>
+    <div style="display:flex;align-items:flex-end;gap:34px;padding:28px 24px;background:#F6F7F9;flex-wrap:wrap">
+      <sc-for list="{{ ramp }}" as="r" hint-placeholder-count="5">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="display:flex;align-items:flex-end;height:68px">
+            <svg viewBox="0 0 48 48" width="{{ r.px }}" height="{{ r.px }}" role="img" aria-label="Cockpit at {{ r.label }}">
+              <sc-if value="{{ r.ring }}" hint-placeholder-val="{{ true }}"><path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="{{ r.sw }}" stroke-linecap="round"></path></sc-if>
+              <sc-if value="{{ r.arc }}" hint-placeholder-val="{{ true }}"><path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="{{ r.sw }}" stroke-linecap="round"></path></sc-if>
+              <sc-if value="{{ r.stem }}" hint-placeholder-val="{{ true }}"><path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="{{ r.sw }}" stroke-linecap="round"></path></sc-if>
+              <circle cx="24" cy="21" r="{{ r.dot }}" fill="#E5C264"></circle>
+            </svg>
+          </div>
+          <div style="text-align:center;max-width:150px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;color:#101720">{{ r.label }}</div>
+            <div style="font-size:11.5px;line-height:17px;color:#4B5563;margin-top:3px;text-wrap:pretty">{{ r.note }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:20px 32px 0">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:13px;font-weight:600">Clear space</div>
+      <div style="padding:28px;background:#F6F7F9;display:flex;justify-content:center">
+        <div style="position:relative;padding:32px">
+          <div aria-hidden="true" style="position:absolute;inset:0;border:1px dashed #0B57D0;border-radius:4px;background:#E8F0FE"></div>
+          <div style="position:relative;background:#FFFFFF;padding:4px;border-radius:2px">
+            <svg viewBox="0 0 48 48" width="128" height="128" role="img" aria-label="Cockpit with clear space">
+              <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+            </svg>
+          </div>
+          <span style="position:absolute;top:6px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:#0B57D0">= r</span>
+        </div>
+      </div>
+      <sc-for list="{{ clearSpace }}" as="c" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:100px 1fr;gap:12px;padding:8px 14px;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ c.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ c.v }}</div></div>
+      </sc-for>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:11px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:13px;font-weight:600">Lockups</div>
+      <div style="padding:22px;background:#F6F7F9;display:flex;flex-direction:column;gap:18px">
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;padding:20px 22px">
+          <div style="display:flex;align-items:center;gap:11px">
+            <svg viewBox="0 0 48 48" width="40" height="40" role="img" aria-label="Cockpit">
+              <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+              <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+            </svg>
+            <span style="font-size:24px;font-weight:600;letter-spacing:-0.025em;color:#3A5060">Cockpit</span>
+          </div>
+          <div style="font-size:11.5px;line-height:17px;color:#4B5563;margin-top:12px;text-wrap:pretty">Horizontal — the default. Wordmark cap-height equals the inner-arc diameter, and its baseline aligns to the ring centre <span style="font-family:'IBM Plex Mono',monospace">y=21</span>, not to the mark’s bounding box. Gap = ¼ of the ring diameter.</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;padding:20px 22px;text-align:center">
+          <svg viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Cockpit">
+            <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+            <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+            <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"></path>
+            <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+          </svg>
+          <div style="font-size:20px;font-weight:600;letter-spacing:-0.02em;color:#3A5060;margin-top:6px">Cockpit</div>
+          <div style="font-size:11.5px;line-height:17px;color:#4B5563;margin-top:12px;text-wrap:pretty">Stacked — splash, title slides, print covers. The stem already pulls the eye downward, so the gap above the wordmark is ½ r, tighter than the horizontal lockup, or the pair reads as two objects.</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;padding:20px 22px">
+          <div style="font-size:11.5px;line-height:17px;color:#4B5563;text-wrap:pretty"><span style="font-weight:600;color:#101720">Mark-only</span> is the working form inside the product. The app already says its own name in the top bar and in the page title — a wordmark beside it is the name stated twice. Use the lockup only where Cockpit is being introduced: splash, sign-in, exports, slides.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:20px 32px 0">
+  <h2 style="margin:0 0 4px;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em">Loading identity</h2>
+  <p style="margin:0 0 16px;font-size:14px;line-height:21px;color:#4B5563;max-width:80ch;text-wrap:pretty">The beacon emits. A wave leaves the dot and travels out past the inner arc to the ring — the same gesture the mark already draws, now in time. No glow, no gradient, no flare: only the mark’s own two colours, opacity and scale.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:10px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12.5px;font-weight:600">Indeterminate — light</div>
+      <div style="padding:34px;display:flex;justify-content:center;background:#FFFFFF">
+        <svg viewBox="0 0 48 48" width="112" height="112" role="img" aria-label="Loading">
+          <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.28"></path>
+          <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.28"></path>
+          <path data-motion="wave" d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" style="transform-box:view-box;transform-origin:24px 21px;animation:ckpt-wave {{ dur }} cubic-bezier(.25,.6,.35,1) infinite"></path>
+          <path data-motion="wave" d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" style="transform-box:view-box;transform-origin:24px 21px;animation:ckpt-wave {{ dur }} cubic-bezier(.25,.6,.35,1) infinite;animation-delay:{{ half }}"></path>
+          <circle data-motion="pulse" cx="24" cy="21" r="4" fill="#E5C264" style="transform-box:view-box;transform-origin:24px 21px;animation:ckpt-pulse {{ dur }} ease-in-out infinite"></circle>
+        </svg>
+      </div>
+      <div style="padding:11px 14px;border-top:1px solid #E4E7EC;font-size:11.5px;line-height:17px;color:#4B5563;text-wrap:pretty">For waits of unknown length. The structure sits at 28% as its own track, so the mark is legible at every frame and never disassembles.</div>
+    </div>
+
+    <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;overflow:hidden">
+      <div style="padding:10px 14px;background:#171C24;border-bottom:1px solid #333C4A;font-size:12.5px;font-weight:600;color:#E9EEF6">Indeterminate — dark</div>
+      <div style="padding:34px;display:flex;justify-content:center">
+        <svg viewBox="0 0 48 48" width="112" height="112" role="img" aria-label="Loading">
+          <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round" opacity="0.3"></path>
+          <path d="M24 28 L24 41" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round" opacity="0.3"></path>
+          <path data-motion="wave" d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round" style="transform-box:view-box;transform-origin:24px 21px;animation:ckpt-wave {{ dur }} cubic-bezier(.25,.6,.35,1) infinite"></path>
+          <path data-motion="wave" d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round" style="transform-box:view-box;transform-origin:24px 21px;animation:ckpt-wave {{ dur }} cubic-bezier(.25,.6,.35,1) infinite;animation-delay:{{ half }}"></path>
+          <circle data-motion="pulse" cx="24" cy="21" r="4" fill="#E5C264" style="transform-box:view-box;transform-origin:24px 21px;animation:ckpt-pulse {{ dur }} ease-in-out infinite"></circle>
+        </svg>
+      </div>
+      <div style="padding:11px 14px;border-top:1px solid #333C4A;font-size:11.5px;line-height:17px;color:#8592A6;text-wrap:pretty">Dark keeps the gold unchanged at 11.09:1 on surface/base and lifts the strokes to content/primary. The dot is the one element that never changes colour between themes.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:10px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12.5px;font-weight:600">Determinate</div>
+      <div style="padding:34px;display:flex;justify-content:center;background:#FFFFFF">
+        <svg viewBox="0 0 48 48" width="112" height="112" role="img" aria-label="Restoring your last project, 64 percent">
+          <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.22"></path>
+          <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="88.3" stroke-dashoffset="31.8"></path>
+          <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.22"></path>
+          <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.22"></path>
+          <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+        </svg>
+      </div>
+      <div style="padding:11px 14px;border-top:1px solid #E4E7EC;font-size:11.5px;line-height:17px;color:#4B5563;text-wrap:pretty">The outer ring is a 88.3-unit track that fills clockwise from the bottom gap. Shown at 64% — the splash on <span style="font-family:'IBM Plex Mono',monospace">/</span> knows how many queued changes it is reading, so it must not pretend otherwise.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:10px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12.5px;font-weight:600">Reduced motion</div>
+      <div style="padding:34px;display:flex;justify-content:center;background:#FFFFFF">
+        <svg viewBox="0 0 48 48" width="112" height="112" role="img" aria-label="Loading">
+          <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.22"></path>
+          <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="88.3" stroke-dashoffset="44.2"></path>
+          <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.5"></path>
+          <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.22"></path>
+          <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+        </svg>
+      </div>
+      <div style="padding:11px 14px;border-top:1px solid #E4E7EC;font-size:11.5px;line-height:17px;color:#4B5563;text-wrap:pretty">Nothing scales and nothing pulses. The ring advances in discrete steps of 12.5% and the word beneath it changes — progress is carried by the text, which is where it belonged anyway. Applies to indeterminate waits too: the arc steps rather than sweeps.</div>
+    </div>
+  </div>
+
+  <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px;margin-top:16px">
+    <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Motion specification</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0 24px">
+      <sc-for list="{{ motion }}" as="m" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:112px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ m.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ m.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:20px 32px 0">
+  <h2 style="margin:0 0 4px;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em">Placement — every surface, desktop and mobile</h2>
+  <p style="margin:0 0 16px;font-size:14px;line-height:21px;color:#4B5563;max-width:80ch;text-wrap:pretty">Two frames first, at real size, then the exhaustive table. The governing rule: <span style="font-weight:600;color:#101720">the mark identifies the product, it does not decorate the screen</span> — inside the workspace it appears exactly once, in the top-left, and nowhere else.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px">
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:10px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12.5px;font-weight:600">Desktop top bar — 52px, mark at 26px</div>
+      <div style="padding:20px;background:#F6F7F9">
+        <div style="display:flex;align-items:center;gap:14px;height:52px;padding:0 16px;background:#FFFFFF;border:1px solid #CBD2DC;border-radius:6px">
+          <span style="display:inline-flex;align-items:center;gap:9px">
+            <svg viewBox="0 0 48 48" width="26" height="26" role="img" aria-label="Cockpit">
+              <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.8" stroke-linecap="round"></path>
+              <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.8" stroke-linecap="round"></path>
+              <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.8" stroke-linecap="round"></path>
+              <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+            </svg>
+            <span style="font-size:14.5px;font-weight:600;letter-spacing:-0.01em;color:#3A5060">Cockpit</span>
+          </span>
+          <span aria-hidden="true" style="width:1px;height:22px;background:#CBD2DC"></span>
+          <span style="font-size:13px;font-weight:600">S/4HANA Migration</span>
+          <span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:#E3F5EB;border:1px solid #9AD9BB"><span aria-hidden="true" style="font-size:11px;color:#0A7A47">✓</span><span style="font-size:12px;font-weight:500;color:#0A7A47">Synced</span></span>
+        </div>
+        <div style="font-size:11.5px;line-height:17px;color:#4B5563;margin-top:12px;text-wrap:pretty">The stem runs 5.2 units below the ring, so a mark optically centred in a 52px bar sits <span style="font-family:'IBM Plex Mono',monospace">1px</span> above geometric centre. Align on the ring, not the box, or the whole bar looks 1px low. Clear space collapses to 12px here — the one sanctioned exception, because chrome density outranks it.</div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:10px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12.5px;font-weight:600">Mobile splash &amp; top bar — 375px</div>
+      <div style="padding:20px;background:#F6F7F9;display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        <div style="width:187px;height:250px;background:#FFFFFF;border:1px solid #CBD2DC;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+          <svg viewBox="0 0 48 48" width="56" height="56" role="img" aria-label="Loading Cockpit">
+            <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.28"></path>
+            <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" opacity="0.28"></path>
+            <path data-motion="wave" d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#3A5060" stroke-width="2.5" stroke-linecap="round" style="transform-box:view-box;transform-origin:24px 21px;animation:ckpt-wave {{ dur }} cubic-bezier(.25,.6,.35,1) infinite"></path>
+            <circle data-motion="pulse" cx="24" cy="21" r="4" fill="#E5C264" style="transform-box:view-box;transform-origin:24px 21px;animation:ckpt-pulse {{ dur }} ease-in-out infinite"></circle>
+          </svg>
+          <div style="font-size:17px;font-weight:600;letter-spacing:-0.02em;color:#3A5060">Cockpit</div>
+          <div style="font-size:11.5px;color:#4B5563;text-align:center;padding:0 16px;line-height:17px">Restoring S/4HANA Migration</div>
+        </div>
+        <div style="width:187px;height:250px;background:#FFFFFF;border:1px solid #CBD2DC;border-radius:10px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:9px;height:44px;padding:0 12px;border-bottom:1px solid #E4E7EC">
+            <svg viewBox="0 0 48 48" width="24" height="24" role="img" aria-label="Cockpit">
+              <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="3.2" stroke-linecap="round"></path>
+              <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="3.2" stroke-linecap="round"></path>
+              <circle cx="24" cy="21" r="4.6" fill="#E5C264"></circle>
+            </svg>
+            <span style="font-size:12.5px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">S/4HANA Migration</span>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 7px;flex:none;border-radius:999px;background:#F1F3F7;border:1px solid #7D8799"><span aria-hidden="true" style="font-size:9px;color:#4B5563">●</span><span style="font-size:10px;font-weight:500;color:#4B5563">3</span></span>
+          </div>
+          <div style="padding:12px"><div style="height:9px;width:70%;border-radius:2px;background:#E4E7EC"></div><div style="height:9px;width:52%;border-radius:2px;background:#EDEFF3;margin-top:8px"></div><div style="height:9px;width:61%;border-radius:2px;background:#EDEFF3;margin-top:8px"></div></div>
+        </div>
+      </div>
+      <div style="padding:0 20px 16px;font-size:11.5px;line-height:17px;color:#4B5563;text-wrap:pretty">On a 44px mobile bar the mark drops to 24px and to its <span style="font-family:'IBM Plex Mono',monospace">20px</span> simplification — no inner arc — because the project name needs the width more than the logo needs its detail. No wordmark on mobile chrome, ever.</div>
+    </div>
+  </div>
+
+  <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden;margin-top:16px">
+    <div style="display:grid;grid-template-columns:1.1fr 74px 1fr 1.5fr;gap:14px;padding:9px 16px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:11.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#4B5563">
+      <div>Surface</div><div style="text-align:right">Size</div><div>Form</div><div>Rule</div>
+    </div>
+    <sc-for list="{{ placement }}" as="p" hint-placeholder-count="16">
+      <div style="display:grid;grid-template-columns:1.1fr 74px 1fr 1.5fr;gap:14px;padding:10px 16px;border-bottom:1px solid #E4E7EC;align-items:start;background:{{ p.bg }}">
+        <div style="font-size:12.5px;font-weight:500;color:#101720">{{ p.where }}</div>
+        <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720;font-variant-numeric:tabular-nums">{{ p.size }}</div>
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563">{{ p.form }}</div>
+        <div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ p.rule }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="max-width:1560px;margin:0 auto;padding:20px 32px 96px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+    <div style="background:#FFFFFF;border:1px solid #CBD2DC;border-radius:8px;overflow:hidden">
+      <div style="padding:10px 14px;background:#F1F3F7;border-bottom:1px solid #CBD2DC;font-size:12.5px;font-weight:600">App icon — the one place the mark sits on a field</div>
+      <div style="padding:22px;background:#F6F7F9;display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap">
+        <div style="width:104px;height:104px;border-radius:23px;background:#3A5060;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 48 48" width="66" height="66" role="img" aria-label="Cockpit app icon">
+            <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round"></path>
+            <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round"></path>
+            <path d="M24 28 L24 41" fill="none" stroke="#E9EEF6" stroke-width="2.5" stroke-linecap="round"></path>
+            <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+          </svg>
+        </div>
+        <div style="width:60px;height:60px;border-radius:14px;background:#3A5060;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 48 48" width="38" height="38" role="img" aria-label="Cockpit app icon, small">
+            <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#E9EEF6" stroke-width="2.8" stroke-linecap="round"></path>
+            <path d="M15 21 A9 9 0 0 1 33 21" fill="none" stroke="#E9EEF6" stroke-width="2.8" stroke-linecap="round"></path>
+            <path d="M24 28 L24 41" fill="none" stroke="#E9EEF6" stroke-width="2.8" stroke-linecap="round"></path>
+            <circle cx="24" cy="21" r="4" fill="#E5C264"></circle>
+          </svg>
+        </div>
+        <div style="width:44px;height:44px;border-radius:999px;background:#F1F3F7;border:1px solid #CBD2DC;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 48 48" width="26" height="26" role="img" aria-label="Cockpit notification icon">
+            <path d="M18.01 35.84 A16 16 0 1 1 29.99 35.84" fill="none" stroke="#3A5060" stroke-width="3.2" stroke-linecap="round"></path>
+            <path d="M24 28 L24 41" fill="none" stroke="#3A5060" stroke-width="3.2" stroke-linecap="round"></path>
+            <circle cx="24" cy="21" r="4.6" fill="#3A5060"></circle>
+          </svg>
+        </div>
+      </div>
+      <div style="padding:12px 14px;border-top:1px solid #E4E7EC;font-size:12px;line-height:18px;color:#4B5563;text-wrap:pretty">Slate field, light strokes, gold dot. A white-background icon disappears into a light home screen and reads as a missing asset. Mark occupies 62% of the canvas; the safe area is the remaining 19% per side. Android’s monochrome notification icon is the third form — one colour, dot filled solid, no gold, because the OS will discard it anyway.</div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #F0B5AF;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600;color:#B3261E">Misuse</h3>
+      <sc-for list="{{ misuse }}" as="m" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:16px 1fr;gap:9px;padding:7px 0;border-top:1px solid #E4E7EC"><span aria-hidden="true" style="font-size:12px;color:#B3261E;line-height:19px">✕</span><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ m }}</div></div>
+      </sc-for>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:8px;padding:22px">
+      <h3 style="margin:0 0 12px;font-size:16px;line-height:22px;font-weight:600">Accessibility &amp; delivery</h3>
+      <sc-for list="{{ a11y }}" as="a" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:104px 1fr;gap:12px;padding:7px 0;border-top:1px solid #E4E7EC"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#101720">{{ a.k }}</div><div style="font-size:12.5px;line-height:19px;color:#4B5563;text-wrap:pretty">{{ a.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560,&quot;height&quot;:980},&quot;animationSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.5,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const speed = this.props.animationSpeed ?? 1;
+    const ms = Math.round(1800 / speed);
+
+    return {
+      dur: ms + 'ms',
+      half: Math.round(ms / 2) + 'ms',
+
+      kept: [
+        'The beacon idea. A dot emitting through arcs is the right metaphor for a product whose job is bearing, signal and situational awareness — it is not a generic abstract swoosh, and it survives being explained in one sentence.',
+        'The broken outer ring with the stem passing through it. That interruption is the most distinctive thing in the mark; it stops the silhouette being “a circle” and gives it a base to stand on.',
+        'Two colours only, and the gold reserved for the single most important element. Restraint at this scale is rare and worth protecting.',
+        'The vertical stem. It reads as a mast, a plumb line and a timeline cursor at once, and it is what lets the mark sit on a baseline rather than float.'
+      ],
+
+      changed: [
+        { k: 'Rebuilt on a 48-unit grid.', v: 'Radii are now 16 / 9 / 4 — a clean 4:2.25:1 — and the ring gap is exactly 44° centred on vertical. The original’s radii and gap were close to these but not on any system, which is why it resisted clean scaling.' },
+        { k: 'One stroke weight everywhere.', v: '2.5 units at every radius. The original ran the outer circle slightly lighter than the inner arc; at 24px that difference turns into a wobble rather than a hierarchy.' },
+        { k: 'Stem shortened and squared to the grid.', v: 'It now runs from y=28 to y=41, clearing the dot by 3 units and the ring gap by 5.16. Previously it nearly touched the dot, which closed up at small sizes.' },
+        { k: 'Dot enlarged relative to the ring.', v: 'r=4 on R=16. It has to hold its own as the only colour element and be the last thing to disappear as the mark shrinks.' },
+        { k: 'Round caps kept, sharp joins added.', v: 'Round terminals suit the soft arcs, but they now terminate on stated angles rather than wherever the path ended.' }
+      ],
+
+      dropped: [
+        'The glow is unreproducible. It cannot be printed on the A3 wall chart, cannot survive a projector, and disappears entirely in a monochrome notification tray — so the brand would look like a different brand in half its appearances.',
+        'The gradient body destroys the mark at small sizes. Below about 32px the mid-grey fill and the slate stroke converge and the whole thing reads as a smudged coin rather than a beacon.',
+        'The lens flare is decoration that means nothing. Every frame in a loading animation should say “this is what is happening”; a horizontal streak says only “this is glossy”, and expert users read that as unserious.',
+        'The frames ramp brightness rather than express motion. Watched in sequence it is a lamp being turned up, then abruptly reset — with two frames both numbered 5, the cycle also has no clean loop point.'
+      ],
+
+      geometry: [
+        { k: 'Canvas', v: '48 × 48 units. Every published size is this path scaled — never redrawn.' },
+        { k: 'Ring centre', v: 'x 24, y 21. Three units above canvas centre, so the stem does not drag the whole mark low.' },
+        { k: 'Radii', v: 'Outer 16 · inner arc 9 · dot 4. Ratio 4 : 2.25 : 1.' },
+        { k: 'Ring gap', v: '44°, centred on vertical: the arc runs from 112° to 68° the long way. Endpoints land at y 35.84.' },
+        { k: 'Inner arc', v: 'Exactly 180°, from (15, 21) to (33, 21) over the top. A half-circle, not an eyeballed sweep.' },
+        { k: 'Stem', v: 'x 24, y 28 → 41. Clears the dot by 3 and passes 5.16 below the ring endpoints.' },
+        { k: 'Stroke', v: '2.5 units, round caps, at every radius. Bumps to 2.8 at 24–39px and 3.2 at 20px to hold optical weight — a stated compensation, not a redraw.' }
+      ],
+
+      brandTokens: [
+        { name: 'brand/slate', hex: '#3A5060', note: 'Ring, inner arc, stem. The mark’s structure in light mode; the icon field in dark.', ratio: '8.54:1', fg: '#0A7A47', bd: '#3A5060' },
+        { name: 'brand/gold', hex: '#E5C264', note: 'The dot, and only the dot. Identical in both themes — it is the constant.', ratio: '1.71:1', fg: '#8A5200', bd: '#C9A64A' },
+        { name: 'gold on slate', hex: '#E5C264', note: 'The pairing that actually matters: the dot always has slate structure around it.', ratio: '4.99:1', fg: '#0A7A47', bd: '#3A5060' },
+        { name: 'dark strokes', hex: '#E9EEF6', note: 'Replaces slate on any surface darker than #4A4A4A. Slate on surface/base is 2.23:1 and is never used.', ratio: '16.31:1', fg: '#0A7A47', bd: '#CBD2DC' }
+      ],
+
+      ramp: [
+        { px: '64', label: '40px and up', sw: '2.5', dot: '4', ring: true, arc: true, stem: true, note: 'Full mark. Splash, sign-in, exports, slides.' },
+        { px: '32', label: '24–39px', sw: '2.8', dot: '4', ring: true, arc: true, stem: true, note: 'Full mark, stroke +0.3 to hold weight.' },
+        { px: '24', label: '20–23px', sw: '3.2', dot: '4.6', ring: true, arc: false, stem: true, note: 'Inner arc drops. Ring, stem and a larger dot.' },
+        { px: '18', label: '16–19px', sw: '3.6', dot: '5.4', ring: true, arc: false, stem: false, note: 'Stem drops too. Favicon and tab icon.' },
+        { px: '14', label: 'Under 16px', sw: '0', dot: '13', ring: false, arc: false, stem: false, note: 'The dot alone, in slate not gold. A beacon at 12px is a dot; pretending otherwise is noise.' }
+      ],
+
+      clearSpace: [
+        { k: 'Rule', v: 'Clear space on all four sides equals r — the dot radius, ¼ of the ring radius. It scales with the mark, so it never needs recalculating.' },
+        { k: 'Measured from', v: 'The stroke’s outer edge, not the path centreline. At 2.5 units of stroke that is a 1.25-unit difference, which is visible at 128px.' },
+        { k: 'Exception', v: 'Product chrome may collapse it to 12px at 26px mark size. Nothing else may — not slides, not print, not the app icon.' },
+        { k: 'What may enter', v: 'Nothing. Not the wordmark beyond its lockup gap, not a divider, not a badge, not a “beta” pill.' }
+      ],
+
+      motion: [
+        { k: 'Cycle', v: ms + 'ms, looping. Long enough to read as deliberate, short enough that a second wave has launched before the first fades.' },
+        { k: 'Wave', v: 'The inner arc, scaled 0.42 → 1.92 from the dot centre, opacity 0 → 1 → 0. Two instances, offset by half a cycle.' },
+        { k: 'Easing', v: 'cubic-bezier(.25, .6, .35, 1) — fast off the dot, decelerating outward. A signal loses energy as it travels; linear motion would read mechanical.' },
+        { k: 'Dot', v: 'Scale 1 → 1.16 → 1 on ease-in-out, in phase with the wave launch. It never changes colour or opacity.' },
+        { k: 'Track', v: 'Ring and stem hold at 28% opacity in light, 30% in dark. They are the unfilled track, so the mark is never mid-disassembly.' },
+        { k: 'Determinate', v: 'Outer-ring circumference is 88.3 units. Fill clockwise from the bottom gap; 0% shows the track only. Under 400ms of expected wait, show nothing at all.' },
+        { k: 'Reduced motion', v: 'No scale, no opacity ramp. The ring steps in 12.5% increments and the status line beneath carries the change. Enforced with a media query on [data-motion], not by a JS branch.' },
+        { k: 'Never', v: 'The mark does not spin, bounce, wobble, or serve as a button spinner. Inline waits use the system spinner from layer 2; the beacon is reserved for full-surface loads.' }
+      ],
+
+      placement: [
+        { where: 'Splash — /', size: '64px', form: 'Animated + stacked lockup', rule: 'Determinate ring when the queued-change count is known, which on this route it always is.', bg: '#FFFFFF' },
+        { where: 'Top bar — desktop', size: '26px', form: 'Mark + wordmark', rule: 'The only mark in the workspace. Aligned on ring centre, clear space collapsed to 12px.', bg: '#FFFFFF' },
+        { where: 'Top bar — mobile', size: '24px', form: 'Mark only, 20px form', rule: 'No wordmark. The project name owns the width.', bg: '#FFFFFF' },
+        { where: 'Sign-in card', size: '32px', form: 'Mark only', rule: 'The h1 already reads “Sign in to Cockpit”. Never state the name twice in one card.', bg: '#FFFFFF' },
+        { where: 'Invite / register', size: '32px', form: 'Mark only', rule: 'Same as sign-in. These are the only auth screens that carry it.', bg: '#FFFFFF' },
+        { where: 'System screens', size: '—', form: 'None', rule: '404, 500, offline, session-expired and no-permission carry their own status icon. Two symbols compete and neither is read.', bg: '#FBFCFD' },
+        { where: 'Empty states', size: '—', form: 'None', rule: 'An empty state needs an instruction, not a logo. Using the mark as filler is the most common way a brand becomes wallpaper.', bg: '#FBFCFD' },
+        { where: 'Favicon', size: '16 / 32', form: '16px and 24px forms', rule: 'Two separate exports, not one file resized by the browser.', bg: '#FFFFFF' },
+        { where: 'App icon — iOS/Android', size: '1024px', form: 'Light strokes on slate', rule: 'Mark at 62% of canvas. Never the white-background version.', bg: '#FFFFFF' },
+        { where: 'Notification icon', size: '24px', form: 'Monochrome, solid dot', rule: 'One colour, no gold. Android strips colour regardless; design for what ships.', bg: '#FFFFFF' },
+        { where: 'Proposal PDF — A4', size: '14mm', form: 'Stacked lockup, cover', rule: 'Cover only. Body pages carry a 6mm mark-only in the footer beside the page number.', bg: '#FFFFFF' },
+        { where: 'Timeline wall chart — A3', size: '10mm', form: 'Mark only, top-left', rule: 'Slate on white. Never over the Gantt canvas, never over a bar.', bg: '#FFFFFF' },
+        { where: 'PPTX title slide', size: '40px', form: 'Stacked lockup', rule: 'Centred, above the deck title, with full clear space.', bg: '#FFFFFF' },
+        { where: 'PPTX content slides', size: '18px', form: 'Mark only, bottom-left', rule: 'Full-strength slate. No opacity dilution — a 40%-opacity logo reads as a printing fault.', bg: '#FFFFFF' },
+        { where: 'Excel export', size: '—', form: 'None in cells', rule: 'A logo in a spreadsheet cell breaks sorting and filtering. It goes in the header row region only, as a floating image.', bg: '#FBFCFD' },
+        { where: 'Email — invites', size: '28px', form: 'Mark + wordmark', rule: 'PNG at 3× with a transparent background, plus a slate-on-white fallback for clients that block transparency.', bg: '#FFFFFF' }
+      ],
+
+      misuse: [
+        'No glow, outer shadow, inner shadow, bevel or lens flare. The mark is flat at every size, in every theme, on every medium.',
+        'No gradient in the strokes or the dot. Two flat colours is the whole system.',
+        'Never recolour the dot. Not to signal status, not to match a client’s palette, not for a seasonal variant.',
+        'Never recolour the ring to a status colour. A red beacon reads as a product-wide alarm.',
+        'Never stretch, skew, rotate or mirror. The stem is vertical because it is a plumb line; tilted, it becomes a cocktail glass.',
+        'Never place the full-colour mark on a photograph or a busy fill. Use the slate plate, the same one the app icon uses.',
+        'Never redraw the mark with a heavier or lighter stroke to “match” surrounding icons. Use the size ramp, which already compensates.',
+        'Never animate the mark outside the two sanctioned loading forms — and never as a button or inline spinner.'
+      ],
+
+      a11y: [
+        { k: 'Role', v: 'role="img" with aria-label="Cockpit" wherever the mark identifies the product. In a lockup where the wordmark is live text, the SVG becomes aria-hidden so the name is not announced twice.' },
+        { k: 'Loading', v: 'aria-label carries the state, not the brand: “Restoring your last project, 64 percent”. The visible status line beneath is the live region; the SVG itself never announces.' },
+        { k: 'Contrast', v: 'Logotypes are exempt from 1.4.3 and 1.4.11, so the gold dot at 1.71:1 on white is permitted. The wordmark is not exempt — it renders in brand/slate at 8.54:1 and is real text, never an image.' },
+        { k: 'Forced colours', v: 'Under forced-colors the strokes take CanvasText and the dot takes Highlight, so the mark keeps its figure-ground relationship rather than filling solid.' },
+        { k: 'Delivery', v: 'One SVG per size band, optimised, no embedded fonts, no <style> block, path data rounded to 2 decimals. PNG fallbacks at 1×/2×/3× for email only.' },
+        { k: 'Motion', v: 'prefers-reduced-motion is honoured in CSS via a media query on [data-motion], so the reduced variant works even if JavaScript has not loaded — which is exactly when the splash is on screen.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -69,11 +69,14 @@ export function GlobalNav({ session }: GlobalNavProps) {
       {/* Left Zone - Brand */}
       <Link href="/dashboard" className={styles.brand}>
         <div className={styles.logoWrapper}>
+          {/* 26px per the Brand placement table ("Top bar — desktop"). The
+            * wordmark beside it is live text, so the image is decorative —
+            * a labelled image here would announce "Cockpit" twice. */}
           <Image
             src="/logo-cockpit.svg"
-            alt="Cockpit"
-            width={32}
-            height={32}
+            alt=""
+            width={26}
+            height={26}
             priority
           />
         </div>
