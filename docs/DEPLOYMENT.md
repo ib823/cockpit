@@ -36,7 +36,8 @@ Import `ib823/cockpit` in Vercel (Framework preset: **Next.js**). Under
 Optional (recommended for production, app degrades gracefully without them):
 `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (rate limiting),
 `RESEND_API_KEY` or SMTP vars (email). Install command `pnpm install`,
-build command `pnpm build` (auto-detected; `build` runs `prisma generate`).
+build command `pnpm build` (auto-detected). `build` runs `prisma generate`,
+then `scripts/deploy-migrate.mjs`, then `next build` — see §4a.
 
 Pushing the branch (or merging to `main`) triggers the deploy.
 
@@ -52,6 +53,34 @@ export DATABASE_URL="<Neon DIRECT url>"
 pnpm prisma migrate deploy  # applies prisma/migrations (creates all 65 tables)
 pnpm prisma db seed         # seeds L3 catalog + regional holidays (reference data)
 ```
+
+## 4a. Migrations on deploy
+
+Production builds apply pending migrations automatically. `pnpm build` runs
+`scripts/deploy-migrate.mjs` between `prisma generate` and `next build`.
+
+This exists because a deploy that ships code without its schema is silent and
+severe: Prisma selects every scalar field by default, so a missing column makes
+even a plain read fail. When the optimistic-lock migration shipped without
+being applied, opening a Gantt project broke — not just saving one.
+
+**It only runs when `VERCEL_ENV=production`.** Preview deploys are excluded on
+purpose: unless `DATABASE_URL` is scoped per environment in Vercel, a preview
+build points at the production database, and a migration from an unmerged
+branch would land on live data. Local and CI builds are excluded for the same
+reason — `pnpm build` must not mutate a database as a side effect. Set
+`RUN_DEPLOY_MIGRATIONS=1` to opt in elsewhere.
+
+**It refuses to migrate an un-baselined database.** If the target has tables
+but no `0_init` row in `_prisma_migrations` — the signature of a database
+created by `prisma db push` before this repo had migrations — the build stops
+with instructions rather than attempting `0_init` against populated tables.
+Baseline it once (§4 note above, or `prisma/migrations/README.md`) and every
+migration after that applies on its own.
+
+A build failing here is the intended outcome, not a regression: the deploy it
+stopped would have gone green while production broke.
+
 
 ## 5. Your test login (no email service required)
 The app authenticates with **passkeys**; a one-time **admin code** bootstraps the

@@ -86,7 +86,38 @@ Database schema is up to date!
 
 66 tables created (65 models + `_prisma_migrations`), no drift reported.
 
-Still untested: the `migrate resolve --applied 0_init` baselining path against a
-database that was originally created by `db push`. That is the path production
-will take, and it should be rehearsed on a copy of a real environment before the
-first restore drill.
+The baselining path has since been rehearsed, on 2026-08-08, against a
+reconstruction rather than a copy of production — a database built by applying
+`0_init`'s SQL directly, which reproduces the shape a `db push` database has
+and, crucially, leaves `_prisma_migrations` absent:
+
+```
+$ node scripts/deploy-migrate.mjs        # VERCEL_ENV=production
+[migrate] REFUSING TO MIGRATE — the database is not baselined.
+  It has 65 tables but no record of the '0_init' baseline.
+
+$ pnpm prisma migrate resolve --applied 0_init
+Migration 0_init marked as applied.
+
+$ node scripts/deploy-migrate.mjs
+[migrate] Database is baselined — applying pending migrations.
+Applying migration `20260807140000_add_optimistic_lock_versions`
+All migrations have been successfully applied.
+
+$ node scripts/deploy-migrate.mjs        # idempotent
+No pending migrations to apply.
+```
+
+That verifies the mechanism — `resolve` records the baseline without executing
+it, and `deploy` then applies only what is genuinely pending. It does **not**
+verify production's data or any drift particular to it: `migrate status` on the
+real database is still the check that matters, and it is worth running before
+the first restore drill.
+
+## Migrations on deploy
+
+Production builds now apply pending migrations through
+`scripts/deploy-migrate.mjs` (see `docs/DEPLOYMENT.md` §4a). That script encodes
+the warning above rather than trusting anyone to remember it: given tables with
+no `0_init` row, it stops the build instead of running the baseline against
+them.
