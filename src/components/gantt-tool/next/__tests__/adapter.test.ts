@@ -211,6 +211,46 @@ describe("toCanvasModel", () => {
     expect(model.phases[0].tasks).toEqual([]);
   });
 
+  it("paints an AMS phase as a chevron placement, not a contract-length bar", () => {
+    // The bounds exclude AMS end dates on purpose, so measuring this phase's
+    // bar to its contract end (a year past the plan) would overrun the canvas
+    // by ~300 days. The placement must say "chevron" and stay at the start.
+    const model = toCanvasModel(
+      [
+        phase({
+          id: "ams",
+          phaseType: "ams",
+          startDate: "2026-03-01",
+          endDate: "2027-03-01",
+        }),
+      ],
+      bounds("2026-01-05", "2026-03-31")
+    );
+
+    expect(model.placements.ams).toMatchObject({ startDay: 55, ams: true });
+    expect(model.placements.ams.durationDays).toBeLessThanOrEqual(
+      model.totalDays
+    );
+  });
+
+  it("gives an AMS task the same chevron treatment", () => {
+    const model = toCanvasModel(
+      [
+        phase({
+          id: "p1",
+          startDate: "2026-01-05",
+          endDate: "2026-03-31",
+          tasks: [
+            task({ id: "support", startDate: "2026-03-01", endDate: "2027-03-01", isAMS: true }),
+          ],
+        }),
+      ],
+      bounds("2026-01-05", "2026-03-31")
+    );
+
+    expect(model.placements.support.ams).toBe(true);
+  });
+
   it("marks a critical task, and leaves the rest unmarked", () => {
     const model = toCanvasModel(
       [

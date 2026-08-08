@@ -36,6 +36,7 @@ import React, {
   type ReactNode,
 } from "react";
 import styles from "./GanttCanvas.module.css";
+import { GanttAmsChevron } from "./GanttAmsChevron";
 import { GanttBar } from "./GanttBar";
 import { GanttMilestones, type CanvasMilestone } from "./GanttMilestones";
 import { GanttStatus } from "./GanttStatus";
@@ -69,6 +70,13 @@ export interface BarPlacement {
   critical?: boolean;
   baselineStartDay?: number;
   baselineDurationDays?: number;
+  /**
+   * An ongoing contract (AMS). Painted as a fixed-width chevron strip at the
+   * start date instead of a duration bar: the timeline bounds deliberately
+   * exclude AMS end dates, so a duration bar would overrun the canvas.
+   * `durationDays` is ignored for these.
+   */
+  ams?: boolean;
 }
 
 export interface GanttCanvasProps {
@@ -484,7 +492,15 @@ export function GanttCanvas({
                       <span role="gridcell" className={styles.srOnly}>
                         {row.name}
                       </span>
-                      {placement && (
+                      {placement && placement.ams && (
+                        <GanttAmsChevron
+                          left={startDay * px}
+                          description={`${facts.name}, ongoing support contract, starts ${facts.startLabel}`}
+                          selected={selected.has(row.id)}
+                          onSelect={() => moveCursorTo(row.rowIndex - 1)}
+                        />
+                      )}
+                      {placement && !placement.ams && (
                         <GanttBar
                           kind={row.kind}
                           label={row.name}

@@ -81,6 +81,15 @@ export function inclusiveDays(startIso: string, endIso: string): number {
 }
 
 function placeTask(task: StoreTask, origin: Date): BarPlacement {
+  // Same rule as AMS phases: an ongoing task's end is off-canvas by design.
+  if (task.isAMS === true) {
+    return {
+      startDay: dayOffset(task.startDate, origin),
+      durationDays: 1,
+      ams: true,
+    };
+  }
+
   return {
     startDay: dayOffset(task.startDate, origin),
     durationDays: inclusiveDays(task.startDate, task.endDate),
@@ -92,6 +101,18 @@ function placeTask(task: StoreTask, origin: Date): BarPlacement {
 }
 
 function placePhase(phase: StorePhase, origin: Date): BarPlacement {
+  // An AMS phase's endDate is its contract end, which the timeline bounds
+  // deliberately exclude — measuring a bar to it would overrun the canvas by
+  // up to three years. The canvas paints these as a fixed chevron strip and
+  // ignores the duration; 1 is a placeholder, not a claim.
+  if (phase.phaseType === "ams") {
+    return {
+      startDay: dayOffset(phase.startDate, origin),
+      durationDays: 1,
+      ams: true,
+    };
+  }
+
   return {
     startDay: dayOffset(phase.startDate, origin),
     durationDays: inclusiveDays(phase.startDate, phase.endDate),
