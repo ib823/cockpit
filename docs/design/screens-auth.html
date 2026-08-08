@@ -201,7 +201,68 @@
     </div>
   </div>
 </section>
-</x-dc>
+
+<section style="max-width:1560px;margin:-76px auto 0;padding:0 32px 96px">
+  <h2 style="margin:0 0 4px;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em">Dark theme</h2>
+  <p style="margin:0 0 16px;font-size:14px;line-height:21px;color:#4B5563;max-width:78ch">Authored, not inverted: surfaces rise from #0E1116 to #171C24, accent lightens to #7FB0FF and carries dark text, and every status tile pairs its hue with its own subtle fill plus a ≥3:1 border.</p>
+
+  <div style="background:#0E1116;border:1px solid #333C4A;border-radius:8px;padding:20px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px">
+      <div style="background:#171C24;border:1px solid #232A35;border-radius:8px;padding:22px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8592A6">/login — dark</div>
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:7px;background:#E9EEF6;color:#0B1220;font-size:14px;font-weight:600;margin-top:14px">C</span>
+        <h3 style="margin:14px 0 0;font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.02em;color:#E9EEF6">Sign in to Cockpit</h3>
+        <p style="margin:8px 0 0;font-size:13.5px;line-height:21px;color:#AFBACA">Use the passkey on this device. Nothing to remember, nothing to type.</p>
+        <label style="display:block;font-size:12px;font-weight:500;color:#E9EEF6;margin:18px 0 4px">Work email</label>
+        <div style="display:flex;align-items:center;height:44px;padding:0 14px;border-radius:6px;background:#171C24;border:1px solid #8FC0FF;box-shadow:0 0 0 2px #0E1116,0 0 0 4px #8FC0FF;font-size:15px;color:#E9EEF6">chan.weiling@abeam.com</div>
+        <button style="width:100%;height:44px;margin-top:16px;border-radius:6px;background:#7FB0FF;border:1px solid #7FB0FF;color:#0B1220;font-size:15px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer"><span aria-hidden="true" style="font-family:'IBM Plex Mono',monospace">⚿</span>Continue with passkey</button>
+        <div style="display:flex;align-items:center;gap:12px;margin:16px 0"><span aria-hidden="true" style="height:1px;flex:1;background:#232A35"></span><span style="font-size:12px;color:#8592A6">or</span><span aria-hidden="true" style="height:1px;flex:1;background:#232A35"></span></div>
+        <button style="width:100%;height:40px;border-radius:6px;background:#171C24;border:1px solid #748196;color:#E9EEF6;font-size:14px;font-weight:500;cursor:pointer">Email me a sign-in link</button>
+      </div>
+
+      <div style="background:#171C24;border:1px solid #232A35;border-radius:8px;padding:22px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8592A6;margin-bottom:12px">Failure states — dark</div>
+        <div role="alert" style="background:#171C24;border:1px solid #7A5A22;border-radius:8px;padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:9px"><span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#33240B;color:#E9B45A;font-size:11px;font-weight:700">⌛</span><span style="font-size:14px;font-weight:600;color:#E9B45A">That sign-in link has expired</span></div>
+          <div style="font-size:12.5px;line-height:19px;color:#AFBACA;margin-top:6px">Links last 15 minutes and this one was sent at 13:44. Nothing is wrong with your account.</div>
+        </div>
+        <div role="alert" style="background:#171C24;border:1px solid #8A3A33;border-radius:8px;padding:14px 16px;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:9px"><span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#3A1512;color:#FF8A80;font-size:11px;font-weight:700">⏸</span><span style="font-size:14px;font-weight:600;color:#FF8A80">Too many attempts</span></div>
+          <div style="font-size:12.5px;line-height:19px;color:#AFBACA;margin-top:6px">Sign-in is paused for this address until 15:04 MYT after 5 failed attempts. Your account is not locked and your passkey still works.</div>
+        </div>
+        <div style="background:#171C24;border:1px solid #2C6B4E;border-radius:8px;padding:14px 16px;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:9px"><span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#0F2E22;color:#56D69A;font-size:11px;font-weight:700">✓</span><span style="font-size:14px;font-weight:600;color:#56D69A">This invitation has already been accepted</span></div>
+          <div style="font-size:12.5px;line-height:19px;color:#AFBACA;margin-top:6px">Accepted by amirul.shah@abeam.com on 06 Aug 2026 at 09:12.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:16px">
+      <sc-for list="{{ darkSystem }}" as="s" hint-placeholder-count="5">
+        <div role="main" aria-label="{{ s.route }} — dark" style="background:#171C24;border:1px solid #232A35;border-radius:8px;padding:20px;display:flex;flex-direction:column">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8592A6">{{ s.route }}</div>
+          <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:{{ s.iconBg }};border:1px solid {{ s.iconBd }};color:{{ s.iconFg }};font-size:16px;margin-top:12px">{{ s.glyph }}</span>
+          <h3 style="margin:12px 0 0;font-size:16px;line-height:23px;font-weight:600;color:#E9EEF6;text-wrap:pretty">{{ s.title }}</h3>
+          <p style="margin:7px 0 0;font-size:12.5px;line-height:19px;color:#AFBACA;text-wrap:pretty">{{ s.body }}</p>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+            <button style="height:34px;padding:0 12px;border-radius:6px;background:#7FB0FF;border:1px solid #7FB0FF;color:#0B1220;font-size:13px;font-weight:500;cursor:pointer">{{ s.primary }}</button>
+            <button style="height:34px;padding:0 12px;border-radius:6px;background:#171C24;border:1px solid #748196;color:#E9EEF6;font-size:13px;font-weight:500;cursor:pointer">{{ s.secondary }}</button>
+          </div>
+          <sc-if value="{{ s.ref }}" hint-placeholder-val="{{ false }}">
+            <code style="margin-top:12px;display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8592A6">{{ s.ref }}</code>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:16px;background:#171C24;border:1px solid #232A35;border-radius:8px;padding:20px">
+      <div style="font-size:14px;font-weight:600;color:#E9EEF6;margin-bottom:6px">Measured ratios in this theme</div>
+      <sc-for list="{{ darkRatios }}" as="r" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:132px 1fr;gap:12px;padding:7px 0;border-top:1px solid #232A35"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#E9EEF6">{{ r.k }}</div><div style="font-size:12.5px;line-height:19px;color:#AFBACA;text-wrap:pretty">{{ r.v }}</div></div>
+      </sc-for>
+    </div>
+  </div>
+</section></x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560,&quot;height&quot;:980}}">
 class Component extends DCLogic {
   renderVals() {
@@ -296,7 +357,24 @@ class Component extends DCLogic {
       { k: 'Reference codes', v: 'Rendered in a <code> element with a copy button whose accessible name is “Copy error reference PRJ-2291 e2f0-91c4”, because reading a hex string aloud is not a usable path.' }
     ];
 
-    return { authStates, inviteStates, steps, loginNotes, systemScreens, statesTable, responsive, a11y };
+    const darkSystem = [
+      { route: '/404', glyph: '⌕', title: 'That page does not exist', body: 'The link may be from an older version of Cockpit, or the project may have been renamed. Nothing has been deleted — search finds projects by their old names for 90 days.', primary: 'Go to my dashboard', secondary: 'Search projects', ref: '', iconBg: '#16294A', iconBd: '#2F4E82', iconFg: '#7FB0FF' },
+      { route: '/500', glyph: '✕', title: 'Something failed on our side', body: 'The request could not be completed. Your unsaved work is safe in this browser and 148 changes are still queued locally — do not reload if you can avoid it.', primary: 'Try again', secondary: 'Copy reference', ref: 'PRJ-2291 · 07 Aug 2026 14:32 · e2f0-91c4', iconBg: '#3A1512', iconBd: '#8A3A33', iconFg: '#FF8A80' },
+      { route: '/offline', glyph: '⌁', title: 'You are offline — keep working', body: 'Cockpit is local-first. Editing, dragging and costing continue; 148 changes are queued on this device and sync when the connection returns. Last sync 13:41.', primary: 'Retry connection', secondary: 'View queued changes', ref: '', iconBg: '#33240B', iconBd: '#7A5A22', iconFg: '#E9B45A' },
+      { route: '/session-expired', glyph: '⌛', title: 'Your session ended after 8 hours', body: 'You were signed out for security, not for inactivity. Nothing was lost: 3 changes are held locally. Sign in and you return to this exact view.', primary: 'Sign in with passkey', secondary: 'Use a sign-in link', ref: '', iconBg: '#33240B', iconBd: '#7A5A22', iconFg: '#E9B45A' },
+      { route: '/no-permission', glyph: '🔒', title: 'You do not have access to this project', body: 'S/4HANA Migration — Sarawak Energy is restricted to its delivery team. Chan Wei Ling owns access. Requesting takes one click.', primary: 'Request access', secondary: 'Back to my projects', ref: '', iconBg: '#16294A', iconBd: '#2F4E82', iconFg: '#7FB0FF' }
+    ];
+
+    const darkRatios = [
+      { k: 'Body text', v: 'content/primary #E9EEF6 on surface/raised #171C24 — 14.68:1. Headline and body use the same token; dark mode never drops the body to a mid grey.' },
+      { k: 'Supporting copy', v: 'content/secondary #AFBACA on #171C24 — 8.71:1; content/tertiary #8592A6 for the reference line — 5.42:1.' },
+      { k: 'Primary action', v: 'content/inverse #0B1220 on accent #7FB0FF — 8.52:1. Accent carries dark text in dark mode, never white.' },
+      { k: 'Secondary action', v: 'content/primary on surface/raised with a border/strong #748196 edge at 4.33:1 — well over the 3:1 boundary target.' },
+      { k: 'Status icon tiles', v: 'danger #FF8A80 on danger/subtle #3A1512 — 7.10:1; warning #E9B45A on #33240B — 7.97:1; accent #7FB0FF on #16294A — 6.59:1. Every tile also carries a border at or above 3:1.' },
+      { k: 'Field focus', v: 'border/focus #8FC0FF against the field #171C24 — 9.08:1, and against the canvas #0E1116 — 10.04:1, so the ring reads on both sides of its 2px offset.' }
+    ];
+
+    return { authStates, inviteStates, steps, loginNotes, systemScreens, statesTable, responsive, a11y, darkSystem, darkRatios };
   }
 }
 </script>

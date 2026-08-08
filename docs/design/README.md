@@ -1,6 +1,6 @@
 # Design system — specification
 
-These 14 documents are the design specification for the UI rebuild. They are
+These documents are the design specification for the UI rebuild. They are
 **specification, not application code**: each one renders a layer of the system
 so it can be reviewed, and nothing in `src/` imports them.
 
@@ -19,14 +19,17 @@ intended.
 | Layer | Documents | Implemented in `src/` |
 |---|---|---|
 | 1 — Foundations | `foundations.html` | ✅ `src/styles/foundations.css` |
-| 2 — Primitives | `primitives.html` | ⬜ not started |
-| 3 — Composites | `composites.html`, `composites2.html` | ⬜ not started |
-| 4 — Domain surfaces | `gantt.html`, `gantt2.html`, `gantt3.html`, `allocation-matrix.html`, `org-chart.html`, `cost.html`, `sync.html` | ⬜ not started |
-| 5 — Screens | `screens-auth.html`, `screens-core.html`, `screens-admin.html` | ⬜ not started |
+| 2 — Primitives | `primitives.html` | ✅ `src/components/ds/` |
+| 3 — Composites | `composites.html`, `composites2.html` (newest) | 🟨 partial — `src/components/ds/` (Modal, fields, banners); top bar / tables / command palette not yet aligned |
+| 4 — Domain surfaces | `gantt.html`, `gantt2.html`, `gantt3.html` (newest), `allocation-matrix.html`, `org-chart.html`, `cost.html`, `sync.html` | 🟨 partial — `src/components/ds/gantt/` behind `?canvas=next` (see `docs/REMEDIATION.md` §3.1); org chart / cost / sync surfaces not yet aligned |
+| 5 — Screens | `screens-auth.html`, `screens-core.html`, `screens-admin.html` | 🟨 partial — 17 of 19 routes migrated in the first pass; auth and core specs were updated 2026-08-08 and need re-verification |
+| Brand | `brand.html` | 🟨 mark + favicon + nav aligned 2026-08-08; loading identity (beacon loader) not yet built |
 
-The app currently ships **19 pages, 3 layouts and 58 components** on the legacy
-UI. None of them have been migrated. Layer 1 is additive and changes nothing
-visible — it is the substrate the later layers are built from.
+`brand.html` arrived 2026-08-08 and is the authority on the mark: construction
+grid, size ramp, placement table, misuse list, and the loading identity. The
+mark in `public/logo-cockpit.svg` and the `/api/favicon` ramp are drawn to its
+stated construction — to the spec, not to the original artwork the spec
+rebuilds.
 
 ## Deliberate divergences from the spec
 

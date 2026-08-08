@@ -19,7 +19,7 @@
   gap: 16px;
   flex-wrap: wrap;
   position: relative;
-  z-index: 1021; /* Above GlobalNav sticky (1020) and dropdown (1000) */
+  z-index: 1021; /* Above the shell's sticky top bar and dropdown (1000) */
 }
 
 .headerLeft {

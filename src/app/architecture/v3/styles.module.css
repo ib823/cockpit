@@ -8,7 +8,11 @@
    ============================================================================ */
 
 .container {
-  height: calc(100vh - 56px);
+  /* Fills the AppShell's full-bleed main; the exact viewport arithmetic lives
+   * in the shell, not here. min-height 0 so inner overflow areas get a bound. */
+  flex: 1 1 auto;
+  min-height: 0;
+  height: calc(100vh - 52px);
   display: flex;
   flex-direction: column;
   background-color: var(--color-bg-primary);

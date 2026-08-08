@@ -1,38 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="Cockpit">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="Cockpit">
   <!--
-    The Cockpit mark: a beacon.
+    The Cockpit beacon, drawn to the Brand spec's stated construction
+    (docs/design/Cockpit Brand.dc.html) — not to the original artwork, which
+    the spec explicitly rebuilds: "the original's radii and gap were close to
+    these but not on any system, which is why it resisted clean scaling."
 
-    An outer ring broken at the base, an inner arc, a gold point at the
-    centre, and a stem dropping through the break. Recreated as vectors from
-    the supplied artwork so it stays crisp at 16px in a tab and at 512px in
-    an app icon.
+    Construction, 48-unit grid, every value stated:
+      ring centre (24, 21) — three units above canvas centre
+      radii: outer 16, inner arc 9, dot 4 (ratio 4 : 2.25 : 1)
+      ring gap 44° centred on vertical; endpoints (29.99, 35.84) (18.01, 35.84)
+      inner arc exactly 180°, (15, 21) to (33, 21) over the top
+      stem x 24, y 28 → 41
+      stroke 2.5, round caps, one weight everywhere
 
-    Geometry, so edits keep the proportions of the original: everything is
-    centred on (256, 246); the ring is r=150 with a 22-degree gap at the
-    bottom that the stem passes through; the arc is r=88 spanning 230 degrees
-    across the top; the point is r=27; strokes are 17 with round caps —
-    the original's stroke-to-radius ratio, which is what makes the mark read
-    as drawn rather than stamped.
+    Two flat colours is the whole system: slate #3A5060 for structure,
+    gold #E5C264 for the dot and only the dot. No gradient — the spec's
+    "one thing to drop". This file is the ≥40px full form; smaller sizes use
+    the ramp forms in /api/favicon, which shed parts rather than scale.
   -->
-  <defs>
-    <linearGradient id="cockpit-gold" x1="229" y1="219" x2="283" y2="273" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#EBC463"/>
-      <stop offset="1" stop-color="#D9A83E"/>
-    </linearGradient>
-  </defs>
 
-  <!-- Outer ring, broken at the base for the stem -->
-  <path d="M 284.6 393.2 A 150 150 0 1 0 227.4 393.2"
-        stroke="#3D5566" stroke-width="17" stroke-linecap="round"/>
+  <!-- Outer ring, the long way around the 44° bottom gap -->
+  <path d="M 29.99 35.84 A 16 16 0 1 0 18.01 35.84"
+        stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"/>
 
-  <!-- Inner arc -->
-  <path d="M 176.2 283.2 A 88 88 0 1 1 335.8 283.2"
-        stroke="#3D5566" stroke-width="17" stroke-linecap="round"/>
+  <!-- Inner arc: a half-circle, not an eyeballed sweep -->
+  <path d="M 15 21 A 9 9 0 0 1 33 21"
+        stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"/>
 
-  <!-- The gold point -->
-  <circle cx="256" cy="246" r="27" fill="url(#cockpit-gold)"/>
+  <!-- The dot: the only colour element, identical in both themes -->
+  <circle cx="24" cy="21" r="4" fill="#E5C264"/>
 
-  <!-- Stem, through the break -->
-  <path d="M 256 296 L 256 424"
-        stroke="#3D5566" stroke-width="17" stroke-linecap="round"/>
+  <!-- Stem: clears the dot by 3, passes 5.16 below the ring endpoints -->
+  <path d="M 24 28 L 24 41"
+        stroke="#3A5060" stroke-width="2.5" stroke-linecap="round"/>
 </svg>

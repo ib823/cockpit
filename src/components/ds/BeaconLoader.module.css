@@ -1,0 +1,94 @@
+/*
+ * Beacon loader. Every number is from docs/design/brand.html's motion
+ * specification; nothing here is tuned by eye.
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-3, 12px);
+  /* "Under 400ms of expected wait, show nothing at all." The panel is
+   * invisible for its first 400ms and then appears — in CSS, so the rule
+   * holds even while JavaScript is busy, which is exactly when a loader is
+   * on screen. */
+  opacity: 0;
+  animation: beacon-appear 1ms linear 400ms forwards;
+}
+
+@keyframes beacon-appear {
+  to { opacity: 1; }
+}
+
+.mark {
+  display: block;
+}
+
+/* Ring and stem hold at 28% as the unfilled track, so the mark is legible at
+ * every frame and never mid-disassembly. */
+.track {
+  opacity: 0.28;
+}
+
+/* The wave: the inner arc, scaled 0.42 → 1.92 from the dot centre,
+ * opacity 0 → 1 → 0. Fast off the dot, decelerating outward — a signal loses
+ * energy as it travels; linear motion would read mechanical. */
+.wave {
+  transform-origin: 24px 21px;
+  animation: beacon-wave 1800ms cubic-bezier(0.25, 0.6, 0.35, 1) infinite;
+}
+
+.waveSecond {
+  animation-delay: -900ms; /* half a cycle */
+}
+
+@keyframes beacon-wave {
+  0%   { transform: scale(0.42); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: scale(1.92); opacity: 0; }
+}
+
+/* The dot scales 1 → 1.16 → 1 in phase with the wave launch. It never
+ * changes colour or opacity. */
+.dot {
+  transform-origin: 24px 21px;
+  animation: beacon-dot 1800ms ease-in-out infinite;
+}
+
+@keyframes beacon-dot {
+  0%, 100% { transform: scale(1); }
+  18%      { transform: scale(1.16); }
+}
+
+.progress {
+  /* State, not motion: the arc jumps to each reported value. No transition,
+   * so under reduced motion there is nothing extra to disable, and the fill
+   * inherently steps at whatever granularity progress arrives. */
+}
+
+.status {
+  margin: 0;
+  font: var(--ds-type-body-sm, 400 13px/1.4 system-ui);
+  color: var(--ds-content-secondary, #5f6b7f);
+}
+
+/* Reduced motion, enforced here rather than by a JS branch: no scale, no
+ * opacity ramp. The waves rest as a whole static mark and the status line
+ * carries the change — which is where it belonged anyway. */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation-duration: 1ms; /* the 400ms gate still applies via delay */
+  }
+  .wave {
+    animation: none;
+    transform: scale(1);
+    opacity: 1;
+  }
+  .waveSecond {
+    /* One inner arc, not two stacked at full opacity. */
+    display: none;
+  }
+  .dot {
+    animation: none;
+  }
+}

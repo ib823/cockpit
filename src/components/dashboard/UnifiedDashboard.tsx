@@ -15,7 +15,9 @@ import {
   Shield,
   GitBranch,
 } from 'lucide-react';
-import { GlobalNav } from '@/components/navigation/GlobalNav';
+import { AppShell } from '@/components/ds/AppShell';
+import { UserMenu } from '@/components/navigation/UserMenu';
+import { globalNav } from '@/components/navigation/global-nav';
 import { MetricCard } from './MetricCard';
 import { QuickActionCard } from './QuickActionCard';
 
@@ -85,11 +87,10 @@ export function UnifiedDashboard({ session }: UnifiedDashboardProps) {
   }, [isAdmin]);
 
   return (
-    <>
-      <GlobalNav session={session} />
-
-      <div className="min-h-screen bg-secondary">
-        <main id="main-content" className="max-w-[1400px] mx-auto px-6 py-10 md:px-10 md:py-16">
+    <AppShell primaryNav={globalNav("/dashboard")} topBarEnd={<UserMenu session={session} />}>
+      {/* No sync chip here: the dashboard reads aggregate stats, not a
+        * project document — a chip with nothing to sync would be a lie. */}
+      <div className="py-4 md:py-8">
           {/* Welcome Section */}
           <div className="mb-12 animate-slide-up">
             <h1 className="display-large mb-2 text-primary">
@@ -214,8 +215,7 @@ export function UnifiedDashboard({ session }: UnifiedDashboardProps) {
               </div>
             </section>
           )}
-        </main>
       </div>
-    </>
+    </AppShell>
   );
 }
