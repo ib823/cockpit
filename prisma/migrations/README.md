@@ -27,6 +27,19 @@ It contains 65 `CREATE TABLE` statements (one per model) and 170 indexes.
 
 ## Applying it
 
+Every command below needs **both** URL variables exported, because
+`schema.prisma` declares `directUrl = env("DATABASE_URL_UNPOOLED")` and Prisma
+validates every env() binding when it loads the schema — for any command, even
+one that never opens the direct connection. With only `DATABASE_URL` set you
+get `Environment variable not found: DATABASE_URL_UNPOOLED` before anything
+runs. Both take the direct (unpooled) URL; migrations carry DDL.
+
+```bash
+DIRECT="<direct, unpooled url>"
+export DATABASE_URL="$DIRECT"
+export DATABASE_URL_UNPOOLED="$DIRECT"
+```
+
 ### A NEW database (empty)
 
 ```bash
@@ -47,16 +60,43 @@ Mark it as already applied instead:
 pnpm prisma migrate resolve --applied 0_init
 ```
 
-This writes the row into `_prisma_migrations` without executing any SQL. Verify
-before you do anything else:
+This writes the row into `_prisma_migrations` without executing any SQL. It
+does **not** leave the database up to date: any migration after the baseline is
+still pending, and `migrate status` will correctly say so. Apply those, then
+check:
 
 ```bash
-pnpm prisma migrate status
+pnpm prisma migrate deploy     # applies only what is genuinely pending
+pnpm prisma migrate status     # expect "Database schema is up to date!"
 ```
 
-Expect "Database schema is up to date!". If it instead reports drift, the live
-database does **not** match `schema.prisma` — resolve that difference explicitly
-before the next migration, and do not paper over it with `db push`.
+Run `migrate status` as the final check, not between the two — reading its
+"not yet applied" list at that point as a failure is the easy mistake here.
+
+If the final check reports drift, the live database does **not** match
+`schema.prisma` — resolve that difference explicitly before the next migration,
+and do not paper over it with `db push`.
+
+### Reading `_prisma_migrations` when something looks wrong
+
+A migration name can legitimately appear **twice**: once rolled back, once
+applied. That is a migration that failed and was retried, and it is resolved,
+not broken. What distinguishes the two states is which timestamps are set:
+
+| `finished_at` | `rolled_back_at` | meaning                                                   |
+| ------------- | ---------------- | --------------------------------------------------------- |
+| set           | null             | applied normally                                          |
+| null          | set              | failed, then explicitly rolled back — fine                |
+| null          | null             | **failed and unresolved** — blocks every future migration |
+
+Only the third row is a problem. Prisma refuses to apply anything while a
+migration looks unfinished, failing with `P3009`, which in this repo means the
+production build stops (`scripts/deploy-migrate.mjs` runs `migrate deploy`).
+The fix is `prisma migrate resolve --rolled-back "<migration_name>"` — or
+`--applied` if the change did in fact land and was fixed by hand.
+
+Note that `finished_at IS NULL` alone does not mean failure. Checking only that
+column will make a cleanly rolled-back row look like an outage.
 
 ### After baselining
 
@@ -113,6 +153,29 @@ it, and `deploy` then applies only what is genuinely pending. It does **not**
 verify production's data or any drift particular to it: `migrate status` on the
 real database is still the check that matters, and it is worth running before
 the first restore drill.
+
+## What production actually contained (observed 2026-08-08)
+
+Read from the live database rather than inferred, because it does not match
+what this file assumed:
+
+- `_prisma_migrations` **already existed**. The note above about the database
+  being push-managed is right about `0_init` never having been recorded, but
+  wrong that there was no history table at all.
+- It carried two migrations that **have never existed in this repository** —
+  not in the working tree and not anywhere in git history:
+  `20251020150129_add_org_chart_to_gantt_project` and
+  `20251119032925_team_capacity_models`. Prisma does not object: with the
+  baseline recorded, `migrate status` reports "Database schema is up to date!".
+  But the database's history and this repo's disagree, and that gap is a
+  restore-drill problem waiting to happen — a restore replays what is in the
+  repo, which is not what built the live schema.
+- `20251020150129_...` appears twice: rolled back at 03:14:07 on 2025-10-24 and
+  re-applied in the same second. Resolved, not broken — see the table above.
+
+The baseline itself was applied as SQL through the Neon console rather than via
+the CLI, which is equivalent: `migrate resolve --applied` only inserts a row,
+and the checksum it stores is the plain SHA-256 of the migration file.
 
 ## Migrations on deploy
 
