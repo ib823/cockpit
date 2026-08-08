@@ -14,6 +14,16 @@ export const metadata: Metadata = {
   title: "Cockpit",
   description: "From RFP to Proposal in 10 Minutes",
   manifest: "/manifest.json",
+  // Static fallbacks so the tab shows the beacon before hydration and in
+  // no-JS contexts; DynamicFavicon swaps in the status-plated version once
+  // the client is up.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 // Viewport configuration for optimal mobile rendering
