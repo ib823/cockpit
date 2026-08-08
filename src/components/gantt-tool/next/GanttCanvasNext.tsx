@@ -42,6 +42,7 @@ import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-st
 import type { ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { toCanvasMilestones, toCanvasModel } from "./adapter";
 import { buildAxisTicks, buildNonWorkingDays } from "./axis";
+import { buildRowDetails } from "./details";
 
 /**
  * The legacy zoom vocabulary has an "auto" and a "year"; the canvas grain has a
@@ -144,6 +145,13 @@ export function GanttCanvasNext({
     [bounds, currentProject?.holidays]
   );
 
+  // Same holiday list as the shading, so the "working days" a row reports and
+  // the days the axis shades can never disagree.
+  const details = useMemo(
+    () => (phases ? buildRowDetails(phases, currentProject?.holidays ?? []) : {}),
+    [phases, currentProject?.holidays]
+  );
+
   /**
    * Commits a Move to the store.
    *
@@ -203,6 +211,7 @@ export function GanttCanvasNext({
         majorTicks={axis.majorTicks}
         minorTicks={axis.minorTicks}
         nonWorkingDays={nonWorkingDays}
+        details={details}
         expandedIds={expandedIds}
         onExpandedChange={setExpandedIds}
         onMove={handleMove}

@@ -62,6 +62,22 @@ import {
   type BarFacts,
 } from "./announce";
 
+/**
+ * Detail cells for one row of the tree pane, pre-formatted by the caller so
+ * the canvas never owns date or duration formatting — the seam does, where it
+ * can be asserted against the legacy formats.
+ */
+export interface RowDetails {
+  /** Calendar duration, e.g. "3.2 m". */
+  calendar: string;
+  /** Working days as displayed, e.g. "42 d". */
+  working: string;
+  /** Start–end, e.g. "05-Jan-26 (Mon) - 30-Jan-26 (Fri)". */
+  dates: string;
+  /** The working-day count as a number, for the accessible description. */
+  workingDays: number;
+}
+
 /** Timing for one bar on the canvas. Days are offsets from the origin. */
 export interface BarPlacement {
   startDay: number;
@@ -98,6 +114,13 @@ export interface GanttCanvasProps {
   minorTicks?: AxisTick[];
   nonWorkingDays?: NonWorkingDay[];
   todayDay?: number;
+  /**
+   * Per-row detail columns. When present the tree pane becomes the four-column
+   * grid the legacy canvas renders (name, duration, work days, dates); when
+   * absent it stays a name-only tree, which is what the showcase and every
+   * pre-existing caller get.
+   */
+  details?: Record<string, RowDetails>;
   /** Milestones, in the same day-offset space as placements. */
   milestones?: CanvasMilestone[];
   /** Opens milestone editing. Markers render inert without it. */
@@ -126,6 +149,7 @@ export function GanttCanvas({
   minorTicks = [],
   nonWorkingDays = [],
   todayDay,
+  details,
   milestones = [],
   onMilestoneActivate,
   toolbar,
@@ -368,8 +392,23 @@ export function GanttCanvas({
       </div>
 
       <div className={styles.canvas} style={{ height }}>
-        <div className={styles.treePane}>
-          <div className={styles.treeHeader}>Plan</div>
+        {/* With details the tree pane is legacy's four-column grid at legacy's
+          * default widths (280 + 90 + 90 + 180); without, the original
+          * name-only 280px tree. */}
+        <div
+          className={styles.treePane}
+          style={details ? { width: 280 + 90 + 90 + 180 } : undefined}
+        >
+          <div className={styles.treeHeader}>
+            <span className={styles.treeName}>Plan</span>
+            {details && (
+              <>
+                <span className={styles.detailCell}>Duration</span>
+                <span className={styles.detailCell}>Work Days</span>
+                <span className={styles.detailCellWide}>Start-End</span>
+              </>
+            )}
+          </div>
           <div
             className={styles.treeBody}
             style={{ height: viewportHeight }}
@@ -410,6 +449,19 @@ export function GanttCanvas({
                     >
                       {row.name}
                     </span>
+                    {details && (
+                      <>
+                        <span className={styles.detailCell}>
+                          {details[row.id]?.calendar}
+                        </span>
+                        <span className={styles.detailCell}>
+                          {details[row.id]?.working}
+                        </span>
+                        <span className={styles.detailCellWide}>
+                          {details[row.id]?.dates}
+                        </span>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -519,7 +571,15 @@ export function GanttCanvas({
                           canvasRemainingPx={
                             (totalDays - startDay - placement.durationDays) * px
                           }
-                          description={`${facts.name}, ${facts.kind}, ${facts.startLabel} to ${facts.finishLabel}`}
+                          description={
+                            // Working days join the accessible name because
+                            // the shading that conveys them visually is
+                            // aria-hidden — this is where that information
+                            // reaches assistive technology (see TimelineAxis).
+                            details?.[row.id]
+                              ? `${facts.name}, ${facts.kind}, ${facts.startLabel} to ${facts.finishLabel}, ${details[row.id].workingDays} working days`
+                              : `${facts.name}, ${facts.kind}, ${facts.startLabel} to ${facts.finishLabel}`
+                          }
                           selected={selected.has(row.id)}
                           onSelect={() => moveCursorTo(row.rowIndex - 1)}
                         />
