@@ -14,9 +14,8 @@ export const metadata: Metadata = {
   title: "Cockpit",
   description: "From RFP to Proposal in 10 Minutes",
   manifest: "/manifest.json",
-  // Static fallbacks so the tab shows the beacon before hydration and in
-  // no-JS contexts; DynamicFavicon swaps in the status-plated version once
-  // the client is up.
+  // The tab icon is the static transparent beacon at every auth/network
+  // state — status belongs to in-app UI, not the favicon.
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

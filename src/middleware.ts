@@ -68,7 +68,6 @@ const PUBLIC_PATHS = new Set([
   "/login",
   "/register",
   "/design",
-  "/api/favicon",
   "/api/health",
   "/api/security/revoke",
   "/api/user/email/revoke",
@@ -84,8 +83,17 @@ const adminPaths = ["/admin", "/api/admin"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip static files - no rate limiting needed
-  if (pathname.startsWith("/_next") || pathname.startsWith("/static") || pathname === "/sw.js" || pathname === "/favicon.ico") {
+  // Skip static files - no rate limiting needed. The matcher already excludes
+  // image extensions; manifest.json must pass too or the browser's
+  // credential-less manifest fetch on /login is redirected to HTML and the
+  // PWA icons never load.
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/static") ||
+    pathname === "/sw.js" ||
+    pathname === "/favicon.ico" ||
+    pathname === "/manifest.json"
+  ) {
     return NextResponse.next();
   }
 
