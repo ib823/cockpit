@@ -68,7 +68,6 @@ const PUBLIC_PATHS = new Set([
   "/login",
   "/register",
   "/design",
-  "/api/favicon",
   "/api/health",
   "/api/security/revoke",
   "/api/user/email/revoke",

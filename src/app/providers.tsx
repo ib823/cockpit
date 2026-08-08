@@ -3,7 +3,6 @@ import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ToastProvider } from "@/ui/toast/ToastProvider";
-import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useEffect, useState } from "react";
 
@@ -67,7 +66,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <ToastProvider>
-            <DynamicFavicon />
             {/*
               Catches render errors in the client tree. `error.tsx` only
               covers errors thrown during a route render; a throw inside an

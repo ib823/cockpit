@@ -16,7 +16,7 @@
     Two flat colours is the whole system: slate #3A5060 for structure,
     gold #E5C264 for the dot and only the dot. No gradient — the spec's
     "one thing to drop". This file is the ≥40px full form; smaller sizes use
-    the ramp forms in /api/favicon, which shed parts rather than scale.
+    the ramp forms of the exported favicons, which shed parts rather than scale.
   -->
 
   <!-- Outer ring, the long way around the 44° bottom gap -->
