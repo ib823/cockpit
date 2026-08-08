@@ -51,11 +51,11 @@ import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-st
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Share2, Users, GripHorizontal, GripVertical, FileSpreadsheet, Flag, Layers, CheckSquare, Image as ImageIcon } from "lucide-react";
-import { HexLoader } from "@/components/ui/HexLoader";
 import { format } from "date-fns";
 import { getTotalResourceCount } from "@/lib/gantt-tool/resource-utils";
 import { getOrphanedResourceIds } from "@/lib/gantt-tool/resource-diagnostics";
-import { AuthShell, AuthStatus } from "@/components/ds/AuthShell";
+import { AuthShell } from "@/components/ds/AuthShell";
+import { BeaconLoader } from "@/components/ds/BeaconLoader";
 
 export default function GanttToolV3Page() {
   // ⚠️ IMPORTANT: All hooks must be called before any conditional returns
@@ -295,7 +295,10 @@ export default function GanttToolV3Page() {
     // wait rather than an error. A live region, because silence followed by a
     // fully-populated screen tells a screen-reader user nothing happened.
     <AuthShell title="Timeline">
-      <AuthStatus message="Loading your project…" />
+      {/* The beacon's sanctioned surface: a full-surface load. Its status
+        * line is the live region; it appears only past 400ms so a fast
+        * restore never flashes chrome. */}
+      <BeaconLoader label="Loading your project…" />
     </AuthShell>
   ) : (
     <>

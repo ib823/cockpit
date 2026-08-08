@@ -15,7 +15,7 @@ import { GlobalNav } from "@/components/navigation/GlobalNav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { NewProjectModal } from "@/components/gantt-tool/NewProjectModal";
 import { OrgChartBuilder } from "@/components/gantt-tool/OrgChartBuilder";
-import { HexLoader } from "@/components/ui/HexLoader";
+import { BeaconLoader } from "@/components/ds/BeaconLoader";
 import type {
   DiagramSettings,
   DiagramType,
@@ -261,7 +261,7 @@ export default function ArchitectureV3Page() {
 
   return showLoading ? (
     <div className={styles.loadingContainer}>
-      <HexLoader size="xl" />
+      <BeaconLoader label="Loading architecture…" size={64} />
     </div>
   ) : (
     <>
