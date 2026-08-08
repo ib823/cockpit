@@ -501,14 +501,31 @@ if (typeof window !== 'undefined') {
     value: function (this: Element): DOMRectList {
       if (!this.isConnected) return NO_LAYOUT;
 
+      // The element itself gets the full cascade: its own display and
+      // visibility are what a hidden control is usually hidden by.
+      const own = realGetComputedStyle(this);
+      if (own.display === 'none' || own.visibility === 'hidden') return NO_LAYOUT;
+
       // `display` is not inherited: a child of a display:none parent still
-      // computes its own display, while a real browser gives it no rects. The
-      // ancestor walk reproduces that.
-      for (let node: Element | null = this; node; node = node.parentElement) {
-        const style = realGetComputedStyle(node);
-        if (style.display === 'none') return NO_LAYOUT;
-        // visibility IS inherited, so it only needs checking on the element.
-        if (node === this && style.visibility === 'hidden') return NO_LAYOUT;
+      // computes its own display, while a real browser gives it no rects. So
+      // ancestors have to be checked too — but with the cheap signals only,
+      // not another full cascade each.
+      //
+      // That is a measured trade, not a shortcut. `tabbable` calls this for
+      // every candidate, and candidates share ancestors, so a full
+      // getComputedStyle per ancestor is quadratic-ish over one query. It cost
+      // 21.4s for the 27 focus-trap tests against 7.4s without the walk — and
+      // under coverage instrumentation that pushed three of them past the 5s
+      // per-test timeout and turned CI red.
+      //
+      // What this still catches: `style="display:none"` and `hidden`, which is
+      // how a test or a component hides a subtree here. What it would miss: a
+      // stylesheet rule setting display:none on an ancestor. Vitest does not
+      // load CSS Modules, so no such rule exists in this environment; if that
+      // ever changes, this needs revisiting rather than quietly under-reporting.
+      for (let node = this.parentElement; node; node = node.parentElement) {
+        if (node.hasAttribute('hidden')) return NO_LAYOUT;
+        if ((node as HTMLElement).style?.display === 'none') return NO_LAYOUT;
       }
 
       return HAS_LAYOUT;
