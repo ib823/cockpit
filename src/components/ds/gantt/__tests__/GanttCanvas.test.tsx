@@ -36,10 +36,12 @@ function Harness({
   phases,
   initiallyExpanded = [],
   onMove,
+  details,
 }: {
   phases: GanttPhase[];
   initiallyExpanded?: string[];
   onMove?: (id: string, start: number, delta: number) => void;
+  details?: React.ComponentProps<typeof GanttCanvas>["details"];
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(initiallyExpanded));
   const [grain, setGrain] = useState<"Day" | "Week" | "Month" | "Quarter">("Week");
@@ -55,6 +57,7 @@ function Harness({
       expandedIds={expanded}
       onExpandedChange={setExpanded}
       onMove={onMove}
+      details={details}
       pendingChanges={3}
       debugAnnouncements
     />
@@ -302,5 +305,48 @@ describe("the tree pane", () => {
     // so a screen reader hears it once rather than twice.
     const rows = screen.getAllByRole("row");
     expect(within(rows[0]).getByRole("gridcell")).toHaveTextContent("Phase 0");
+  });
+});
+
+describe("detail columns", () => {
+  const details = {
+    p0: { calendar: "0.9 m", working: "20 d", dates: "05-Jan-26 (Mon) - 30-Jan-26 (Fri)", workingDays: 20 },
+  };
+
+  it("stays a name-only tree when no details are given", () => {
+    render(<Harness phases={plan(1, 0)} />);
+
+    // The pre-existing callers and the showcase must be untouched by the new
+    // prop: no column headers appear unless details do.
+    expect(screen.queryByText("Work Days")).not.toBeInTheDocument();
+  });
+
+  it("renders legacy's four-column grid when details are given", () => {
+    render(<Harness phases={plan(1, 0)} details={details} />);
+
+    expect(screen.getByText("Duration")).toBeInTheDocument();
+    expect(screen.getByText("Work Days")).toBeInTheDocument();
+    expect(screen.getByText("Start-End")).toBeInTheDocument();
+    expect(screen.getByText("20 d")).toBeInTheDocument();
+    expect(screen.getByText("0.9 m")).toBeInTheDocument();
+  });
+
+  it("adds working days to the bar's accessible name", () => {
+    render(<Harness phases={plan(1, 0)} details={details} />);
+
+    // The weekend/holiday shading that conveys this visually is aria-hidden;
+    // the bar's name is where the fact reaches assistive technology.
+    expect(
+      screen.getByRole("button", { name: /Phase 0, phase, .*20 working days/ })
+    ).toBeInTheDocument();
+  });
+
+  it("leaves the accessible name unchanged for rows without details", () => {
+    render(<Harness phases={plan(2, 0)} details={details} />);
+
+    // p1 has no details entry; its name must not gain a dangling phrase.
+    const bars = screen.getAllByRole("button", { name: /, phase, / });
+    const p1 = bars.find((b) => b.getAttribute("aria-label")?.startsWith("Phase 1"));
+    expect(p1?.getAttribute("aria-label")).not.toMatch(/working days/);
   });
 });

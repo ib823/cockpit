@@ -1233,7 +1233,7 @@ function addExportFooter(
   // Right: Branding
   const branding = document.createElement("span");
   branding.style.cssText = "font-weight: 500; color: #3B82F6;";
-  branding.textContent = "Bound";
+  branding.textContent = "Cockpit";
 
   footer.appendChild(projectName);
   footer.appendChild(exportDate);

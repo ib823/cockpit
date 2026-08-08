@@ -276,6 +276,9 @@ importers:
       prettier:
         specifier: 3.6.2
         version: 3.6.2
+      tabbable:
+        specifier: 6.3.0
+        version: 6.3.0
       tailwindcss:
         specifier: 3.4.0
         version: 3.4.0
@@ -12962,7 +12965,7 @@ snapshots:
 
   webpack@5.109.2(postcss@8.4.31):
     dependencies:
-      '@types/estree': 1.0.8
+      '@types/estree': 1.0.9
       '@types/json-schema': 7.0.15
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/wasm-edit': 1.14.1

@@ -1,0 +1,52 @@
+/*
+ * Milestone layer. Positioned children of the rows container, which is
+ * position:relative and sized to the full (unwindowed) canvas, so a rule
+ * spans every row regardless of which slice is mounted.
+ */
+
+.rule {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  /* Legacy drew the rule at half opacity so bars stay readable through it. */
+  opacity: 0.5;
+  pointer-events: none;
+  /* Above bars (which are unpositioned within their rows) but below the
+   * marker, so the marker's focus ring is never cut by its own rule. */
+  z-index: 3;
+}
+
+.marker {
+  position: absolute;
+  top: 2px;
+  /* Centre the hit area on the rule. */
+  transform: translateX(-50%);
+  /* 24px hit target, matching the legacy marker and the pointer-target floor
+   * used across the canvas (MIN_HIT_PX). The visible diamond is smaller. */
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 4;
+}
+
+.marker:focus-visible {
+  outline: 2px solid var(--ds-border-focus, #0b57d0);
+  outline-offset: 1px;
+  border-radius: var(--ds-radius-sm, 4px);
+}
+
+.diamond {
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  border-radius: 2px;
+  /* A hairline keeps a light-coloured milestone visible on the canvas. */
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.9);
+}

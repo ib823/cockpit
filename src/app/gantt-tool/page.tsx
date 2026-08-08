@@ -14,6 +14,22 @@
 import dynamic from "next/dynamic";
 import { logger } from "@/lib/logger";
 import { GanttCanvasV3 } from "@/components/gantt-tool/GanttCanvasV3";
+import { useGanttCanvasChoice } from "@/components/gantt-tool/next/canvas-flag";
+
+// Loaded lazily, and that is load-bearing: a static import ships the entire
+// replacement canvas (ds canvas, capacity calculator, milestone wiring) to
+// every /gantt-tool visitor ALONGSIDE the legacy canvas — measured at +8kB
+// over the route's 1300kB first-load budget, which is exactly the regression
+// the budget test exists to catch. The strangler's contract is that the
+// replacement costs nothing until the URL asks for it; dynamic() is what
+// makes that true at the bundle level, not just the render level.
+const GanttCanvasNext = dynamic(
+  () =>
+    import("@/components/gantt-tool/next/GanttCanvasNext").then(
+      (m) => m.GanttCanvasNext
+    ),
+  { ssr: false }
+);
 // Lazy-load modals and heavy tabs (E-02: route-level code splitting)
 const NewProjectModal = dynamic(() => import("@/components/gantt-tool/NewProjectModal").then(m => ({ default: m.NewProjectModal })), { ssr: false });
 const ImportModal = dynamic(() => import("@/components/gantt-tool/ImportModal").then(m => ({ default: m.ImportModal })), { ssr: false });
@@ -59,6 +75,10 @@ export default function GanttToolV3Page() {
     lastSyncAt,
     syncStatus
   } = useGanttToolStore();
+
+  // Which Gantt canvas renders. Always "legacy" unless the URL asks for the
+  // replacement by name; see components/gantt-tool/next/canvas-flag.ts.
+  const canvasChoice = useGanttCanvasChoice();
 
   const [initializing, setInitializing] = useState(true);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
@@ -561,16 +581,30 @@ export default function GanttToolV3Page() {
           minHeight: 0, // Flexbox fix for scroll containers
         }}
       >
-        {/* Timeline View - GanttCanvasV3 handles everything including resource capacity */}
+        {/* Timeline View.
+          *
+          * The strangler seam: GanttCanvasV3 is the product, GanttCanvasNext is
+          * the replacement being built behind `?canvas=next`. Both read the same
+          * store, so this is a choice of view, not of data. See
+          * `components/gantt-tool/next/canvas-flag.ts`. */}
         <div className="flex-1" style={{ minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-          <GanttCanvasV3
-            zoomMode={activeZoomMode}
-            showMilestoneModal={showMilestoneModal}
-            onShowMilestoneModalChange={setShowMilestoneModal}
-            showResourceCapacity={isCapacityPanelExpanded}
-            onToggleResourceCapacity={() => setIsCapacityPanelExpanded(!isCapacityPanelExpanded)}
-            hasFinancialAccess={hasFinancialAccess}
-          />
+          {canvasChoice === "next" ? (
+            <GanttCanvasNext
+              zoomMode={activeZoomMode}
+              showMilestoneModal={showMilestoneModal}
+              onShowMilestoneModalChange={setShowMilestoneModal}
+              showResourceCapacity={isCapacityPanelExpanded}
+            />
+          ) : (
+            <GanttCanvasV3
+              zoomMode={activeZoomMode}
+              showMilestoneModal={showMilestoneModal}
+              onShowMilestoneModalChange={setShowMilestoneModal}
+              showResourceCapacity={isCapacityPanelExpanded}
+              onToggleResourceCapacity={() => setIsCapacityPanelExpanded(!isCapacityPanelExpanded)}
+              hasFinancialAccess={hasFinancialAccess}
+            />
+          )}
         </div>
 
         {/* Resource Panel - Sidebar or Bottom based on user choice */}

@@ -36,7 +36,9 @@ import React, {
   type ReactNode,
 } from "react";
 import styles from "./GanttCanvas.module.css";
+import { GanttAmsChevron } from "./GanttAmsChevron";
 import { GanttBar } from "./GanttBar";
+import { GanttMilestones, type CanvasMilestone } from "./GanttMilestones";
 import { GanttStatus } from "./GanttStatus";
 import { TimelineAxis, type AxisTick, type NonWorkingDay } from "./TimelineAxis";
 import { Button } from "../Button";
@@ -60,6 +62,22 @@ import {
   type BarFacts,
 } from "./announce";
 
+/**
+ * Detail cells for one row of the tree pane, pre-formatted by the caller so
+ * the canvas never owns date or duration formatting — the seam does, where it
+ * can be asserted against the legacy formats.
+ */
+export interface RowDetails {
+  /** Calendar duration, e.g. "3.2 m". */
+  calendar: string;
+  /** Working days as displayed, e.g. "42 d". */
+  working: string;
+  /** Start–end, e.g. "05-Jan-26 (Mon) - 30-Jan-26 (Fri)". */
+  dates: string;
+  /** The working-day count as a number, for the accessible description. */
+  workingDays: number;
+}
+
 /** Timing for one bar on the canvas. Days are offsets from the origin. */
 export interface BarPlacement {
   startDay: number;
@@ -68,6 +86,13 @@ export interface BarPlacement {
   critical?: boolean;
   baselineStartDay?: number;
   baselineDurationDays?: number;
+  /**
+   * An ongoing contract (AMS). Painted as a fixed-width chevron strip at the
+   * start date instead of a duration bar: the timeline bounds deliberately
+   * exclude AMS end dates, so a duration bar would overrun the canvas.
+   * `durationDays` is ignored for these.
+   */
+  ams?: boolean;
 }
 
 export interface GanttCanvasProps {
@@ -89,6 +114,17 @@ export interface GanttCanvasProps {
   minorTicks?: AxisTick[];
   nonWorkingDays?: NonWorkingDay[];
   todayDay?: number;
+  /**
+   * Per-row detail columns. When present the tree pane becomes the four-column
+   * grid the legacy canvas renders (name, duration, work days, dates); when
+   * absent it stays a name-only tree, which is what the showcase and every
+   * pre-existing caller get.
+   */
+  details?: Record<string, RowDetails>;
+  /** Milestones, in the same day-offset space as placements. */
+  milestones?: CanvasMilestone[];
+  /** Opens milestone editing. Markers render inert without it. */
+  onMilestoneActivate?: (id: string) => void;
   /** Extra toolbar content, e.g. filters. */
   toolbar?: ReactNode;
   height?: number;
@@ -113,6 +149,9 @@ export function GanttCanvas({
   minorTicks = [],
   nonWorkingDays = [],
   todayDay,
+  details,
+  milestones = [],
+  onMilestoneActivate,
   toolbar,
   height = 520,
   debugAnnouncements,
@@ -353,8 +392,23 @@ export function GanttCanvas({
       </div>
 
       <div className={styles.canvas} style={{ height }}>
-        <div className={styles.treePane}>
-          <div className={styles.treeHeader}>Plan</div>
+        {/* With details the tree pane is legacy's four-column grid at legacy's
+          * default widths (280 + 90 + 90 + 180); without, the original
+          * name-only 280px tree. */}
+        <div
+          className={styles.treePane}
+          style={details ? { width: 280 + 90 + 90 + 180 } : undefined}
+        >
+          <div className={styles.treeHeader}>
+            <span className={styles.treeName}>Plan</span>
+            {details && (
+              <>
+                <span className={styles.detailCell}>Duration</span>
+                <span className={styles.detailCell}>Work Days</span>
+                <span className={styles.detailCellWide}>Start-End</span>
+              </>
+            )}
+          </div>
           <div
             className={styles.treeBody}
             style={{ height: viewportHeight }}
@@ -395,6 +449,19 @@ export function GanttCanvas({
                     >
                       {row.name}
                     </span>
+                    {details && (
+                      <>
+                        <span className={styles.detailCell}>
+                          {details[row.id]?.calendar}
+                        </span>
+                        <span className={styles.detailCell}>
+                          {details[row.id]?.working}
+                        </span>
+                        <span className={styles.detailCellWide}>
+                          {details[row.id]?.dates}
+                        </span>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -434,6 +501,23 @@ export function GanttCanvas({
             />
 
             <div style={{ height: window_.totalHeight, position: "relative", width: totalDays * px }}>
+              {/* Milestone rules and markers span the full canvas height, so
+                * they sit on the unwindowed container rather than the
+                * translated slice below.
+                *
+                * Known ARIA-structure trade, made on purpose: this container
+                * is inside the treegrid, and a strict grid wants only rows as
+                * children. The alternative — an overlay outside the treegrid
+                * kept in sync with two scroll axes — reintroduces exactly the
+                * sync machinery whose drift this canvas was built to avoid.
+                * The markers are real named buttons either way; what is
+                * compromised is validator purity, not reachability. */}
+              <GanttMilestones
+                milestones={milestones}
+                grain={grain}
+                totalDays={totalDays}
+                onActivate={onMilestoneActivate}
+              />
               <div style={{ transform: `translateY(${window_.offsetTop}px)` }}>
                 {visible.map((row) => {
                   const placement = placements[row.id];
@@ -460,7 +544,15 @@ export function GanttCanvas({
                       <span role="gridcell" className={styles.srOnly}>
                         {row.name}
                       </span>
-                      {placement && (
+                      {placement && placement.ams && (
+                        <GanttAmsChevron
+                          left={startDay * px}
+                          description={`${facts.name}, ongoing support contract, starts ${facts.startLabel}`}
+                          selected={selected.has(row.id)}
+                          onSelect={() => moveCursorTo(row.rowIndex - 1)}
+                        />
+                      )}
+                      {placement && !placement.ams && (
                         <GanttBar
                           kind={row.kind}
                           label={row.name}
@@ -479,7 +571,15 @@ export function GanttCanvas({
                           canvasRemainingPx={
                             (totalDays - startDay - placement.durationDays) * px
                           }
-                          description={`${facts.name}, ${facts.kind}, ${facts.startLabel} to ${facts.finishLabel}`}
+                          description={
+                            // Working days join the accessible name because
+                            // the shading that conveys them visually is
+                            // aria-hidden — this is where that information
+                            // reaches assistive technology (see TimelineAxis).
+                            details?.[row.id]
+                              ? `${facts.name}, ${facts.kind}, ${facts.startLabel} to ${facts.finishLabel}, ${details[row.id].workingDays} working days`
+                              : `${facts.name}, ${facts.kind}, ${facts.startLabel} to ${facts.finishLabel}`
+                          }
                           selected={selected.has(row.id)}
                           onSelect={() => moveCursorTo(row.rowIndex - 1)}
                         />

@@ -211,12 +211,44 @@ problem and a battery problem, not a correctness one.
 
 ### 3.1 `/gantt-tool` and `/architecture/v3`
 
-**State:** 17 of 19 routes migrated. These two are not, deliberately.
-`GanttCanvasV3` is 4,078 lines handling pointer drag, resize, dependency
-editing, resource capacity, milestones and cost gating. `GanttCanvas` is ~400
-lines covering rows, windowing, bars, keyboard move and announcements.
+**State:** 17 of 19 routes migrated. `/gantt-tool` is mid-strangler (PR #116):
+the replacement canvas renders behind `?canvas=next` with Move, milestones,
+axis + shading, AMS chevrons, tree columns and the capacity panel ported —
+each slice verified against the legacy formats.
 
-**Do not swap them.** That deletes working functionality.
+**The original "do not swap, that deletes working functionality" warning was
+substantially wrong**, and the port has been correcting it slice by slice.
+Checked against the code and, where it mattered, the full git history:
+
+- Pointer drag/resize of bars: **never existed.** No gesture changes a date.
+- Dependency editing: **never existed.** Zero references in the canvas;
+  dependencies are stored and read only by the two deletion-impact modals.
+- Resource drag-assignment: **never existed, in any of the repo's 122
+  commits.** There is no drag source — nothing ever calls
+  `setData("resourceId")` and nothing is `draggable` — so all four drop
+  handlers in GanttCanvasV3, including the one that writes, are and always
+  were unreachable. The `div[draggable="true"]` CSS in the page styles a
+  feature that was never built.
+
+**Deeper finding, logged 2026-08-08 — the task-assignment write path is
+dead end to end:**
+
+- `TaskResourceModal.onSave` is a literal `// TODO: Implement resource
+  assignment persistence`; it closes and discards the input.
+- The one assignment path that persists is `ResourceAllocationModal` →
+  `handleApplyBulkAllocation` → the team-capacity allocations API. That
+  writes **weekly allocation overrides**, a different data model from
+  `task.resourceAssignments`.
+- `task.resourceAssignments` — the field the capacity calculator reads for
+  its per-task breakdown — has **no working UI write path at all**. It is
+  populated only by imports and direct API use.
+
+Consequence: "port resource assignment" is not a porting task. Making
+task-level assignment real is a product decision (which of the two data
+models is canonical?) and belongs after the flip, as its own feature. The
+dead drop handlers and ghost CSS in the legacy canvas are safe to delete in
+a cleanup commit whenever convenient — they are unreachable, so removal
+changes nothing observable.
 
 **Recommended approach — strangler, not rewrite:**
 

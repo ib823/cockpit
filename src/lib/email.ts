@@ -29,7 +29,7 @@ function emailTemplate(code: string, magicLink?: string): string {
             <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #0f172a 0%, #334155 100%); padding: 32px; text-align: center;">
-                <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 300; letter-spacing: -0.5px;">Bound</h1>
+                <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 300; letter-spacing: -0.5px;">Cockpit</h1>
               </div>
 
               <!-- Content -->
@@ -135,9 +135,9 @@ export async function sendAccessCode(email: string, code: string, magicLink?: st
 
   try {
     await emailTransporter.sendMail({
-      from: `"Bound" <${FROM_EMAIL}>`,
+      from: `"Cockpit" <${FROM_EMAIL}>`,
       to: email,
-      subject: magicLink ? "🚀 Your Bound Access is Ready" : "Your Bound Access Code",
+      subject: magicLink ? "🚀 Your Cockpit Access is Ready" : "Your Cockpit Access Code",
       html: emailTemplate(code, magicLink),
     });
 

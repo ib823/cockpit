@@ -149,7 +149,7 @@ export const POST = withAdmin<{ params: Promise<{ requestId: string }> }>(
     <div style="background: #f8fafc; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
       <p style="margin: 0; color: #94a3b8; font-size: 12px;">
         Reference ID: ${requestId}<br>
-        © ${new Date().getFullYear()} Bound. All rights reserved.
+        © ${new Date().getFullYear()} Cockpit. All rights reserved.
       </p>
     </div>
   </div>

@@ -94,6 +94,22 @@
 
 .treeNamePhase { font-weight: 500; }
 
+/* Detail columns, at legacy's widths. Fixed rather than fluid so a long task
+ * name can never squeeze the numbers into ambiguity. */
+.detailCell,
+.detailCellWide {
+  flex: none;
+  text-align: center;
+  font: var(--ds-type-label);
+  color: var(--ds-content-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detailCell { width: 90px; }
+.detailCellWide { width: 180px; }
+
 .timelineRow {
   position: relative;
   border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
