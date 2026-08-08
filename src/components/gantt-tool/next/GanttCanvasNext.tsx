@@ -24,11 +24,17 @@
  * porting it belongs to a later slice, if at all. Activating any marker opens
  * it, exactly as the legacy diamond does.
  *
- * ## What it does not cover yet
+ * ## Parity status
  *
- * The resource capacity panel, resource drag-assignment, search
- * and column configuration, AMS chevrons, and the WBS third level. Each is a
- * later slice. Until they land, `?canvas=next` is for comparison, not for use.
+ * Ported: Move, milestones, axis + shading, AMS chevrons, tree detail
+ * columns, and the resource capacity panel. Established as never having
+ * existed in the legacy canvas, so nothing to port (see
+ * docs/REMEDIATION.md 3.1): bar drag/resize, dependency editing, resource
+ * drag-assignment, and WBS third-level rendering — the store carries
+ * `parentTaskId` but no UI writes it, neither canvas nests it, and the API
+ * does not persist it. Deliberately not ported: column resizing, manual
+ * capacity overrides. The gate before flipping the default is visual
+ * comparison on real plans, not another slice.
  */
 
 import React, { useCallback, useMemo, useState } from "react";

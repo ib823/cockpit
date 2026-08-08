@@ -250,6 +250,26 @@ dead drop handlers and ghost CSS in the legacy canvas are safe to delete in
 a cleanup commit whenever convenient — they are unreachable, so removal
 changes nothing observable.
 
+**The WBS third level is the fourth phantom (logged 2026-08-08):**
+
+- No UI can create a subtask: `makeTaskChild`, `promoteTask`,
+  `toggleTaskCollapse` and `getTaskWithChildren` in the store have zero
+  callers, and neither task modal ever passes `parentTaskId`.
+- No UI renders subtask structure: the legacy canvas contains no reference
+  to `parentTaskId` or `task.level`; tasks draw flat.
+- The API never persists `parentTaskId` — zero references under
+  `src/app/api` — so even a subtask smuggled in via JSON import flattens on
+  the next save.
+
+Both canvases therefore render the same thing — a flat task list — and
+parity already holds. Building the tree UI would be a new feature (and
+should start by making the API persist the field), not a port.
+
+**The port's parity checklist is complete.** Everything the legacy canvas
+observably does is either ported behind `?canvas=next` or explicitly listed
+above as never having existed. What remains before flipping the default is
+human visual comparison on real plans, and whatever that surfaces.
+
 **Recommended approach — strangler, not rewrite:**
 
 1. Put the new canvas behind a flag on `/gantt-tool`, defaulting off.
