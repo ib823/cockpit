@@ -1,14 +1,27 @@
 /**
  * Business Context Tab
  * Capture: Entities, Actors, Capabilities, Pain Points
+ *
+ * Rebuilt on the design system: Card/Button/Input/Textarea/DataTable/
+ * EmptyState plus the shared tabs.module.css. All state handling and the
+ * onChange data shapes are unchanged.
  */
 
 "use client";
 
+// Explicit default import: tsconfig uses `jsx: "preserve"` with no automatic
+// runtime, so the compiled JSX calls React.createElement by name.
 import React, { useState } from "react";
 import { Plus, Trash2, LayoutGrid, List, ChevronDown } from "lucide-react";
 import type { BusinessContextData, BusinessEntity, Actor, Capability } from "../types";
+import { Card } from "@/components/ds/AppShell";
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Input";
+import { Textarea } from "@/components/ds/Textarea";
+import { DataTable } from "@/components/ds/DataTable";
+import { EmptyState } from "@/components/ds/Feedback";
 import clsx from "clsx";
+import styles from "./tabs.module.css";
 
 type ViewMode = "card" | "list";
 
@@ -24,28 +37,26 @@ const Accordion = ({ title, subtitle, children }: { title: string, subtitle: str
   const contentId = `accordion-${title.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
-    <div className="border border-subtle rounded-xl overflow-hidden bg-primary mb-4 transition-default shadow-sm hover:shadow-md">
+    <div className={styles.accordion}>
       <button
-        className="w-full flex items-center justify-between p-6 text-left hover:bg-secondary transition-default focus-visible:ring-inset"
+        type="button"
+        className={styles.accordionTrigger}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls={contentId}
       >
-        <div className="flex-1 min-w-0 pr-4">
-          <h3 className="display-small mb-1">{title}</h3>
-          <p className="detail text-secondary">{subtitle}</p>
-        </div>
+        <span>
+          <span className={styles.accordionTitle}>{title}</span>
+          <span className={styles.accordionSubtitle}>{subtitle}</span>
+        </span>
         <ChevronDown
-          className={clsx("w-5 h-5 text-secondary transition-default", isOpen && "rotate-180")}
+          size={18}
+          className={clsx(styles.accordionChevron, isOpen && styles.accordionChevronOpen)}
           aria-hidden="true"
         />
       </button>
       {isOpen && (
-        <div
-          className="p-6 border-t border-subtle bg-secondary/30"
-          id={contentId}
-          role="region"
-        >
+        <div className={styles.accordionBody} id={contentId} role="region">
           {children}
         </div>
       )}
@@ -122,16 +133,21 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
   const hasData = data.entities.length > 0 || data.actors.length > 0 || data.painPoints.trim();
 
   return (
-    <div className="space-y-6">
-      {/* Pain Points is now the primary, always-visible section */}
-      <Section title="Pain Points & Motivation" subtitle="Start here: Why does your business need to transform?">
-        <textarea
+    <div className={styles.stack}>
+      {/* Pain Points is the primary, always-visible section */}
+      <Card label="Pain points and motivation">
+        <div className={styles.sectionHead}>
+          <h3 className={styles.sectionTitle}>Pain Points & Motivation</h3>
+          <p className={styles.sectionSubtitle}>Start here: Why does your business need to transform?</p>
+        </div>
+        <Textarea
+          aria-label="Pain points and motivation"
           value={data.painPoints}
           onChange={(e) => onChange({ ...data, painPoints: e.target.value })}
           placeholder="Describe current challenges, business pain points, and the primary motivation for change..."
-          className="w-full min-h-[120px] p-4 rounded-xl border border-strong bg-primary body text-[15px] focus:border-blue focus:ring-2 focus:ring-blue-light outline-none transition-default"
+          rows={5}
         />
-      </Section>
+      </Card>
 
       {/* Collapsible Accordion for other sections */}
       <Accordion title="Business Entities" subtitle="Companies, divisions, subsidiaries (TOGAF organizational view)">
@@ -167,35 +183,31 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
       </Accordion>
 
       {/* View Toggle for sections inside accordions */}
-      <div className="flex items-center justify-between py-4 border-t border-subtle">
-        <span className="body text-sm text-secondary" id="view-mode-label">View mode for details:</span>
+      <div className={styles.viewToggleRow}>
+        <span className={styles.viewToggleLabel} id="view-mode-label">View mode for details:</span>
         <div
           role="radiogroup"
           aria-labelledby="view-mode-label"
-          className="flex items-center bg-secondary rounded-lg p-1 gap-1"
+          className={styles.segmented}
         >
           <button
+            type="button"
             role="radio"
             aria-checked={viewMode === "card"}
             onClick={() => setViewMode("card")}
-            className={clsx(
-              "flex items-center gap-2 py-1.5 px-4 rounded-md body text-sm font-semibold cursor-pointer transition-default",
-              viewMode === "card" ? "bg-primary text-blue shadow-sm" : "bg-transparent text-secondary hover:text-primary"
-            )}
+            className={clsx(styles.segmentedBtn, viewMode === "card" && styles.segmentedBtnActive)}
           >
-            <LayoutGrid className="w-4 h-4" aria-hidden="true" />
+            <LayoutGrid size={14} aria-hidden="true" />
             Card View
           </button>
           <button
+            type="button"
             role="radio"
             aria-checked={viewMode === "list"}
             onClick={() => setViewMode("list")}
-            className={clsx(
-              "flex items-center gap-2 py-1.5 px-4 rounded-md body text-sm font-semibold cursor-pointer transition-default",
-              viewMode === "list" ? "bg-primary text-blue shadow-sm" : "bg-transparent text-secondary hover:text-primary"
-            )}
+            className={clsx(styles.segmentedBtn, viewMode === "list" && styles.segmentedBtnActive)}
           >
-            <List className="w-4 h-4" aria-hidden="true" />
+            <List size={14} aria-hidden="true" />
             List View
           </button>
         </div>
@@ -203,35 +215,12 @@ export function BusinessContextTab({ data, onChange, onGenerate }: BusinessConte
 
       {/* Generate Button */}
       {hasData && (
-        <div className="flex justify-center pt-8">
-          <button
-            onClick={onGenerate}
-            className="py-3 px-10 bg-blue color-white rounded-xl display-small font-bold shadow-lg hover:bg-blue-dark hover:scale-[1.02] active:scale-[0.98] transition-default cursor-pointer"
-          >
+        <div className={clsx(styles.generateRow, styles.generateRowCentered)}>
+          <Button variant="primary" size="lg" onClick={onGenerate}>
             Generate Diagram
-          </button>
+          </Button>
         </div>
       )}
-    </div>
-  );
-}
-
-function Section({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="mb-8">
-      <h3 className="display-small mb-1">{title}</h3>
-      {subtitle && (
-        <p className="detail text-secondary mb-4">{subtitle}</p>
-      )}
-      {children}
     </div>
   );
 }
@@ -246,33 +235,38 @@ function EntityCard({
   onRemove: () => void;
 }) {
   return (
-    <div className="relative p-6 bg-primary border border-strong rounded-xl shadow-sm hover:shadow-md transition-default group">
-      <button
-        onClick={onRemove}
-        className="absolute top-4 right-4 p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default opacity-0 group-hover:opacity-100"
-        aria-label={`Remove entity ${entity.name || 'untitled'}`}
-      >
-        <Trash2 className="w-4 h-4" aria-hidden="true" />
-      </button>
-      <input
-        type="text"
-        value={entity.name}
-        onChange={(e) => onUpdate({ name: e.target.value })}
-        placeholder="Entity Name"
-        className="w-full mb-4 pb-2 border-b-2 border-subtle bg-transparent body-semibold text-lg outline-none focus:border-blue transition-default"
-      />
-      <input
-        type="text"
+    <div className={styles.itemCard}>
+      <div className={styles.itemCardHead}>
+        <Input
+          aria-label="Entity name"
+          size="sm"
+          value={entity.name}
+          onChange={(e) => onUpdate({ name: e.target.value })}
+          placeholder="Entity Name"
+          className={styles.grow}
+        />
+        <Button
+          iconOnly
+          label={`Remove entity ${entity.name || 'untitled'}`}
+          variant="ghost"
+          size="sm"
+          icon={<Trash2 size={14} />}
+          onClick={onRemove}
+        />
+      </div>
+      <Input
+        aria-label="Entity location"
+        size="sm"
         value={entity.location || ""}
         onChange={(e) => onUpdate({ location: e.target.value })}
         placeholder="Location (optional)"
-        className="w-full mb-3 p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default"
       />
-      <textarea
+      <Textarea
+        aria-label="Entity description"
         value={entity.description || ""}
         onChange={(e) => onUpdate({ description: e.target.value })}
         placeholder="Description (optional)"
-        className="w-full min-h-[80px] p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default resize-none"
+        rows={3}
       />
     </div>
   );
@@ -288,44 +282,49 @@ function ActorCard({
   onRemove: () => void;
 }) {
   return (
-    <div className="relative p-6 bg-primary border border-strong rounded-xl shadow-sm hover:shadow-md transition-default group">
-      <button
-        onClick={onRemove}
-        className="absolute top-4 right-4 p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default opacity-0 group-hover:opacity-100"
-        aria-label={`Remove actor ${actor.name || 'untitled'}`}
-      >
-        <Trash2 className="w-4 h-4" aria-hidden="true" />
-      </button>
-      <input
-        type="text"
-        value={actor.name}
-        onChange={(e) => onUpdate({ name: e.target.value })}
-        placeholder="Actor Name (e.g., CFO)"
-        className="w-full mb-4 pb-2 border-b-2 border-subtle bg-transparent body-semibold text-lg outline-none focus:border-blue transition-default"
-      />
-      <div className="flex gap-3 mb-4">
-        <input
-          type="text"
+    <div className={styles.itemCard}>
+      <div className={styles.itemCardHead}>
+        <Input
+          aria-label="Actor name"
+          size="sm"
+          value={actor.name}
+          onChange={(e) => onUpdate({ name: e.target.value })}
+          placeholder="Actor Name (e.g., CFO)"
+          className={styles.grow}
+        />
+        <Button
+          iconOnly
+          label={`Remove actor ${actor.name || 'untitled'}`}
+          variant="ghost"
+          size="sm"
+          icon={<Trash2 size={14} />}
+          onClick={onRemove}
+        />
+      </div>
+      <div className={styles.itemCardRow}>
+        <Input
+          aria-label="Actor role"
+          size="sm"
           value={actor.role}
           onChange={(e) => onUpdate({ role: e.target.value })}
           placeholder="Role"
-          className="flex-1 p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default"
         />
-        <input
-          type="text"
+        <Input
+          aria-label="Actor department"
+          size="sm"
           value={actor.department}
           onChange={(e) => onUpdate({ department: e.target.value })}
           placeholder="Department"
-          className="flex-1 p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default"
         />
       </div>
-      <textarea
+      <Textarea
+        aria-label="Actor key activities"
         value={actor.activities.join("\n")}
         onChange={(e) =>
           onUpdate({ activities: e.target.value.split("\n").filter((a) => a.trim()) })
         }
         placeholder="Key activities (one per line)"
-        className="w-full min-h-[100px] p-2 rounded-md border border-subtle bg-secondary/50 body text-sm focus:border-blue outline-none transition-default resize-none"
+        rows={4}
       />
     </div>
   );
@@ -519,29 +518,32 @@ function CapabilitiesSection({
   };
 
   return (
-    <div className="space-y-6">
+    <div className={styles.stack}>
       {/* Template Selector */}
-      <div className="template-loader">
-        <button
+      <div>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<Plus size={14} />}
           onClick={() => setShowTemplates(!showTemplates)}
-          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
+          aria-expanded={showTemplates}
         >
-          <Plus className="w-4 h-4" />
           {showTemplates ? "Hide" : "Load"} TOGAF Templates
-        </button>
+        </Button>
 
         {showTemplates && (
-          <div className="mt-4 p-6 bg-secondary rounded-xl border border-strong shadow-sm animate-fade-in">
-            <h4 className="body-semibold text-primary mb-4">Select a TOGAF Capability Domain</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className={styles.templatePanel}>
+            <h4 className={styles.templatePanelTitle}>Select a TOGAF Capability Domain</h4>
+            <div className={styles.templateGrid}>
               {Object.entries(TOGAF_CAPABILITY_TEMPLATES).map(([category, caps]) => (
                 <button
                   key={category}
+                  type="button"
                   onClick={() => loadTemplate(category, caps)}
-                  className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
+                  className={styles.templateBtn}
                 >
-                  <div className="body-semibold mb-1">{category}</div>
-                  <div className="detail text-secondary">{caps.length} capabilities</div>
+                  <span className={styles.templateBtnName}>{category}</span>
+                  <span className={styles.templateBtnCount}>{caps.length} capabilities</span>
                 </button>
               ))}
             </div>
@@ -550,7 +552,7 @@ function CapabilitiesSection({
       </div>
 
       {/* Capabilities Display */}
-      <div className="flex flex-wrap gap-2">
+      <div className={styles.pillRow}>
         {capabilities.map((cap) => (
           <CapabilityTag
             key={cap.id}
@@ -559,12 +561,9 @@ function CapabilitiesSection({
             onRemove={() => onRemove(cap.id)}
           />
         ))}
-        <button
-          onClick={onAdd}
-          className="inline-flex items-center gap-2 py-2 px-4 rounded-full border-2 border-dashed border-strong bg-transparent text-secondary hover:border-blue hover:text-blue transition-default cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="detail font-semibold">Add Custom Capability</span>
+        <button type="button" onClick={onAdd} className={styles.addPill}>
+          <Plus size={12} aria-hidden="true" />
+          <span>Add Custom Capability</span>
         </button>
       </div>
     </div>
@@ -584,60 +583,58 @@ function CapabilityTag({
 
   if (isEditing) {
     return (
-      <div className="flex items-center">
-        <input
-          autoFocus
-          type="text"
-          value={capability.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
-          onBlur={() => setIsEditing(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") setIsEditing(false);
-            if (e.key === "Escape") setIsEditing(false);
-          }}
-          className="py-1.5 px-3 rounded-full border-2 border-blue bg-primary body text-xs outline-none min-w-[120px]"
-        />
-      </div>
+      <input
+        autoFocus
+        type="text"
+        aria-label="Capability name"
+        value={capability.name}
+        onChange={(e) => onUpdate({ name: e.target.value })}
+        onBlur={() => setIsEditing(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") setIsEditing(false);
+          if (e.key === "Escape") setIsEditing(false);
+        }}
+        className={styles.capPillInput}
+      />
     );
   }
 
-  // Get category specific styling
-  const categoryStyles: Record<string, string> = {
-    "Finance & Accounting": "bg-blue-light text-blue border-blue/20",
-    "Human Capital Management": "bg-green-light text-green border-green/20",
-    "Supply Chain Management": "bg-orange-light text-orange border-orange/20",
-    "Customer Management": "bg-pink-light text-pink border-pink/20",
-    "Product & Service Management": "bg-purple-light text-purple border-purple/20",
-    "IT Service Management": "bg-indigo-light text-indigo border-indigo/20",
-    "Risk & Compliance": "bg-red-light text-red border-red/20",
-    "Strategy & Governance": "bg-gray-6 text-gray-1 border-gray-4",
+  // Category-specific tone. The ds palette has five tones; nearby domains
+  // share one, and the category name stays in the tooltip either way.
+  const categoryTone: Record<string, string> = {
+    "Finance & Accounting": styles.capPillInfo,
+    "Human Capital Management": styles.capPillSuccess,
+    "Supply Chain Management": styles.capPillWarning,
+    "Customer Management": styles.capPillAccent,
+    "Product & Service Management": styles.capPillInfo,
+    "IT Service Management": styles.capPillAccent,
+    "Risk & Compliance": styles.capPillDanger,
+    "Strategy & Governance": "",
   };
 
-  const currentStyle = categoryStyles[capability.category || ""] || "bg-secondary text-primary border-strong";
+  const toneClass = categoryTone[capability.category || ""] || "";
 
   return (
     <div
       role="button"
       tabIndex={0}
-      className={clsx(
-        "inline-flex items-center gap-2 px-4 py-1.5 rounded-full border body text-xs font-semibold cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-default group",
-        currentStyle
-      )}
+      className={clsx(styles.capPill, toneClass)}
       onClick={() => setIsEditing(true)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsEditing(true); }}
       title={capability.category ? `Category: ${capability.category}` : "Click to edit"}
     >
-      <div className={clsx("w-1.5 h-1.5 rounded-full", currentStyle.split(' ')[1].replace('text', 'bg'))} />
+      <span className={styles.capPillDot} aria-hidden="true" />
       <span>{capability.name || "Click to edit"}</span>
       <button
+        type="button"
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
         }}
-        className="p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-black/5 transition-default"
+        className={styles.capPillRemove}
         aria-label={`Remove capability ${capability.name || 'untitled'}`}
       >
-        <Trash2 className="w-3 h-3" aria-hidden="true" />
+        <Trash2 size={12} aria-hidden="true" />
       </button>
     </div>
   );
@@ -645,12 +642,9 @@ function CapabilityTag({
 
 function AddButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center justify-center p-8 min-h-[180px] border-2 border-dashed border-strong bg-secondary/30 rounded-xl hover:bg-blue-light hover:border-blue transition-default cursor-pointer group"
-    >
-      <Plus className="w-8 h-8 text-secondary group-hover:text-blue mb-2 transition-default" />
-      <span className="body-semibold text-secondary group-hover:text-blue transition-default">{label}</span>
+    <button type="button" onClick={onClick} className={styles.addTile}>
+      <Plus size={24} aria-hidden="true" />
+      <span>{label}</span>
     </button>
   );
 }
@@ -685,30 +679,32 @@ function EntitiesSection({
   };
 
   return (
-    <div className="space-y-6">
+    <div className={styles.stack}>
       {/* Template Selector */}
-      <div className="template-loader">
-        <button
+      <div>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<Plus size={14} />}
           onClick={() => setShowTemplates(!showTemplates)}
-          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
           aria-expanded={showTemplates}
         >
-          <Plus className="w-4 h-4" aria-hidden="true" />
           {showTemplates ? "Hide" : "Load"} TOGAF Entity Templates
-        </button>
+        </Button>
 
         {showTemplates && (
-          <div className="mt-4 p-6 bg-secondary rounded-xl border border-strong shadow-sm animate-fade-in">
-            <h4 className="body-semibold text-primary mb-4">Select an Organization Type</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className={styles.templatePanel}>
+            <h4 className={styles.templatePanelTitle}>Select an Organization Type</h4>
+            <div className={styles.templateGrid}>
               {Object.entries(TOGAF_ENTITY_TEMPLATES).map(([templateName, entityTemplates]) => (
                 <button
                   key={templateName}
+                  type="button"
                   onClick={() => loadTemplate(templateName, entityTemplates)}
-                  className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
+                  className={styles.templateBtn}
                 >
-                  <div className="body-semibold mb-1">{templateName}</div>
-                  <div className="detail text-secondary">{entityTemplates.length} entities</div>
+                  <span className={styles.templateBtnName}>{templateName}</span>
+                  <span className={styles.templateBtnCount}>{entityTemplates.length} entities</span>
                 </button>
               ))}
             </div>
@@ -718,7 +714,7 @@ function EntitiesSection({
 
       {/* View */}
       {viewMode === "card" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={styles.cardGrid}>
           {entities.map((entity) => (
             <EntityCard
               key={entity.id}
@@ -771,30 +767,32 @@ function ActorsSection({
   };
 
   return (
-    <div className="space-y-6">
+    <div className={styles.stack}>
       {/* Template Selector */}
-      <div className="template-loader">
-        <button
+      <div>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<Plus size={14} />}
           onClick={() => setShowTemplates(!showTemplates)}
-          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
           aria-expanded={showTemplates}
         >
-          <Plus className="w-4 h-4" aria-hidden="true" />
           {showTemplates ? "Hide" : "Load"} TOGAF Stakeholder Templates
-        </button>
+        </Button>
 
         {showTemplates && (
-          <div className="mt-4 p-6 bg-secondary rounded-xl border border-strong shadow-sm animate-fade-in">
-            <h4 className="body-semibold text-primary mb-4">Select a Stakeholder Group (TOGAF ADM)</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className={styles.templatePanel}>
+            <h4 className={styles.templatePanelTitle}>Select a Stakeholder Group (TOGAF ADM)</h4>
+            <div className={styles.templateGrid}>
               {Object.entries(TOGAF_ACTOR_TEMPLATES).map(([templateName, actorTemplates]) => (
                 <button
                   key={templateName}
+                  type="button"
                   onClick={() => loadTemplate(templateName, actorTemplates)}
-                  className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
+                  className={styles.templateBtn}
                 >
-                  <div className="body-semibold mb-1">{templateName}</div>
-                  <div className="detail text-secondary">{actorTemplates.length} stakeholders</div>
+                  <span className={styles.templateBtnName}>{templateName}</span>
+                  <span className={styles.templateBtnCount}>{actorTemplates.length} stakeholders</span>
                 </button>
               ))}
             </div>
@@ -804,7 +802,7 @@ function ActorsSection({
 
       {/* View */}
       {viewMode === "card" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={clsx(styles.cardGrid, styles.cardGridWide)}>
           {actors.map((actor) => (
             <ActorCard
               key={actor.id}
@@ -843,62 +841,81 @@ function EntitiesListView({
   onAdd: () => void;
 }) {
   return (
-    <div className="border border-strong rounded-xl bg-primary overflow-hidden shadow-sm">
-      {/* Header */}
-      <div className="grid grid-cols-[2fr_1.5fr_3fr_44px] gap-4 p-4 bg-secondary border-b border-strong body-semibold text-xs text-secondary uppercase tracking-wider">
-        <div>Name</div>
-        <div>Location</div>
-        <div>Description</div>
-        <div></div>
-      </div>
-
-      {/* Rows */}
-      <div className="divide-y divide-subtle">
-        {entities.map((entity) => (
-          <div key={entity.id} className="grid grid-cols-[2fr_1.5fr_3fr_44px] gap-4 p-4 hover:bg-secondary/30 transition-default items-center">
-            <input
-              type="text"
+    <DataTable
+      caption="Business entities"
+      columns={[
+        {
+          key: "name",
+          header: "Name",
+          render: (entity: BusinessEntity) => (
+            <Input
+              aria-label={`Name of entity ${entity.name || 'untitled'}`}
+              size="sm"
               value={entity.name}
               onChange={(e) => onUpdate(entity.id, { name: e.target.value })}
               placeholder="Entity name"
-              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
             />
-            <input
-              type="text"
+          ),
+        },
+        {
+          key: "location",
+          header: "Location",
+          render: (entity: BusinessEntity) => (
+            <Input
+              aria-label={`Location of entity ${entity.name || 'untitled'}`}
+              size="sm"
               value={entity.location || ""}
               onChange={(e) => onUpdate(entity.id, { location: e.target.value })}
               placeholder="Location"
-              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
             />
-            <input
-              type="text"
+          ),
+        },
+        {
+          key: "description",
+          header: "Description",
+          render: (entity: BusinessEntity) => (
+            <Input
+              aria-label={`Description of entity ${entity.name || 'untitled'}`}
+              size="sm"
               value={entity.description || ""}
               onChange={(e) => onUpdate(entity.id, { description: e.target.value })}
               placeholder="Description"
-              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
             />
-            <button
-              onClick={() => onRemove(entity.id)}
-              className="p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default"
-              aria-label={`Remove entity ${entity.name || 'untitled'}`}
-            >
-              <Trash2 className="w-4 h-4" aria-hidden="true" />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Add Row */}
-      <div className="p-4 bg-secondary/20 border-t border-subtle">
-        <button
-          onClick={onAdd}
-          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
+          ),
+        },
+        {
+          key: "actions",
+          header: "Actions",
+          width: "60px",
+          render: (entity: BusinessEntity) => (
+            <div className={styles.rowActions}>
+              <Button
+                iconOnly
+                label={`Remove entity ${entity.name || 'untitled'}`}
+                variant="ghost"
+                size="sm"
+                icon={<Trash2 size={14} />}
+                onClick={() => onRemove(entity.id)}
+              />
+            </div>
+          ),
+        },
+      ]}
+      rows={entities}
+      rowKey={(entity) => entity.id}
+      emptyState={
+        <EmptyState
+          kind="first-run"
+          title="No entities yet"
+          body="Add an entity or load a TOGAF entity template to get started."
+        />
+      }
+      footer={
+        <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={onAdd}>
           Add Entity
-        </button>
-      </div>
-    </div>
+        </Button>
+      }
+    />
   );
 }
 
@@ -914,43 +931,55 @@ function ActorsListView({
   onAdd: () => void;
 }) {
   return (
-    <div className="border border-strong rounded-xl bg-primary overflow-hidden shadow-sm">
-      {/* Header */}
-      <div className="grid grid-cols-[2fr_1.5fr_1.5fr_3fr_44px] gap-4 p-4 bg-secondary border-b border-strong body-semibold text-xs text-secondary uppercase tracking-wider">
-        <div>Name</div>
-        <div>Role</div>
-        <div>Department</div>
-        <div>Activities</div>
-        <div></div>
-      </div>
-
-      {/* Rows */}
-      <div className="divide-y divide-subtle">
-        {actors.map((actor) => (
-          <div key={actor.id} className="grid grid-cols-[2fr_1.5fr_1.5fr_3fr_44px] gap-4 p-4 hover:bg-secondary/30 transition-default items-center">
-            <input
-              type="text"
+    <DataTable
+      caption="Key actors and activities"
+      columns={[
+        {
+          key: "name",
+          header: "Name",
+          render: (actor: Actor) => (
+            <Input
+              aria-label={`Name of actor ${actor.name || 'untitled'}`}
+              size="sm"
               value={actor.name}
               onChange={(e) => onUpdate(actor.id, { name: e.target.value })}
               placeholder="Actor name"
-              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
             />
-            <input
-              type="text"
+          ),
+        },
+        {
+          key: "role",
+          header: "Role",
+          render: (actor: Actor) => (
+            <Input
+              aria-label={`Role of actor ${actor.name || 'untitled'}`}
+              size="sm"
               value={actor.role}
               onChange={(e) => onUpdate(actor.id, { role: e.target.value })}
               placeholder="Role"
-              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
             />
-            <input
-              type="text"
+          ),
+        },
+        {
+          key: "department",
+          header: "Department",
+          render: (actor: Actor) => (
+            <Input
+              aria-label={`Department of actor ${actor.name || 'untitled'}`}
+              size="sm"
               value={actor.department}
               onChange={(e) => onUpdate(actor.id, { department: e.target.value })}
               placeholder="Department"
-              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
             />
-            <input
-              type="text"
+          ),
+        },
+        {
+          key: "activities",
+          header: "Activities",
+          render: (actor: Actor) => (
+            <Input
+              aria-label={`Activities of actor ${actor.name || 'untitled'}`}
+              size="sm"
               value={actor.activities.join(", ")}
               onChange={(e) =>
                 onUpdate(actor.id, {
@@ -958,29 +987,41 @@ function ActorsListView({
                 })
               }
               placeholder="Activities (comma-separated)"
-              className="p-2 rounded-md border border-subtle bg-transparent body text-sm focus:border-blue outline-none transition-default"
             />
-            <button
-              onClick={() => onRemove(actor.id)}
-              className="p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default"
-              aria-label={`Remove actor ${actor.name || 'untitled'}`}
-            >
-              <Trash2 className="w-4 h-4" aria-hidden="true" />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Add Row */}
-      <div className="p-4 bg-secondary/20 border-t border-subtle">
-        <button
-          onClick={onAdd}
-          className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
+          ),
+        },
+        {
+          key: "actions",
+          header: "Actions",
+          width: "60px",
+          render: (actor: Actor) => (
+            <div className={styles.rowActions}>
+              <Button
+                iconOnly
+                label={`Remove actor ${actor.name || 'untitled'}`}
+                variant="ghost"
+                size="sm"
+                icon={<Trash2 size={14} />}
+                onClick={() => onRemove(actor.id)}
+              />
+            </div>
+          ),
+        },
+      ]}
+      rows={actors}
+      rowKey={(actor) => actor.id}
+      emptyState={
+        <EmptyState
+          kind="first-run"
+          title="No actors yet"
+          body="Add an actor or load a TOGAF stakeholder template to get started."
+        />
+      }
+      footer={
+        <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={onAdd}>
           Add Actor
-        </button>
-      </div>
-    </div>
+        </Button>
+      }
+    />
   );
 }

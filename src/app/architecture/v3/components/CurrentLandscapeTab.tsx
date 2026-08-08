@@ -3,6 +3,10 @@
  * TOGAF Phase B - Current State Documentation
  *
  * Purpose: Document what EXISTS TODAY
+ *
+ * Rebuilt on the design system: Card/Banner/Button/Input/Select/StatusPill
+ * plus the shared tabs.module.css. All state handling and the onChange data
+ * shapes are unchanged.
  */
 
 "use client";
@@ -14,7 +18,14 @@
 import React, { useState } from "react";
 import { Plus, Trash2, Cloud } from "lucide-react";
 import type { CurrentLandscapeData, CurrentSystem, ExternalSystem, BusinessEntity } from "../types";
+import { Card } from "@/components/ds/AppShell";
+import { Banner } from "@/components/ds/Banner";
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Input";
+import { Select } from "@/components/ds/Select";
+import { StatusPill } from "@/components/ds/Display";
 import clsx from "clsx";
+import styles from "./tabs.module.css";
 
 interface CurrentLandscapeTabProps {
   data: CurrentLandscapeData;
@@ -150,48 +161,53 @@ export function CurrentLandscapeTab({
   const hasData = data.systems.length > 0 || data.externalSystems.length > 0;
 
   return (
-    <div className="space-y-10">
+    <div className={styles.stack}>
       {/* Info Banner */}
-      <div className="p-6 bg-blue-light border border-blue/20 rounded-xl">
-        <h4 className="body-semibold text-blue mb-2">
-          Current Business Landscape (AS-IS Architecture)
-        </h4>
-        <p className="body text-sm text-secondary">
-          Document your <strong>current state</strong> - what applications and systems exist TODAY. This will be
-          compared against your proposed solution to identify gaps and migration paths.
-        </p>
-      </div>
+      <Banner tone="info" title="Current Business Landscape (AS-IS Architecture)">
+        Document your <strong>current state</strong> - what applications and systems exist TODAY. This will be
+        compared against your proposed solution to identify gaps and migration paths.
+      </Banner>
 
       {/* Current Systems */}
-      <Section title="Current Applications & Systems" subtitle="What systems exist today (AS-IS)">
-        <div className="space-y-6">
-          <button
-            onClick={() => setShowSystemTemplates(!showSystemTemplates)}
-            className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            {showSystemTemplates ? "Hide" : "Load"} Common System Templates
-          </button>
+      <Card label="Current applications and systems">
+        <div className={styles.sectionHead}>
+          <h3 className={styles.sectionTitle}>Current Applications & Systems</h3>
+          <p className={styles.sectionSubtitle}>What systems exist today (AS-IS)</p>
+        </div>
 
-          {showSystemTemplates && (
-            <div className="p-6 bg-secondary rounded-xl border border-strong animate-fade-in">
-              <h4 className="body-semibold mb-4 text-primary">Select Current System Category</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                {Object.entries(TOGAF_CURRENT_SYSTEMS_TEMPLATES).map(([templateName, systems]) => (
-                  <button
-                    key={templateName}
-                    onClick={() => loadSystemTemplate(templateName, systems)}
-                    className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
-                  >
-                    <div className="body-semibold mb-1">{templateName}</div>
-                    <div className="detail text-secondary">{systems.length} systems</div>
-                  </button>
-                ))}
+        <div className={styles.stack}>
+          <div>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Plus size={14} />}
+              onClick={() => setShowSystemTemplates(!showSystemTemplates)}
+              aria-expanded={showSystemTemplates}
+            >
+              {showSystemTemplates ? "Hide" : "Load"} Common System Templates
+            </Button>
+
+            {showSystemTemplates && (
+              <div className={styles.templatePanel}>
+                <h4 className={styles.templatePanelTitle}>Select Current System Category</h4>
+                <div className={styles.templateGrid}>
+                  {Object.entries(TOGAF_CURRENT_SYSTEMS_TEMPLATES).map(([templateName, systems]) => (
+                    <button
+                      key={templateName}
+                      type="button"
+                      onClick={() => loadSystemTemplate(templateName, systems)}
+                      className={styles.templateBtn}
+                    >
+                      <span className={styles.templateBtnName}>{templateName}</span>
+                      <span className={styles.templateBtnCount}>{systems.length} systems</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={styles.cardGrid}>
             {data.systems.map((system) => (
               <SystemCard
                 key={system.id}
@@ -203,38 +219,48 @@ export function CurrentLandscapeTab({
             <AddButton onClick={addSystem} label="Add Current System" />
           </div>
         </div>
-      </Section>
+      </Card>
 
       {/* External Systems */}
-      <Section title="External System Dependencies" subtitle="Third-party and partner systems">
-        <div className="space-y-6">
-          <button
-            onClick={() => setShowExternalTemplates(!showExternalTemplates)}
-            className="inline-flex items-center gap-2 py-2 px-4 bg-primary border-2 border-blue text-blue rounded-md body-semibold hover:bg-blue-light transition-default cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            {showExternalTemplates ? "Hide" : "Load"} External System Templates
-          </button>
+      <Card label="External system dependencies">
+        <div className={styles.sectionHead}>
+          <h3 className={styles.sectionTitle}>External System Dependencies</h3>
+          <p className={styles.sectionSubtitle}>Third-party and partner systems</p>
+        </div>
 
-          {showExternalTemplates && (
-            <div className="p-6 bg-secondary rounded-xl border border-strong animate-fade-in">
-              <h4 className="body-semibold mb-4 text-primary">Select External System Category</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                {Object.entries(TOGAF_EXTERNAL_SYSTEMS_TEMPLATES).map(([templateName, externals]) => (
-                  <button
-                    key={templateName}
-                    onClick={() => loadExternalTemplate(templateName, externals)}
-                    className="flex flex-col p-4 text-left bg-primary border border-subtle rounded-lg hover:border-blue hover:bg-blue-light transition-default cursor-pointer"
-                  >
-                    <div className="body-semibold mb-1">{templateName}</div>
-                    <div className="detail text-secondary">{externals.length} systems</div>
-                  </button>
-                ))}
+        <div className={styles.stack}>
+          <div>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Plus size={14} />}
+              onClick={() => setShowExternalTemplates(!showExternalTemplates)}
+              aria-expanded={showExternalTemplates}
+            >
+              {showExternalTemplates ? "Hide" : "Load"} External System Templates
+            </Button>
+
+            {showExternalTemplates && (
+              <div className={styles.templatePanel}>
+                <h4 className={styles.templatePanelTitle}>Select External System Category</h4>
+                <div className={styles.templateGrid}>
+                  {Object.entries(TOGAF_EXTERNAL_SYSTEMS_TEMPLATES).map(([templateName, externals]) => (
+                    <button
+                      key={templateName}
+                      type="button"
+                      onClick={() => loadExternalTemplate(templateName, externals)}
+                      className={styles.templateBtn}
+                    >
+                      <span className={styles.templateBtnName}>{templateName}</span>
+                      <span className={styles.templateBtnCount}>{externals.length} systems</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={styles.cardGrid}>
             {data.externalSystems.map((external) => (
               <ExternalSystemCard
                 key={external.id}
@@ -246,40 +272,25 @@ export function CurrentLandscapeTab({
             <AddButton onClick={addExternalSystem} label="Add External System" />
           </div>
         </div>
-      </Section>
+      </Card>
 
       {/* Generate Button */}
       {hasData && (
-        <div className="flex justify-end pt-8 border-t border-subtle">
-          <button
-            onClick={onGenerate}
-            className="py-3 px-8 bg-blue color-white rounded-xl display-small font-bold shadow-lg hover:bg-blue-dark hover:scale-[1.02] active:scale-[0.98] transition-default cursor-pointer"
-          >
+        <div className={styles.generateRow}>
+          <Button variant="primary" size="lg" onClick={onGenerate}>
             Generate AS-IS Diagram
-          </button>
+          </Button>
         </div>
       )}
     </div>
   );
 }
 
-function Section({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <h3 className="display-small mb-1">{title}</h3>
-      {subtitle && <p className="detail text-secondary mb-6">{subtitle}</p>}
-      {children}
-    </div>
-  );
-}
+const STATUS_TONE = {
+  active: "info",
+  retiring: "warning",
+  keep: "success",
+} as const;
 
 function SystemCard({
   system,
@@ -291,68 +302,63 @@ function SystemCard({
   onRemove: () => void;
 }) {
   const status = system.status || "active";
-  const statusColors = {
-    active: "bg-blue text-white",
-    retiring: "bg-orange text-white",
-    keep: "bg-green text-white",
-  };
 
   return (
-    <div className="relative p-6 bg-primary border border-strong rounded-xl shadow-sm hover:shadow-md transition-default group">
-      <button
-        onClick={onRemove}
-        className="absolute top-4 right-4 p-2 rounded-full text-secondary hover:bg-red-light hover:text-red transition-default opacity-0 group-hover:opacity-100"
-        aria-label={`Remove current system ${system.name || 'untitled'}`}
+    <div className={styles.itemCard}>
+      <div className={styles.itemCardHead}>
+        <StatusPill tone={STATUS_TONE[status as keyof typeof STATUS_TONE] ?? "info"}>
+          {status}
+        </StatusPill>
+        <Button
+          iconOnly
+          label={`Remove current system ${system.name || 'untitled'}`}
+          variant="ghost"
+          size="sm"
+          icon={<Trash2 size={14} />}
+          onClick={onRemove}
+        />
+      </div>
+
+      <Input
+        aria-label="System name"
+        size="sm"
+        value={system.name}
+        onChange={(e) => onUpdate({ name: e.target.value })}
+        placeholder="System Name (e.g., SAP ECC)"
+      />
+      <div className={styles.itemCardRow}>
+        <Input
+          aria-label="System vendor"
+          size="sm"
+          value={system.vendor || ""}
+          onChange={(e) => onUpdate({ vendor: e.target.value })}
+          placeholder="Vendor"
+        />
+        <Input
+          aria-label="System version"
+          size="sm"
+          value={system.version || ""}
+          onChange={(e) => onUpdate({ version: e.target.value })}
+          placeholder="Version"
+        />
+      </div>
+      <Input
+        aria-label="System modules"
+        size="sm"
+        value={system.modules.join(", ")}
+        onChange={(e) => onUpdate({ modules: e.target.value.split(",").map((m) => m.trim()).filter((m) => m) })}
+        placeholder="Modules (comma-separated)"
+      />
+      <Select
+        aria-label="System status"
+        size="sm"
+        value={status}
+        onChange={(e) => onUpdate({ status: e.target.value as "active" | "retiring" | "keep" })}
       >
-        <Trash2 className="w-4 h-4" aria-hidden="true" />
-      </button>
-
-      {/* Status Badge */}
-      <div className={clsx("absolute top-4 left-6 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider", statusColors[status as keyof typeof statusColors])}>
-        {status}
-      </div>
-
-      <div className="mt-6 space-y-4">
-        <input
-          type="text"
-          value={system.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
-          placeholder="System Name (e.g., SAP ECC)"
-          className="w-full pb-2 border-b-2 border-subtle bg-transparent body-semibold text-lg outline-none focus:border-blue transition-default"
-        />
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={system.vendor || ""}
-            onChange={(e) => onUpdate({ vendor: e.target.value })}
-            placeholder="Vendor"
-            className="flex-1 p-2 rounded-md border border-subtle bg-secondary/50 body text-xs focus:border-blue outline-none transition-default"
-          />
-          <input
-            type="text"
-            value={system.version || ""}
-            onChange={(e) => onUpdate({ version: e.target.value })}
-            placeholder="Version"
-            className="flex-1 p-2 rounded-md border border-subtle bg-secondary/50 body text-xs focus:border-blue outline-none transition-default"
-          />
-        </div>
-        <input
-          type="text"
-          value={system.modules.join(", ")}
-          onChange={(e) => onUpdate({ modules: e.target.value.split(",").map((m) => m.trim()).filter((m) => m) })}
-          placeholder="Modules (comma-separated)"
-          className="w-full p-2 rounded-md border border-subtle bg-secondary/50 body text-xs focus:border-blue outline-none transition-default"
-        />
-        <select
-          value={status}
-          onChange={(e) => onUpdate({ status: e.target.value as "active" | "retiring" | "keep" })}
-          className="w-full p-2 rounded-md border border-subtle bg-secondary body text-xs outline-none focus:border-blue transition-default cursor-pointer"
-        >
-          <option value="active">Active</option>
-          <option value="keep">Keep (TO-BE)</option>
-          <option value="retiring">Retiring</option>
-        </select>
-      </div>
+        <option value="active">Active</option>
+        <option value="keep">Keep (TO-BE)</option>
+        <option value="retiring">Retiring</option>
+      </Select>
     </div>
   );
 }
@@ -367,59 +373,56 @@ function ExternalSystemCard({
   onRemove: () => void;
 }) {
   return (
-    <div className="relative p-6 bg-orange-light/30 border border-orange/30 rounded-xl shadow-sm hover:shadow-md transition-default group">
-      <button
-        onClick={onRemove}
-        className="absolute top-4 right-4 p-2 rounded-full text-orange/60 hover:bg-orange/10 hover:text-orange transition-default opacity-0 group-hover:opacity-100"
-        aria-label={`Remove external system ${external.name || 'untitled'}`}
-      >
-        <Trash2 className="w-4 h-4" aria-hidden="true" />
-      </button>
-      
-      <Cloud className="w-5 h-5 text-orange mb-4" aria-hidden="true" />
-      
-      <div className="space-y-3">
-        <input
-          type="text"
-          value={external.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
-          placeholder="External System Name"
-          className="w-full pb-2 border-b-2 border-orange/20 bg-transparent body-semibold text-lg outline-none focus:border-orange transition-default"
-        />
-        <input
-          type="text"
-          value={external.type}
-          onChange={(e) => onUpdate({ type: e.target.value })}
-          placeholder="Type (Banking, Partner, etc.)"
-          className="w-full p-2 rounded-md border border-orange/20 bg-primary/50 body text-xs focus:border-orange outline-none transition-default"
-        />
-        <input
-          type="text"
-          value={external.purpose}
-          onChange={(e) => onUpdate({ purpose: e.target.value })}
-          placeholder="Purpose"
-          className="w-full p-2 rounded-md border border-orange/20 bg-primary/50 body text-xs focus:border-orange outline-none transition-default"
-        />
-        <input
-          type="text"
-          value={external.interface || ""}
-          onChange={(e) => onUpdate({ interface: e.target.value })}
-          placeholder="Interface (API, EDI, SFTP, etc.)"
-          className="w-full p-2 rounded-md border border-orange/20 bg-primary/50 body text-xs focus:border-orange outline-none transition-default"
+    <div className={clsx(styles.itemCard, styles.itemCardWarning)}>
+      <div className={styles.itemCardHead}>
+        <Cloud size={18} className={styles.externalGlyph} aria-hidden="true" />
+        <Button
+          iconOnly
+          label={`Remove external system ${external.name || 'untitled'}`}
+          variant="ghost"
+          size="sm"
+          icon={<Trash2 size={14} />}
+          onClick={onRemove}
         />
       </div>
+
+      <Input
+        aria-label="External system name"
+        size="sm"
+        value={external.name}
+        onChange={(e) => onUpdate({ name: e.target.value })}
+        placeholder="External System Name"
+      />
+      <Input
+        aria-label="External system type"
+        size="sm"
+        value={external.type}
+        onChange={(e) => onUpdate({ type: e.target.value })}
+        placeholder="Type (Banking, Partner, etc.)"
+      />
+      <Input
+        aria-label="External system purpose"
+        size="sm"
+        value={external.purpose}
+        onChange={(e) => onUpdate({ purpose: e.target.value })}
+        placeholder="Purpose"
+      />
+      <Input
+        aria-label="External system interface"
+        size="sm"
+        value={external.interface || ""}
+        onChange={(e) => onUpdate({ interface: e.target.value })}
+        placeholder="Interface (API, EDI, SFTP, etc.)"
+      />
     </div>
   );
 }
 
 function AddButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-strong bg-secondary/30 rounded-xl hover:bg-blue-light hover:border-blue transition-default cursor-pointer group"
-    >
-      <Plus className="w-8 h-8 text-secondary group-hover:text-blue mb-2 transition-default" />
-      <span className="body text-sm font-semibold text-secondary group-hover:text-blue transition-default">{label}</span>
+    <button type="button" onClick={onClick} className={styles.addTile}>
+      <Plus size={24} aria-hidden="true" />
+      <span>{label}</span>
     </button>
   );
 }

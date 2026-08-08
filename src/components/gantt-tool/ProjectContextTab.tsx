@@ -8,14 +8,20 @@
  * Policy Compliance:
  * - Constraint B: No emojis (uses typography only)
  * - Security FIRST: Input sanitization on both client and server
- * - Apple-grade UX: Progressive disclosure, clear hierarchy
+ * - Design system: ds Cards, Fields, Buttons and Banners; tokens only
  */
 
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { AlertCircle, X, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Card } from "@/components/ds/AppShell";
+import { Banner } from "@/components/ds/Banner";
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Input";
+import { Textarea } from "@/components/ds/Textarea";
+import { Chip } from "@/components/ds/Display";
 import { logger } from "@/lib/logger";
+import styles from "./ProjectContextTab.module.css";
 
 interface ProjectContextTabProps {
   projectId: string;
@@ -186,221 +192,156 @@ export function ProjectContextTab({
   }, [isDirty, isSaving, handleSave]);
 
   return (
-    <div className="max-w-5xl mx-auto p-8 space-y-8">
-      {/* Helper Banner */}
-      <div className="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-r">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <div className="text-sm font-semibold text-blue-900 mb-1">
-              Fill once, use everywhere
-            </div>
-            <div className="text-sm text-blue-800">
-              This context will help you make better resource allocation decisions in Capacity Planning.
-              It will also be available in Architecture view for solution architects.
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className={styles.root}>
+      {/* Helper banner */}
+      <Banner tone="info" title="Fill once, use everywhere">
+        This context will help you make better resource allocation decisions in
+        Capacity Planning. It will also be available in Architecture view for
+        solution architects.
+      </Banner>
 
-      {/* Success/Error Messages */}
+      {/* Save result announcements (Banner carries role=status / role=alert) */}
       {saveSuccess && (
-        <div className="bg-green-50 border-l-4 border-green-500 p-5 rounded-r">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="text-sm font-semibold text-green-900 mb-1">
-                Context saved successfully
-              </div>
-              <div className="text-sm text-green-800 mb-3">
-                Your business context has been saved and will help inform timeline planning and resource allocation decisions.
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    onNavigateToTimeline?.();
-                    setSaveSuccess(false);
-                  }}
-                  className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Go to Timeline
-                </button>
-                <button
-                  onClick={() => setSaveSuccess(false)}
-                  className="text-sm text-green-700 hover:text-green-900 font-medium"
-                >
-                  Continue editing
-                </button>
-              </div>
-            </div>
-            <button
-              onClick={() => setSaveSuccess(false)}
-              className="p-1 hover:bg-green-100 rounded flex-shrink-0"
-              aria-label="Dismiss message"
-            >
-              <X className="w-4 h-4 text-green-600" />
-            </button>
-          </div>
-        </div>
+        <Banner
+          tone="success"
+          title="Context saved successfully"
+          onDismiss={() => setSaveSuccess(false)}
+          actions={
+            <>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  onNavigateToTimeline?.();
+                  setSaveSuccess(false);
+                }}
+              >
+                Go to Timeline
+              </Button>
+              <Button variant="tertiary" size="sm" onClick={() => setSaveSuccess(false)}>
+                Continue editing
+              </Button>
+            </>
+          }
+        >
+          Your business context has been saved and will help inform timeline
+          planning and resource allocation decisions.
+        </Banner>
       )}
 
       {saveError && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r">
-          <div className="flex items-start gap-3">
-            <div className="flex-1">
-              <div className="text-sm font-semibold text-red-900 mb-1">
-                Failed to save
-              </div>
-              <div className="text-sm text-red-800">{saveError}</div>
-            </div>
-            <button
-              onClick={() => setSaveError(null)}
-              className="p-1 hover:bg-red-100 rounded"
-            >
-              <X className="w-4 h-4 text-red-600" />
-            </button>
-          </div>
-        </div>
+        <Banner tone="danger" title="Failed to save" onDismiss={() => setSaveError(null)}>
+          {saveError}
+        </Banner>
       )}
 
-      {/* Business Context Section */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Business Context</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Describe the current situation and target state to provide context for resource planning
+      {/* Business context */}
+      <Card label="Business context">
+        <h2 className={styles.cardTitle}>Business Context</h2>
+        <p className={styles.cardDescription}>
+          Describe the current situation and target state to provide context for
+          resource planning
         </p>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Current Situation (As-Is)
-            </label>
-            <textarea
-              value={asIs}
-              onChange={(e) => setAsIs(e.target.value)}
-              placeholder="Describe the current state, existing systems, and processes...
-
-Example:
-Legacy on-premise SAP ECC 6.0 system with manual processes, limited integration between modules, and no mobile access for field operations."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={8}
-            />
-            <div className="text-xs text-gray-500 mt-1">
-              This helps identify which legacy skills/knowledge are needed
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Target State (To-Be)
-            </label>
-            <textarea
-              value={toBe}
-              onChange={(e) => setToBe(e.target.value)}
-              placeholder="Describe the desired future state and solution...
-
-Example:
-Cloud-based SAP S/4HANA with automated workflows, real-time analytics, integrated modules, and mobile apps for warehouse and quality control."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={8}
-            />
-            <div className="text-xs text-gray-500 mt-1">
-              This helps identify which new skills/technologies are needed
-            </div>
-          </div>
+        <div className={styles.fieldGrid}>
+          <Textarea
+            label="Current Situation (As-Is)"
+            value={asIs}
+            onChange={(e) => setAsIs(e.target.value)}
+            rows={8}
+            placeholder={
+              "Describe the current state, existing systems, and processes...\n\nExample:\nLegacy on-premise SAP ECC 6.0 system with manual processes, limited integration between modules, and no mobile access for field operations."
+            }
+            helper="This helps identify which legacy skills/knowledge are needed"
+          />
+          <Textarea
+            label="Target State (To-Be)"
+            value={toBe}
+            onChange={(e) => setToBe(e.target.value)}
+            rows={8}
+            placeholder={
+              "Describe the desired future state and solution...\n\nExample:\nCloud-based SAP S/4HANA with automated workflows, real-time analytics, integrated modules, and mobile apps for warehouse and quality control."
+            }
+            helper="This helps identify which new skills/technologies are needed"
+          />
         </div>
-      </div>
 
-      {/* Project Goals */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-2">
-          Project Goals
-        </label>
-        <textarea
+        <Textarea
+          className={styles.goalsField}
+          label="Project Goals"
           value={goals}
           onChange={(e) => setGoals(e.target.value)}
-          placeholder="List key goals and success criteria (one per line)...
-
-Example:
-- Support 50 concurrent users across 3 facilities
-- Reduce month-end closing from 5 days to 1 day
-- Enable mobile access for field operations
-- Improve inventory accuracy from 85% to 98%"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           rows={6}
+          placeholder={
+            "List key goals and success criteria (one per line)...\n\nExample:\n- Support 50 concurrent users across 3 facilities\n- Reduce month-end closing from 5 days to 1 day\n- Enable mobile access for field operations\n- Improve inventory accuracy from 85% to 98%"
+          }
+          helper="Clear goals help determine project scope and required effort"
         />
-        <div className="text-xs text-gray-500 mt-1">
-          Clear goals help determine project scope and required effort
-        </div>
-      </div>
+      </Card>
 
-      {/* Skills Section */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-2">
-          Key Skills Required
-        </label>
-        <p className="text-sm text-gray-600 mb-3">
-          Add skills that will be needed for this project (helps filter resources in Capacity Planning)
+      {/* Skills */}
+      <Card label="Key skills required">
+        <h2 className={styles.cardTitle}>Key Skills Required</h2>
+        <p className={styles.cardDescription}>
+          Add skills that will be needed for this project (helps filter resources
+          in Capacity Planning)
         </p>
 
-        <div className="flex gap-2 mb-3">
-          <input
-            type="text"
+        <div className={styles.skillRow}>
+          <Input
+            className={styles.skillField}
+            label="Add a skill"
             value={newSkill}
             onChange={(e) => setNewSkill(e.target.value)}
-            onKeyPress={(e) => {
+            onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
                 handleAddSkill();
               }
             }}
             placeholder="Add skill (e.g., SAP ABAP, Mobile Development)"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <button
-            onClick={handleAddSkill}
-            className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
+          <Button variant="secondary" onClick={handleAddSkill}>
             Add
-          </button>
+          </Button>
         </div>
 
         {skills.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <ul className={styles.skillList} aria-label="Required skills">
             {skills.map((skill, idx) => (
-              <span
-                key={idx}
-                className="px-3 py-1.5 bg-gray-100 text-gray-800 text-sm rounded-full flex items-center gap-2 border border-gray-200"
-              >
-                {skill}
-                <button
-                  onClick={() => handleRemoveSkill(idx)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
+              <li key={idx}>
+                <Chip onRemove={() => handleRemoveSkill(idx)} removeLabel={skill}>
+                  {skill}
+                </Chip>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
+      </Card>
 
-      {/* Save Button */}
-      <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-        <div className="text-sm text-gray-600">
+      {/* Footer actions */}
+      <div className={styles.footer}>
+        <p className={styles.footerHint} role="status">
           {isDirty ? (
-            <span className="text-orange-600 font-medium">Unsaved changes</span>
+            <span className={styles.footerHintDirty}>Unsaved changes</span>
           ) : (
             <span>All fields are optional. Press Cmd/Ctrl+S to save quickly.</span>
           )}
+        </p>
+        <div className={styles.footerActions}>
+          <Button variant="tertiary" onClick={() => onNavigateToTimeline?.()}>
+            Back to timeline
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            disabled={!isDirty || isSaving}
+            loading={isSaving}
+            loadingLabel="Saving…"
+          >
+            Save Context
+          </Button>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={!isDirty || isSaving}
-          className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isSaving ? "Saving..." : "Save Context"}
-        </button>
       </div>
     </div>
   );

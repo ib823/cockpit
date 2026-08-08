@@ -92,6 +92,14 @@ for the first time. It does not work:
 | `visual-regression/p1`,`p2` | 20 | navigate to `/projects`, `/projects/new` — not routes in this app |
 | `user-journeys/01`,`02` | 8 | same missing routes; the passes are lenient assertions, not evidence |
 
+> **Resolved 2026-08-08, with the ds revamp:** `view-switching`,
+> `plan-timeline` (all-skip placeholders), `visual-regression/*` and
+> `user-journeys/*` are deleted — every one asserted the removed legacy UI, a
+> `?view=` model that never existed, or routes this app does not have. What
+> remains is what runs: `smoke` (the CI gate), `login-flows`, and
+> `team-capacity-api` (behind `RUN_DB_E2E`). Real end-to-end coverage of the
+> ds Gantt surface is future work and should be written against the new UI.
+
 Whole-directory result: **9 passed, 51 failed, 39 skipped.** Three separate
 defects were fixed on the way to that number and are worth recording, because
 each one had been hiding the next:
