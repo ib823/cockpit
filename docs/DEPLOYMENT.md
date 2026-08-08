@@ -43,16 +43,42 @@ Pushing the branch (or merging to `main`) triggers the deploy.
 
 ## 4. Create the schema + seed reference data (run once, locally)
 
-> If the target database **already has tables** (any environment created before
-> migrations existed), do NOT run `migrate deploy` — it will fail on the first
-> table that already exists. Baseline it instead with
-> `pnpm prisma migrate resolve --applied 0_init`, then `pnpm prisma migrate status`.
-> See `prisma/migrations/README.md`.
+**Export both URL variables.** `prisma/schema.prisma` declares
+`directUrl = env("DATABASE_URL_UNPOOLED")`, and Prisma validates every
+env() binding when it loads the schema — for *any* command, whether or not it
+needs the direct connection. Setting only `DATABASE_URL` fails before anything
+runs:
+
+```
+error: Environment variable not found: DATABASE_URL_UNPOOLED.
+Validation Error Count: 1
+```
+
+Both take the Neon **direct** (unpooled) URL here: migrations carry DDL, which
+the pooler does not reliably support.
+
 ```bash
-export DATABASE_URL="<Neon DIRECT url>"
+DIRECT="<Neon DIRECT url>"
+export DATABASE_URL="$DIRECT"
+export DATABASE_URL_UNPOOLED="$DIRECT"
+
 pnpm prisma migrate deploy  # applies prisma/migrations (creates all 65 tables)
 pnpm prisma db seed         # seeds L3 catalog + regional holidays (reference data)
 ```
+
+> **If the target database already has tables** (any environment created before
+> migrations existed), do NOT run `migrate deploy` first — it will fail on the
+> first table that already exists. Baseline it instead:
+>
+> ```bash
+> pnpm prisma migrate resolve --applied 0_init
+> pnpm prisma migrate deploy     # now applies only what is genuinely pending
+> pnpm prisma migrate status     # expect "Database schema is up to date!"
+> ```
+>
+> `migrate status` will **not** say "up to date" between the resolve and the
+> deploy — it correctly reports the remaining migrations as pending. Only run
+> it as the final check. See `prisma/migrations/README.md`.
 
 ## 4a. Migrations on deploy
 
@@ -86,7 +112,9 @@ stopped would have gone green while production broke.
 The app authenticates with **passkeys**; a one-time **admin code** bootstraps the
 first account. Run against the deployed DB:
 ```bash
-export DATABASE_URL="<Neon DIRECT url>"
+DIRECT="<Neon DIRECT url>"
+export DATABASE_URL="$DIRECT"
+export DATABASE_URL_UNPOOLED="$DIRECT"   # required — see §4
 export NEXTAUTH_URL="https://<your-vercel-domain>"
 pnpm admin:generate-code you@example.com "Your Name"
 ```
