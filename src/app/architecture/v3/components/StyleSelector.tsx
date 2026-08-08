@@ -5,7 +5,11 @@
 
 "use client";
 
-import { useState } from "react";
+// Explicit default import: tsconfig uses `jsx: "preserve"` with no automatic
+// runtime, so the compiled JSX calls React.createElement by name. Next's own
+// build injects it, which is why this only ever surfaced under the test
+// transform — as `ReferenceError: React is not defined` on render.
+import React, { useState } from "react";
 import type { DiagramSettings } from "../types";
 import { Modal, ModalButton } from "@/ui/components/Modal";
 import clsx from "clsx";
@@ -28,6 +32,7 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
       open={true}
       onClose={onClose}
       title="Choose Your Visual Style"
+      closeLabel="Close style selector"
       size="lg"
       footer={
         <>

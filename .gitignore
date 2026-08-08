@@ -15,6 +15,10 @@ yarn.lock
 test-results-*.log
 ultimate-test-results-*.log
 
+# Playwright run output (traces, screenshots, videos, HTML report)
+test-results/
+playwright-report/
+
 # lint / typecheck output captures (generated artifacts, never commit)
 lint_errors.txt
 lint-errors.txt

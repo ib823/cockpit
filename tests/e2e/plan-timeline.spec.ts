@@ -16,7 +16,11 @@
 import { test, expect, type Page } from "@playwright/test";
 
 // Test configuration
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+// Navigations are relative so Playwright resolves them against the config's
+// `baseURL` (see playwright.config.ts, which also honours
+// PLAYWRIGHT_BASE_URL). The previous default of http://localhost:3000
+// contradicted the server the config actually starts, on 3002.
+const BASE_URL = "";
 
 // Helper to wait for timeline to load
 async function waitForTimeline(page: Page) {

@@ -8,8 +8,19 @@ import { TextEncoder, TextDecoder } from 'util';
 process.env.NEXTAUTH_SECRET = "test-secret-key-for-jwt-encoding-minimum-32-characters-long";
 process.env.ENABLE_MAGIC_LINKS = "true";
 process.env.NODE_ENV = "test";
-process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/unused";
-process.env.DATABASE_URL_UNPOOLED = "postgresql://postgres:postgres@localhost:5432/unused";
+// Pointed at a database that does not exist, so a unit test that reaches for a
+// real connection fails loudly instead of quietly hitting a developer's local
+// data. The `@prisma/client` mock below means nothing normally connects at all.
+//
+// The RUN_DB_E2E integration tests DO connect, via vi.importActual, so they
+// keep whatever DATABASE_URL the caller supplied. Overwriting it here is what
+// made those tests silently unable to reach Postgres.
+if (!process.env.RUN_DB_E2E) {
+  process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/unused";
+  process.env.DATABASE_URL_UNPOOLED = "postgresql://postgres:postgres@localhost:5432/unused";
+} else {
+  process.env.DATABASE_URL_UNPOOLED ??= process.env.DATABASE_URL ?? "";
+}
 process.env.TOTP_ENCRYPTION_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 process.env.JWT_SECRET_KEY = "test-jwt-secret-key-for-ci-only-32-chars";
 
@@ -466,6 +477,41 @@ if (typeof window !== 'undefined') {
           return typeof value === 'function' ? value.bind(target) : value;
         },
       });
+    },
+  });
+
+  // Element.prototype.getClientRects
+  //
+  // jsdom performs no layout, so every element reports zero client rects.
+  // `tabbable` — which focus-trap uses to find focusable nodes — treats zero
+  // rects as "not rendered", therefore "not tabbable". The consequence is that
+  // focus-trap's activate() throws "must have at least one container with at
+  // least one tabbable node in it" for EVERY modal in the suite, which is why
+  // the focus-trap tests are skipped wholesale rather than passing.
+  //
+  // The shim reports one rect per element, but defers the actual visibility
+  // decision to computed style, which jsdom does implement. An element that is
+  // genuinely hidden still reads as untabbable, so a real regression — a modal
+  // whose only focusable control is display:none — is still caught.
+  const HAS_LAYOUT = [new DOMRect(0, 0, 1, 1)] as unknown as DOMRectList;
+  const NO_LAYOUT = [] as unknown as DOMRectList;
+
+  Object.defineProperty(Element.prototype, 'getClientRects', {
+    configurable: true,
+    value: function (this: Element): DOMRectList {
+      if (!this.isConnected) return NO_LAYOUT;
+
+      // `display` is not inherited: a child of a display:none parent still
+      // computes its own display, while a real browser gives it no rects. The
+      // ancestor walk reproduces that.
+      for (let node: Element | null = this; node; node = node.parentElement) {
+        const style = realGetComputedStyle(node);
+        if (style.display === 'none') return NO_LAYOUT;
+        // visibility IS inherited, so it only needs checking on the element.
+        if (node === this && style.visibility === 'hidden') return NO_LAYOUT;
+      }
+
+      return HAS_LAYOUT;
     },
   });
 

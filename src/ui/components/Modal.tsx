@@ -7,7 +7,7 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FocusTrap from "focus-trap-react";
@@ -39,6 +39,14 @@ export interface ModalProps {
   className?: string;
   /** Prevent close on backdrop click */
   preventClose?: boolean;
+  /**
+   * Accessible name for the close button. Defaults to "Close", which is
+   * enough when one dialog is open, but WCAG 2.4.6 asks for names that
+   * describe their purpose — and a screen-reader user listing the buttons on
+   * a page with several dialogs hears "Close" repeated with nothing to tell
+   * them apart. Pass "Close style selector" and the like.
+   */
+  closeLabel?: string;
 }
 
 const sizes: Record<ModalSize, string> = {
@@ -61,7 +69,16 @@ export const Modal: React.FC<ModalProps> = ({
   zIndex = 1050,
   className,
   preventClose = false,
+  closeLabel = "Close",
 }) => {
+  // Stable across renders and unique per instance, so two dialogs mounted at
+  // once cannot both claim the same id and mislabel each other.
+  const titleId = useId();
+
+  // Targets for the focus trap; see focusTrapOptions below.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
   // Prevent body scroll when modal is open
   useEffect(() => {
     if (open) {
@@ -89,15 +106,48 @@ export const Modal: React.FC<ModalProps> = ({
       {open && (
         <FocusTrap
           focusTrapOptions={{
-            initialFocus: false,
+            // `initialFocus: false` used to be set here, which tells
+            // focus-trap explicitly NOT to move focus into the dialog. The
+            // effect is that opening a modal left focus on the trigger behind
+            // it: a keyboard user got no indication the dialog existed, and a
+            // screen reader went on reading the page underneath.
+            //
+            // Focus goes to the first interactive element in the dialog
+            // *body*, not simply the first tabbable node — that one is the
+            // Close button in the header, so the first thing offered to a
+            // keyboard user would be dismissing what they just opened.
+            initialFocus: () =>
+              bodyRef.current?.querySelector<HTMLElement>(
+                'input:not([type="hidden"]), select, textarea, [href], button, [tabindex]:not([tabindex="-1"])'
+              ) ??
+              dialogRef.current ??
+              undefined,
+
+            // A dialog of pure prose has no tabbable node at all, and
+            // focus-trap throws rather than doing nothing. The dialog itself
+            // carries tabIndex={-1} so there is always somewhere legitimate
+            // for focus to rest — which is also what a screen reader wants,
+            // since it puts the reading cursor on the dialog's name.
+            fallbackFocus: () => dialogRef.current ?? document.body,
+
+            // The trigger regains focus when the dialog closes.
+            returnFocusOnDeactivate: true,
+
             allowOutsideClick: true,
           }}
         >
           <div 
+            ref={dialogRef}
+            tabIndex={-1}
             className="fixed inset-0 flex items-center justify-center p-4 md:p-8" 
             style={{ zIndex }}
             role="dialog"
             aria-modal="true"
+            // Without this the dialog has no accessible name: the <h2> below
+            // was rendered but never referenced, so assistive tech announced
+            // an unnamed dialog. Only set when there is a title to point at —
+            // aria-labelledby resolving to nothing is worse than absent.
+            aria-labelledby={title ? titleId : undefined}
           >
             {/* Backdrop */}
             <motion.div
@@ -130,21 +180,25 @@ export const Modal: React.FC<ModalProps> = ({
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  {title && <h2 className="display-small truncate">{title}</h2>}
+                  {title && (
+                    <h2 id={titleId} className="display-small truncate">
+                      {title}
+                    </h2>
+                  )}
                   {subtitle && <p className="detail text-secondary mt-1">{subtitle}</p>}
                 </div>
                 <button
                   type="button"
                   onClick={onClose}
                   className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-secondary transition-default shrink-0"
-                  aria-label="Close"
+                  aria-label={closeLabel}
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {/* Body */}
-              <div className="flex-1 overflow-y-auto p-6 body">
+              <div ref={bodyRef} className="flex-1 overflow-y-auto p-6 body">
                 {children}
               </div>
 

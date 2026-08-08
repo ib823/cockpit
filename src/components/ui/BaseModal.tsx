@@ -72,6 +72,14 @@ export interface BaseModalProps {
   /** Prevent closing on overlay click */
   preventClose?: boolean;
 
+  /**
+   * Accessible name for the close button. Defaults to "Close modal", which is
+   * enough for one dialog but not for a screen-reader user listing the
+   * buttons on a page with several — WCAG 2.4.6 asks for names that describe
+   * their purpose. Pass "Close reuse system dialog" and the like.
+   */
+  closeLabel?: string;
+
   /** Prevent closing on escape key */
   preventEscapeClose?: boolean;
 
@@ -103,6 +111,7 @@ export function BaseModal({
   children,
   footer,
   preventClose = false,
+  closeLabel = "Close modal",
   preventEscapeClose = false,
   zIndex = 9999,
   className,
@@ -299,7 +308,7 @@ export function BaseModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    aria-label="Close modal"
+                    aria-label={closeLabel}
                     style={{
                       width: '44px', // Apple HIG minimum touch target
                       height: '44px', // Apple HIG minimum touch target

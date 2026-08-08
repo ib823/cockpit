@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { BusinessContextTab } from '../components/BusinessContextTab';
 import { CurrentLandscapeTab } from '../components/CurrentLandscapeTab';
@@ -15,10 +15,19 @@ import { ProposedSolutionTab } from '../components/ProposedSolutionTab';
 import { StyleSelector } from '../components/StyleSelector';
 import { ReuseSystemModal } from '../components/ReuseSystemModal';
 
+/**
+ * The entity, actor and capability sections live inside accordions that start
+ * collapsed, so their contents are not in the DOM until the header is
+ * activated. Every test below used to carry a comment saying exactly that and
+ * an `it.skip` — opening the accordion is the fix those comments stood in for.
+ */
+function openAccordion(title: RegExp) {
+  fireEvent.click(screen.getByRole('button', { name: title }));
+}
+
 describe('ARIA Labels - Icon-Only Buttons', () => {
   describe('BusinessContextTab', () => {
-    it.skip('has aria-label on entity card remove button', () => {
-      // Skipped: Entity cards are inside accordions that start closed
+    it('has aria-label on entity card remove button', () => {
       const mockData = {
         entities: [{ id: '1', name: 'Test Entity', location: 'Test', description: 'Test' }],
         actors: [],
@@ -34,13 +43,14 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
         />
       );
 
+      openAccordion(/Business Entities/);
+
       const removeButton = screen.getByLabelText(/remove entity test entity/i);
       expect(removeButton).toBeInTheDocument();
       expect(removeButton).toHaveAttribute('aria-label', 'Remove entity Test Entity');
     });
 
-    it.skip('has aria-label on actor card remove button', () => {
-      // Skipped: Actor cards are inside accordions that start closed
+    it('has aria-label on actor card remove button', () => {
       const mockData = {
         entities: [],
         actors: [{ id: '1', name: 'Test Actor', role: 'Manager', department: 'IT', activities: ['Test'] }],
@@ -56,13 +66,14 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
         />
       );
 
+      openAccordion(/Key Actors & Activities/);
+
       const removeButton = screen.getByLabelText(/remove actor test actor/i);
       expect(removeButton).toBeInTheDocument();
       expect(removeButton).toHaveAttribute('aria-label', 'Remove actor Test Actor');
     });
 
-    it.skip('has aria-label on capability tag remove button', () => {
-      // Skipped: Capability tags are inside accordions that start closed
+    it('has aria-label on capability tag remove button', () => {
       const mockData = {
         entities: [],
         actors: [],
@@ -78,12 +89,13 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
         />
       );
 
+      openAccordion(/Required Capabilities/);
+
       const removeButton = screen.getByLabelText(/remove capability test capability/i);
       expect(removeButton).toBeInTheDocument();
     });
 
-    it.skip('has aria-label on entity list view remove button', () => {
-      // Skipped: List view is inside accordion which requires interaction to open
+    it('has aria-label on entity list view remove button', () => {
       const mockData = {
         entities: [{ id: '1', name: 'Test Entity', location: '', description: '' }],
         actors: [],
@@ -99,16 +111,16 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
         />
       );
 
-      // Click to switch to list view
-      const listViewButton = screen.getByRole('button', { name: /list view/i });
-      listViewButton.click();
+      // The view toggle is a radiogroup, not a row of buttons — this query
+      // asserted role="button" and so could never match the real markup.
+      fireEvent.click(screen.getByRole('radio', { name: /list view/i }));
+      openAccordion(/Business Entities/);
 
       const removeButton = screen.getByLabelText(/remove entity/i);
       expect(removeButton).toBeInTheDocument();
     });
 
-    it.skip('has aria-label on actor list view remove button', () => {
-      // Skipped: List view is inside accordion which requires interaction to open
+    it('has aria-label on actor list view remove button', () => {
       const mockData = {
         entities: [],
         actors: [{ id: '1', name: 'Test Actor', role: '', department: '', activities: [] }],
@@ -124,9 +136,8 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
         />
       );
 
-      // Click to switch to list view
-      const listViewButton = screen.getByRole('button', { name: /list view/i });
-      listViewButton.click();
+      fireEvent.click(screen.getByRole('radio', { name: /list view/i }));
+      openAccordion(/Key Actors & Activities/);
 
       const removeButton = screen.getByLabelText(/remove actor/i);
       expect(removeButton).toBeInTheDocument();
@@ -134,7 +145,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
   });
 
   describe('CurrentLandscapeTab', () => {
-    it.skip('has aria-label on system card remove button', () => {
+    it('has aria-label on system card remove button', () => {
       const mockData = {
         systems: [{ id: '1', name: 'SAP ECC', vendor: 'SAP', version: '6.0', modules: ['FI', 'CO'], status: 'active' as const }],
         integrations: [],
@@ -155,7 +166,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
       expect(removeButton).toHaveAttribute('aria-label', 'Remove current system SAP ECC');
     });
 
-    it.skip('has aria-label on external system remove button', () => {
+    it('has aria-label on external system remove button', () => {
       const mockData = {
         systems: [],
         integrations: [],
@@ -176,7 +187,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
       expect(removeButton).toHaveAttribute('aria-label', 'Remove external system External API');
     });
 
-    it.skip('cloud icon is marked as decorative', () => {
+    it('cloud icon is marked as decorative', () => {
       const mockData = {
         systems: [],
         integrations: [],
@@ -198,8 +209,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
   });
 
   describe('ProposedSolutionTab', () => {
-    it.skip('has aria-label on phase card remove button', () => {
-      // Skipped: Phase card only visible when phase is selected in UI
+    it('has aria-label on phase card remove button', () => {
       const mockData = {
         phases: [{
           id: '1',
@@ -229,8 +239,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
       expect(removeButton).toHaveAttribute('aria-label', 'Remove phase Phase 1');
     });
 
-    it.skip('has aria-label on system card remove button', () => {
-      // Skipped: System card only visible when phase is selected in UI
+    it('has aria-label on system card remove button', () => {
       const mockData = {
         phases: [{
           id: '1',
@@ -262,7 +271,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
   });
 
   describe('StyleSelector Modal', () => {
-    it.skip('has aria-label on close button', () => {
+    it('has aria-label on close button', () => {
       const mockSettings = {
         visualStyle: 'bold' as const,
         actorDisplay: 'cards' as const,
@@ -284,7 +293,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
       expect(closeButton).toHaveAttribute('aria-label', 'Close style selector');
     });
 
-    it.skip('close button icon is marked as decorative', () => {
+    it('close button icon is marked as decorative', () => {
       const mockSettings = {
         visualStyle: 'bold' as const,
         actorDisplay: 'cards' as const,
@@ -307,7 +316,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
   });
 
   describe('ReuseSystemModal', () => {
-    it.skip('has aria-label on close button', () => {
+    it('has aria-label on close button', () => {
       const mockSystems = [
         { id: '1', name: 'SAP ECC', vendor: 'SAP', version: '6.0', modules: ['FI'], status: 'keep' as const }
       ];
@@ -328,8 +337,7 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
   });
 
   describe('Edge Cases', () => {
-    it.skip('handles empty names gracefully with "untitled" fallback', () => {
-      // Skipped: Entity cards are inside accordions that start closed
+    it('handles empty names gracefully with "untitled" fallback', () => {
       const mockData = {
         entities: [{ id: '1', name: '', location: '', description: '' }],
         actors: [],
@@ -345,11 +353,13 @@ describe('ARIA Labels - Icon-Only Buttons', () => {
         />
       );
 
+      openAccordion(/Business Entities/);
+
       const removeButton = screen.getByLabelText(/remove entity untitled/i);
       expect(removeButton).toBeInTheDocument();
     });
 
-    it.skip('handles special characters in names correctly', () => {
+    it('handles special characters in names correctly', () => {
       const mockData = {
         systems: [{ id: '1', name: 'SAP S/4HANA', vendor: 'SAP', version: '2023', modules: ['Finance'], status: 'active' as const }],
         integrations: [],

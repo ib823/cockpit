@@ -5,7 +5,11 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+// Explicit default import: tsconfig uses `jsx: "preserve"` with no automatic
+// runtime, so the compiled JSX calls React.createElement by name. Next's own
+// build injects it, which is why this only ever surfaced under the test
+// transform — as `ReferenceError: React is not defined` on render.
+import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Calendar, CheckCircle, Clock, Sparkles, Package, HelpCircle } from "lucide-react";
 import type { ProposedSolutionData, Phase, ProposedSystem, ProposedIntegration, CurrentSystem, ExternalSystem } from "../types";
 import { ReuseSystemModal } from "./ReuseSystemModal";

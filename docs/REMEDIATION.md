@@ -34,67 +34,93 @@ production.
 
 ---
 
-### 1.2 The accessibility suites are skipped
+### 1.2 The accessibility suites are skipped — DONE
 
-**State:** 201 skipped tests. Among them, by name:
-
-```
-architecture/v3/__tests__/focus-trap.test.tsx          27 tests
-architecture/v3/__tests__/keyboard-navigation.test.tsx 31 tests
-__tests__/aria-labels.test.tsx
-__tests__/integration.test.tsx
-```
-
-These are the tests that would catch exactly the class of defect this audit
+**Was:** 201 skipped tests, including the three architecture/v3 accessibility
+suites (74 tests) that would catch exactly the class of defect this audit
 found — a dialog with no focus trap, a control with no accessible name.
 
-**Why they were skipped is now known and fixed.** `tests/setup.ts` stubbed
-`getComputedStyle` to report `display: 'none'` for every element, which made
-`getByRole` unable to match anything repo-wide. That stub is gone.
+**Done.** All three are un-skipped and passing: `aria-labels` 16/16,
+`focus-trap` 27/27, `keyboard-navigation` 31/31. Full suite 2069 passed, 0
+failed. Working through them one file at a time, treating each failure as a
+finding rather than a test to delete, turned up four defects in shipping code:
 
-**Fix:** un-skip them one file at a time, starting with `focus-trap` and
-`keyboard-navigation`. Expect failures — they were written against a broken
-environment and some will have been written to pass under it. **Treat each
-failure as a finding, not as a test to delete.**
+- Four v3 components had no default `React` import, so they could not render
+  at all under a transform that does not inject one.
+- `src/ui/components/Modal.tsx` passed `initialFocus: false` to focus-trap —
+  opening a dialog left focus on the trigger behind it.
+- The same Modal never referenced its own `<h2>`, so the dialog had no
+  accessible name.
+- Both modal foundations hardcoded the close button's name, so several open
+  dialogs were indistinguishable to a screen reader. `closeLabel` now exists.
 
-**Do not** un-skip all 201 in one commit. A large red suite gets skipped again.
+And one test-environment defect of the same family as the `getComputedStyle`
+stub: jsdom reports zero client rects for everything, `tabbable` reads that as
+"not tabbable", and focus-trap's `activate()` therefore threw for every modal
+in the suite. `tests/setup.ts` now shims `getClientRects` while deferring the
+visibility decision to computed style, so a genuinely hidden control still
+reads as untabbable.
 
-**Cost:** ~1 session per file. **Value:** the highest of anything on this list —
-it converts accessibility from a claim into a gate.
+**Left open:** `architecture/v3/__tests__/integration.test.tsx` is partly
+un-skipped — its keyboard and modal-focus scenarios run; its CRUD, auto-save
+and persistence scenarios stay skipped with a stated reason, because they need
+a store fixture the suite does not stand up. That is the next piece of this
+item, and it is a store problem rather than an accessibility one.
 
 ---
 
-### 1.3 Playwright never runs in CI
+### 1.3 Playwright never runs in CI — DONE, with the scope stated
 
-**State:** `playwright.config.ts` has a `webServer` block and 4 spec files. The
-CI workflow's steps are: lint, typecheck, test with coverage, build, budget
-check. **No e2e step.**
+**Was:** a `webServer` block, several spec files, and no e2e step in CI.
 
-**Fix:** add a job to `.github/workflows/`:
+**Done.** `.github/workflows/ci.yml` has an `e2e` job: postgres service,
+pinned browser install, `prisma migrate deploy`, production build, then
+`tests/e2e/smoke.spec.ts` on `chromium-desktop`, with traces uploaded on
+failure. `playwright.config.ts` now runs `pnpm start` under CI rather than
+`pnpm dev`, so what is tested is what ships.
 
-```yaml
-e2e:
-  needs: validate           # reuse the build, do not rebuild
-  steps:
-    - uses: actions/checkout@v4
-    - run: pnpm install --frozen-lockfile
-    - run: pnpm exec playwright install --with-deps chromium
-    - run: pnpm exec playwright test
-```
+**But the gate is scoped, and that is the important part of this entry.**
+Before wiring the job, the existing suite was run against a production build
+for the first time. It does not work:
 
-**Two things to get right:**
+| spec | tests | state |
+| --- | --- | --- |
+| `smoke.spec.ts` (new) | 16 | passing, ~3s |
+| `plan-timeline.spec.ts` | 15 | all `test.skip()` placeholders |
+| `team-capacity-api.spec.ts` | 21 | gated on `RUN_DB_E2E`; needs a seeded DB and a session |
+| `view-switching.spec.ts` | 23 | asserts a GlobalNav (`[href="/gantt-tool"]`) this app does not render |
+| `visual-regression/p1`,`p2` | 20 | navigate to `/projects`, `/projects/new` — not routes in this app |
+| `user-journeys/01`,`02` | 8 | same missing routes; the passes are lenient assertions, not evidence |
 
-- **Pin the browser version** via the Playwright version in `package.json`.
-  A floating browser makes failures unreproducible, which is how e2e suites
-  become "flaky" and then ignored.
-- **Upload the trace on failure** (`--trace on-first-retry`). An e2e failure
-  with no trace costs more to diagnose than it saves.
+Whole-directory result: **9 passed, 51 failed, 39 skipped.** Three separate
+defects were fixed on the way to that number and are worth recording, because
+each one had been hiding the next:
 
-**Also:** the number-input arrow-key behaviour deliberately left untested in
-jsdom belongs here. It is browser behaviour and jsdom does not emulate it.
+- `login-flows.spec.ts` hardcoded `http://localhost:3000` in all 13 tests
+  while the config serves 3002, so it had never once reached the app under
+  test. `view-switching` and `plan-timeline` defaulted to the same wrong port.
+- The same file constructed a `PrismaClient` at module scope and seeded users
+  in `beforeAll`, with no database in CI. Now behind `RUN_DB_E2E`, lazily.
+- The production server refuses to boot without `NEXTAUTH_SECRET` and
+  `NEXTAUTH_URL`. The job sets both.
 
-**Cost:** half a session. **Value:** the only tests that exercise the real
-browser, and the only ones that would catch a CSP or hydration break.
+**The new smoke spec** sweeps every route in the app against the auth
+boundary — 3 public, 11 protected, plus `/admin`'s two-hop redirect — and
+checks that the login page presents a named, keyboard-operable form. It uses
+the `request` fixture rather than page navigations: the middleware rate-limits
+by IP at 60/min, a browser navigation costs several requests, and a 429 reads
+exactly like "the redirect stopped working". The 9-project device matrix was
+tried and rejected for the same reason — 108 of 144 passed, the rest were
+rate-limited.
+
+**Next, in order:** delete or rewrite the visual-regression and user-journey
+specs against routes that exist; give `plan-timeline.spec.ts` real bodies once
+the Gantt strangler port lands; provide a seeded-DB job for
+`team-capacity-api.spec.ts`. Widening the device matrix needs the rate limiter
+keyed on something other than IP in test environments.
+
+**Also still open:** the number-input arrow-key behaviour deliberately left
+untested in jsdom belongs in the browser suite.
 
 ---
 
@@ -131,36 +157,32 @@ between "we have a CSP" and "we have a CSP that does something".
 
 ---
 
-### 2.2 No optimistic locking on the delta route
+### 2.2 No optimistic locking on the delta route — DONE
 
-**State:** the delta route authorises every id and writes. Two clients editing
-the same task both succeed; the second silently overwrites the first.
+**Was:** the delta route authorised every id and wrote. Two clients editing the
+same task both succeeded; the second silently overwrote the first. In a
+local-first app where clients queue changes offline, that is not a rare race —
+it is the normal case after two people work on a plane.
 
-In a local-first app where clients queue changes offline, this is not a rare
-race — it is the normal case after two people work on a plane.
+**Done.** `GanttPhase` and `GanttTask` carry `version Int @default(0)`
+(migration `20260807140000_add_optimistic_lock_versions`), and the route
+applies each write conditionally on the client's version, incrementing it.
+Covered by `tests/integration/delta-optimistic-lock.int.test.ts` (6 tests)
+against real PostgreSQL.
 
-**Fix:** add a version column and check it in the same transaction:
+Two decisions are worth knowing before changing this code:
 
-```prisma
-model GanttTask {
-  version Int @default(0)
-}
-```
+- **An absent version writes unconditionally.** Existing clients do not send
+  one, and rejecting them would have been a breaking change shipped as a bug
+  fix. New clients opt in by sending it.
+- **A conflict is collected, not thrown.** Throwing rolls back the whole
+  batch, and a local-first client batches an entire offline session — one
+  stale task would discard everything else the user did. The response carries
+  a `conflicts` array, always present and possibly empty.
 
-```ts
-const { count } = await tx.ganttTask.updateMany({
-  where: { id, phase: { projectId }, version: clientVersion },
-  data: { ...fields, version: { increment: 1 } },
-});
-if (count === 0) conflicts.push(id);   // do not throw — report
-```
-
-**Return conflicts rather than failing the request.** A 409 for the whole batch
-discards good changes alongside the conflicting one. The client should be told
-*which* entities conflicted so it can present a merge.
-
-**Cost:** one session including a migration and the conflict UI contract.
-**Value:** high — this is silent data loss, and silent is the worst kind.
+**Left open:** the client does not yet send `version`, so the mechanism is
+available but not yet in force end to end. That is the next step, and it
+belongs with the Gantt strangler port rather than ahead of it.
 
 ---
 
