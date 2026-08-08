@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
 import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
@@ -13,6 +14,7 @@ import { StatusPill } from "@/components/ds/Display";
 import { EmptyState } from "@/components/ds/Feedback";
 import { Modal } from "@/components/ds/Modal";
 import { adminNav } from "../nav";
+import { UserMenu } from "@/components/navigation/UserMenu";
 import styles from "../admin.module.css";
 
 interface EmailApproval {
@@ -25,6 +27,7 @@ interface EmailApproval {
 }
 
 export default function EmailApprovalsPage() {
+  const { data: session } = useSession();
   const router = useRouter();
 
   const [approvals, setApprovals] = useState<EmailApproval[]>([]);
@@ -132,7 +135,11 @@ export default function EmailApprovalsPage() {
 
   if (loading) {
     return (
-      <AppShell brand="Admin" primaryNav={adminNav("/admin/email-approvals")}>
+      <AppShell
+      brand="Admin"
+      primaryNav={adminNav("/admin/email-approvals")}
+      topBarEnd={<UserMenu session={session} />}
+    >
         <PageHeader title="Email approvals" />
         <AuthStatus message="Loading email approvals…" />
       </AppShell>
@@ -177,7 +184,11 @@ export default function EmailApprovalsPage() {
   };
 
   return (
-    <AppShell brand="Admin" primaryNav={adminNav("/admin/email-approvals")}>
+    <AppShell
+      brand="Admin"
+      primaryNav={adminNav("/admin/email-approvals")}
+      topBarEnd={<UserMenu session={session} />}
+    >
       <PageHeader
         title="Email approvals"
         description="Approve an email address so its owner can register."

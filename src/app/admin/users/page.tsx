@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import UserManagementClient from "@/components/admin/UserManagementClient";
+import { UserMenu } from "@/components/navigation/UserMenu";
 import { AppShell, PageHeader } from "@/components/ds/AppShell";
 import { Banner } from "@/components/ds/Banner";
 import { adminNav } from "../nav";
@@ -34,7 +35,11 @@ export default async function UsersPage() {
   });
 
   return (
-    <AppShell brand="Admin" primaryNav={adminNav("/admin/users")}>
+    <AppShell
+      brand="Admin"
+      primaryNav={adminNav("/admin/users")}
+      topBarEnd={<UserMenu session={session} />}
+    >
       <PageHeader
         title="Users"
         description={`${users.length} ${users.length === 1 ? "user" : "users"}. Administrators are not listed.`}

@@ -11,7 +11,7 @@
 // transform — as `ReferenceError: React is not defined` on render.
 import React, { useState } from "react";
 import type { DiagramSettings } from "../types";
-import { Modal, ModalButton } from "@/ui/components/Modal";
+import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 import clsx from "clsx";
 
 interface StyleSelectorProps {
@@ -28,12 +28,12 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
   };
 
   return (
-    <Modal
-      open={true}
+    <BaseModal
+      isOpen={true}
       onClose={onClose}
       title="Choose Your Visual Style"
       closeLabel="Close style selector"
-      size="lg"
+      size="large"
       footer={
         <>
           <ModalButton variant="secondary" onClick={onClose}>
@@ -137,7 +137,7 @@ export function StyleSelector({ currentSettings, onGenerate, onClose }: StyleSel
           </div>
         </Section>
       </div>
-    </Modal>
+    </BaseModal>
   );
 }
 

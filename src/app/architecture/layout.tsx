@@ -3,8 +3,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: 'SAP RFP Diagram Generator',
-  description: 'Create production-ready architecture diagrams for SAP implementations',
+  title: "Architecture",
+  description: "Design solution architecture and team structure",
 };
 
 export default async function ArchitectureLayout({
