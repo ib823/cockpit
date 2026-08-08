@@ -41,7 +41,6 @@ import { GanttBar } from "./GanttBar";
 import { GanttMilestones, type CanvasMilestone } from "./GanttMilestones";
 import { GanttStatus } from "./GanttStatus";
 import { TimelineAxis, type AxisTick, type NonWorkingDay } from "./TimelineAxis";
-import { Button } from "../Button";
 import {
   computeWindow,
   flattenRows,
@@ -50,7 +49,7 @@ import {
   type FlatRow,
   type GanttPhase,
 } from "./rows";
-import { PX_PER_DAY, ROW_HEIGHT, nudgeDays, type ZoomGrain } from "./scale";
+import { PX_PER_DAY, ROW_HEIGHT, nudgeDays, showsDayShading, type ZoomGrain } from "./scale";
 import {
   sayCursorMove,
   sayExpand,
@@ -65,7 +64,12 @@ import {
 /**
  * Detail cells for one row of the tree pane, pre-formatted by the caller so
  * the canvas never owns date or duration formatting — the seam does, where it
- * can be asserted against the legacy formats.
+ * can be asserted.
+ *
+ * The tree pane renders `dates` in its right column, per the layer-4a spec's
+ * two-column pane (name, dates). `calendar` and `working` no longer get
+ * columns of their own — the spec's pane is 392px, and the working-day count
+ * reaches assistive technology through every bar's accessible description.
  */
 export interface RowDetails {
   /** Calendar duration, e.g. "3.2 m". */
@@ -125,6 +129,8 @@ export interface GanttCanvasProps {
   milestones?: CanvasMilestone[];
   /** Opens milestone editing. Markers render inert without it. */
   onMilestoneActivate?: (id: string) => void;
+  /** Opens the row's editor: Enter on the grid cursor, double-click a bar. */
+  onRowActivate?: (id: string) => void;
   /** Extra toolbar content, e.g. filters. */
   toolbar?: ReactNode;
   height?: number;
@@ -152,6 +158,7 @@ export function GanttCanvas({
   details,
   milestones = [],
   onMilestoneActivate,
+  onRowActivate,
   toolbar,
   height = 520,
   debugAnnouncements,
@@ -171,7 +178,8 @@ export function GanttCanvas({
   const moveAnchor = useRef<number>(0);
 
   const bodyRef = useRef<HTMLDivElement | null>(null);
-  const viewportHeight = height - 44;
+  // The axis is the spec's two 28px tiers.
+  const viewportHeight = height - 56;
 
   const window_ = computeWindow(rows.length, rowHeight, scrollTop, viewportHeight);
   const visible = rows.slice(window_.startIndex, window_.endIndex);
@@ -262,6 +270,10 @@ export function GanttCanvas({
       }
 
       switch (event.key) {
+        case "Enter":
+          event.preventDefault();
+          onRowActivate?.(row.id);
+          break;
         case "ArrowDown":
           event.preventDefault();
           moveCursorTo(cursor + 1);
@@ -348,15 +360,36 @@ export function GanttCanvas({
       toggleExpand,
       onGrainChange,
       onMove,
+      onRowActivate,
       pendingChanges,
     ]
   );
 
   const px = PX_PER_DAY[grain];
+  const hasMilestones = milestones.length > 0;
+  const hasAms = Object.values(placements).some((p) => p.ams);
+  const hasHolidays = nonWorkingDays.some((d) => d.name);
 
   return (
-    <div>
+    <div className={styles.frame}>
       <div className={styles.toolbar}>
+        {/* The spec's segmented zoom: a radiogroup on a sunken track, the
+          * active grain raised white. Finer grains sit left, as on a map. */}
+        <div role="radiogroup" aria-label="Zoom" className={styles.zoomGroup}>
+          {GRAINS.map((g) => (
+            <button
+              key={g}
+              type="button"
+              role="radio"
+              aria-checked={g === grain}
+              className={cx(styles.zoomCell, g === grain && styles.zoomCellActive)}
+              onClick={() => onGrainChange(g)}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+        {toolbar && <span className={styles.toolbarDivider} aria-hidden="true" />}
         {toolbar}
         <span className={styles.spacer} />
         {moving && (
@@ -364,50 +397,19 @@ export function GanttCanvas({
             Move mode · {grain}
           </span>
         )}
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => {
-            const i = GRAINS.indexOf(grain);
-            if (i < GRAINS.length - 1) onGrainChange(GRAINS[i + 1]);
-          }}
-          aria-label="Zoom out"
-        >
-          −
-        </Button>
-        <span style={{ font: "var(--ds-type-label)", color: "var(--ds-content-secondary)" }}>
-          {grain}
+        <span className={styles.rowCount}>
+          {rows.length} row{rows.length === 1 ? "" : "s"}
         </span>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => {
-            const i = GRAINS.indexOf(grain);
-            if (i > 0) onGrainChange(GRAINS[i - 1]);
-          }}
-          aria-label="Zoom in"
-        >
-          +
-        </Button>
       </div>
 
       <div className={styles.canvas} style={{ height }}>
-        {/* With details the tree pane is legacy's four-column grid at legacy's
-          * default widths (280 + 90 + 90 + 180); without, the original
-          * name-only 280px tree. */}
-        <div
-          className={styles.treePane}
-          style={details ? { width: 280 + 90 + 90 + 180 } : undefined}
-        >
+        {/* The spec's two-column pane: name on the left, dates on the right,
+          * 392px. Duration and working days live in each bar's accessible
+          * description and the row announcement, not in columns of their own. */}
+        <div className={styles.treePane} style={details ? { width: 392 } : undefined}>
           <div className={styles.treeHeader}>
-            <span className={styles.treeName}>Plan</span>
-            {details && (
-              <>
-                <span className={styles.detailCell}>Duration</span>
-                <span className={styles.detailCell}>Work Days</span>
-                <span className={styles.detailCellWide}>Start-End</span>
-              </>
-            )}
+            <span className={styles.treeHeaderLabel}>Phase / task</span>
+            {details && <span className={styles.treeHeaderDates}>Dates</span>}
           </div>
           <div
             className={styles.treeBody}
@@ -423,6 +425,7 @@ export function GanttCanvas({
                     key={row.id}
                     className={cx(
                       styles.row,
+                      row.kind === "phase" && styles.rowPhase,
                       selected.has(row.id) && styles.rowSelected,
                       rows[cursor]?.id === row.id && styles.rowCursor
                     )}
@@ -450,17 +453,7 @@ export function GanttCanvas({
                       {row.name}
                     </span>
                     {details && (
-                      <>
-                        <span className={styles.detailCell}>
-                          {details[row.id]?.calendar}
-                        </span>
-                        <span className={styles.detailCell}>
-                          {details[row.id]?.working}
-                        </span>
-                        <span className={styles.detailCellWide}>
-                          {details[row.id]?.dates}
-                        </span>
-                      </>
+                      <span className={styles.treeDates}>{details[row.id]?.dates}</span>
                     )}
                   </div>
                 ))}
@@ -501,6 +494,28 @@ export function GanttCanvas({
             />
 
             <div style={{ height: window_.totalHeight, position: "relative", width: totalDays * px }}>
+              {/* Non-working shading spans the full canvas height, not just
+                * the axis strip — a weekend is non-working for every row. Same
+                * grain gate as the axis: at Month a day is 2.9px and shading
+                * becomes texture. Decorative here: the working-day count
+                * reaches assistive technology through each bar's description. */}
+              <div aria-hidden="true">
+                {showsDayShading(grain) &&
+                  nonWorkingDays.map((d) => (
+                    <span
+                      key={`${d.day}-${d.name ?? "weekend"}`}
+                      className={cx(
+                        styles.shadeBand,
+                        d.name ? styles.shadeHoliday : styles.shadeWeekend
+                      )}
+                      style={{ left: d.day * px, width: px }}
+                      title={d.name}
+                    />
+                  ))}
+                {todayDay != null && todayDay >= 0 && todayDay <= totalDays && (
+                  <span className={styles.todayRule} style={{ left: todayDay * px }} />
+                )}
+              </div>
               {/* Milestone rules and markers span the full canvas height, so
                 * they sit on the unwindowed container rather than the
                 * translated slice below.
@@ -537,6 +552,7 @@ export function GanttCanvas({
                       aria-expanded={row.kind === "phase" ? row.expanded : undefined}
                       className={cx(
                         styles.timelineRow,
+                        row.kind === "phase" && styles.timelineRowPhase,
                         selected.has(row.id) && styles.timelineRowSelected
                       )}
                       style={{ height: rowHeight }}
@@ -582,6 +598,9 @@ export function GanttCanvas({
                           }
                           selected={selected.has(row.id)}
                           onSelect={() => moveCursorTo(row.rowIndex - 1)}
+                          onActivate={
+                            onRowActivate ? () => onRowActivate(row.id) : undefined
+                          }
                         />
                       )}
                     </div>
@@ -591,6 +610,43 @@ export function GanttCanvas({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* The legend earns its row by listing only what this plan draws — a
+        * legend explaining marks that are not on screen is noise. */}
+      <div className={styles.legend} aria-hidden="true">
+        <span className={styles.legendItem}>
+          <span className={cx(styles.legendSwatch, styles.legendPhase)} />
+          Phase
+        </span>
+        <span className={styles.legendItem}>
+          <span className={cx(styles.legendSwatch, styles.legendTask)} />
+          Task
+        </span>
+        {hasMilestones && (
+          <span className={styles.legendItem}>
+            <span className={styles.legendMilestone} />
+            Milestone
+          </span>
+        )}
+        {hasAms && (
+          <span className={styles.legendItem}>
+            <span className={styles.legendAms} />
+            Ongoing (AMS)
+          </span>
+        )}
+        {hasHolidays && (
+          <span className={styles.legendItem}>
+            <span className={cx(styles.legendSwatch, styles.legendHoliday)} />
+            Public holiday
+          </span>
+        )}
+        {todayDay != null && (
+          <span className={styles.legendItem}>
+            <span className={styles.legendToday} />
+            Today
+          </span>
+        )}
       </div>
 
       <GanttStatus message={message} visible={debugAnnouncements} />
