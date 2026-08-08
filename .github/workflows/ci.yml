@@ -77,3 +77,103 @@ jobs:
 
     - name: Performance budget check
       run: pnpm vitest run tests/performance/ --run
+
+  # End-to-end smoke tests against the PRODUCTION build.
+  #
+  # Runs in parallel with `validate` rather than after it: the two catch
+  # different classes of failure, and waiting would only delay the e2e signal
+  # without making it more reliable.
+  #
+  # SCOPE: this runs tests/e2e/smoke.spec.ts only, not the whole of tests/e2e.
+  # Measured against a production build, the rest of that directory is 9 passed
+  # / 51 failed / 39 skipped — plan-timeline.spec.ts is 15 placeholder skips,
+  # team-capacity-api.spec.ts needs a seeded database, and the visual and
+  # user-journey specs navigate to /projects and /projects/new, which are not
+  # routes in this app. They assert a UI that does not exist here, so adding
+  # them would mean a permanently red required check. They stay in the tree and
+  # are tracked in docs/REMEDIATION.md; scoping the gate is stated here rather
+  # than hidden behind more skips.
+  #
+  # The smoke spec runs in about 3 seconds and sweeps every route in the app
+  # against the auth boundary. A slow required check is one people learn to
+  # ignore, which is how an e2e suite becomes decorative.
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cockpit_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cockpit_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/cockpit_ci"
+      DATABASE_URL_UNPOOLED: "postgresql://postgres:postgres@localhost:5432/cockpit_ci"
+      NEXTAUTH_SECRET: "test-secret-key-for-ci-only-min-32-chars"
+      NEXTAUTH_URL: "http://localhost:3002"
+      TOTP_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      JWT_SECRET_KEY: "test-jwt-secret-key-for-ci-only-32-chars"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.13.1
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install
+
+    # Pinned by the @playwright/test version in package.json, so a browser
+    # update cannot silently change what "passing" means. A floating browser is
+    # how an e2e suite becomes "flaky" and then ignored.
+    - name: Install Playwright browsers
+      run: pnpm exec playwright install --with-deps
+
+    - name: Generate Prisma Client
+      run: pnpm prisma generate
+
+    - name: Apply migrations
+      run: pnpm prisma migrate deploy
+
+    - name: Build
+      run: pnpm build
+
+    # Playwright starts the production server itself (see webServer in
+    # playwright.config.ts) and waits for it to answer.
+    #
+    # One project, on pull requests and on main alike. The 9-project device
+    # matrix was tried and is not usable here: the middleware rate-limits by IP
+    # at 60 requests a minute, a CI runner is one IP, and 9 x 16 tests inside a
+    # minute trips it — 108 of 144 passed and the rest returned 429. The route
+    # sweep is viewport-independent by construction, so the matrix would add
+    # flake without adding coverage. Widening it needs the limiter keyed on
+    # something other than IP for test environments, not a bigger timeout.
+    - name: Run E2E smoke
+      run: pnpm exec playwright test tests/e2e/smoke.spec.ts --project=chromium-desktop
+
+    # Uploaded on failure only. An e2e failure with no trace costs more to
+    # diagnose than the test saved.
+    - name: Upload traces and report
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report-${{ github.run_id }}
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 7

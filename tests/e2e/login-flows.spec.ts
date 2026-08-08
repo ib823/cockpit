@@ -2,26 +2,55 @@
  * End-to-End Login Flow Tests with Playwright
  * Full browser automation tests for authentication flows
  *
- * Prerequisites:
- *   npm install -D @playwright/test
- *   npx playwright install
- *
  * Run:
  *   npx playwright test tests/e2e/login-flows.spec.ts
+ *
+ * Two things this file used to get wrong, both of which made every test in it
+ * fail regardless of the app's behaviour:
+ *
+ *  - Every navigation hardcoded `http://localhost:3000`, while the Playwright
+ *    config starts the server under test on 3002 (PLAYWRIGHT_PORT). The suite
+ *    was pointed at whatever happened to be on 3000 — usually nothing, hence
+ *    ERR_CONNECTION_REFUSED. Paths are now relative, so `baseURL` resolves them
+ *    and the tests follow the config instead of contradicting it.
+ *  - Half the describes seed users through Prisma, which needs a migrated
+ *    database that CI does not provision. Those are now behind RUN_DB_E2E, the
+ *    same gate `team-capacity-api.spec.ts` uses, and the client is created
+ *    lazily so merely importing this file no longer requires DATABASE_URL.
+ *
+ * What is left ungated needs nothing but the app: it exercises the login page
+ * itself and the middleware redirect on protected routes.
  */
 
-import { test, expect, type Page } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { test, expect } from "@playwright/test";
+import type { PrismaClient } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { hash } from "bcryptjs";
 
-const prisma = new PrismaClient();
+/**
+ * Constructing a PrismaClient does not connect, but it does read the schema's
+ * env() bindings on first query. Deferring construction keeps the import side
+ * of this module free of database requirements, so the ungated describes run
+ * in an environment that has no database at all.
+ */
+let prismaClient: PrismaClient | undefined;
+function db(): PrismaClient {
+  if (!prismaClient) {
+    // Required lazily for the same reason.
+    const { PrismaClient: Client } = require("@prisma/client");
+    prismaClient = new Client() as PrismaClient;
+  }
+  return prismaClient;
+}
+
+/** Seeding requires a migrated database; CI has none. See the file header. */
+const describeWithDb = process.env.RUN_DB_E2E ? test.describe : test.describe.skip;
 
 // Helper to create test user
 async function createTestUser(email: string, role: "USER" | "ADMIN" = "USER") {
   const userId = `test-${randomUUID()}`;
 
-  await prisma.users.create({
+  await db().users.create({
     data: {
       id: userId,
       email,
@@ -33,7 +62,7 @@ async function createTestUser(email: string, role: "USER" | "ADMIN" = "USER") {
     },
   });
 
-  await prisma.authenticator.create({
+  await db().authenticator.create({
     data: {
       id: randomUUID(),
       userId,
@@ -50,13 +79,13 @@ async function createTestUser(email: string, role: "USER" | "ADMIN" = "USER") {
 
 // Helper to cleanup test user
 async function cleanupTestUser(userId: string) {
-  await prisma.authenticator.deleteMany({ where: { userId } });
-  await prisma.users.delete({ where: { id: userId } });
+  await db().authenticator.deleteMany({ where: { userId } });
+  await db().users.delete({ where: { id: userId } });
 }
 
 test.describe("Login Page UI", () => {
   test("should display login page correctly", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     // Check for login form elements
     await expect(page.locator('input[type="email"]')).toBeVisible();
@@ -64,7 +93,7 @@ test.describe("Login Page UI", () => {
   });
 
   test("should show validation for empty email", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     const loginButton = page.getByRole("button", { name: /login|sign in/i });
     await loginButton.click();
@@ -74,7 +103,7 @@ test.describe("Login Page UI", () => {
   });
 
   test("should show validation for invalid email format", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     const emailInput = page.locator('input[type="email"]');
     await emailInput.fill("not-an-email");
@@ -87,7 +116,7 @@ test.describe("Login Page UI", () => {
   });
 });
 
-test.describe("Login Flow - Regular User", () => {
+describeWithDb("Login Flow - Regular User", () => {
   let testUserId: string;
   const testEmail = `e2e-test-${Date.now()}@example.com`;
 
@@ -101,7 +130,7 @@ test.describe("Login Flow - Regular User", () => {
   });
 
   test("should initiate login for existing user", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     const emailInput = page.locator('input[type="email"]');
     await emailInput.fill(testEmail);
@@ -124,7 +153,7 @@ test.describe("Login Flow - Regular User", () => {
 
 test.describe("Login Flow - Non-existent User", () => {
   test("should show error for non-existent user", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     const emailInput = page.locator('input[type="email"]');
     await emailInput.fill(`nonexistent-${Date.now()}@example.com`);
@@ -139,7 +168,7 @@ test.describe("Login Flow - Non-existent User", () => {
   });
 });
 
-test.describe("Admin Login Flow", () => {
+describeWithDb("Admin Login Flow", () => {
   const adminEmail = `admin-e2e-${Date.now()}@example.com`;
   const adminCode = "123456";
   let adminUserId: string;
@@ -148,7 +177,7 @@ test.describe("Admin Login Flow", () => {
     adminUserId = `test-${randomUUID()}`;
     const tokenHash = await hash(adminCode, 10);
 
-    await prisma.users.create({
+    await db().users.create({
       data: {
         id: adminUserId,
         email: adminEmail,
@@ -160,7 +189,7 @@ test.describe("Admin Login Flow", () => {
       },
     });
 
-    await prisma.emailApproval.create({
+    await db().emailApproval.create({
       data: {
         email: adminEmail,
         tokenHash,
@@ -171,12 +200,12 @@ test.describe("Admin Login Flow", () => {
   });
 
   test.afterAll(async () => {
-    await prisma.emailApproval.deleteMany({ where: { email: adminEmail } });
-    await prisma.users.delete({ where: { id: adminUserId } });
+    await db().emailApproval.deleteMany({ where: { email: adminEmail } });
+    await db().users.delete({ where: { id: adminUserId } });
   });
 
   test("should show admin login form", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     // Look for admin login toggle/link
     const adminLink = page.locator("text=/admin.*login|admin.*access/i").first();
@@ -192,7 +221,7 @@ test.describe("Admin Login Flow", () => {
 
 test.describe("Rate Limiting UI", () => {
   test("should show rate limit message after too many attempts", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     const emailInput = page.locator('input[type="email"]');
     const loginButton = page.getByRole("button", { name: /login|sign in/i });
@@ -220,14 +249,14 @@ test.describe("Protected Routes", () => {
   test("should redirect to login when accessing protected route without session", async ({
     page,
   }) => {
-    await page.goto("http://localhost:3000/dashboard");
+    await page.goto("/dashboard");
 
     // Should redirect to login
     await expect(page).toHaveURL(/\/login/);
   });
 
   test("should redirect to login when accessing admin route without session", async ({ page }) => {
-    await page.goto("http://localhost:3000/admin");
+    await page.goto("/admin");
 
     // Should redirect to login
     await expect(page).toHaveURL(/\/login/);
@@ -236,7 +265,7 @@ test.describe("Protected Routes", () => {
 
 test.describe("Accessibility", () => {
   test("login page should be keyboard navigable", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     // Tab to email input
     await page.keyboard.press("Tab");
@@ -253,7 +282,7 @@ test.describe("Accessibility", () => {
   });
 
   test("login page should have proper ARIA labels", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     // Check for accessible form labels
     const emailInput = page.locator('input[type="email"]');
@@ -268,7 +297,7 @@ test.describe("Accessibility", () => {
 test.describe("Responsive Design", () => {
   test("login page should work on mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 }); // iPhone SE
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     // Form should still be visible and usable
     await expect(page.locator('input[type="email"]')).toBeVisible();
@@ -277,7 +306,7 @@ test.describe("Responsive Design", () => {
 
   test("login page should work on tablet viewport", async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 }); // iPad
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
 
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.getByRole("button", { name: /login|sign in/i })).toBeVisible();

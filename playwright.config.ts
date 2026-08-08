@@ -114,7 +114,13 @@ export default defineConfig({
   // on port 3000, so the server never became "ready" and every project failed on
   // the 120s timeout — the whole E2E suite was unrunnable.
   webServer: {
-    command: `pnpm dev --port ${E2E_PORT}`,
+    // CI runs the PRODUCTION build. A dev server has different bundling,
+    // different error overlays and no CSP-relevant minification, so passing
+    // e2e against `next dev` says little about what actually ships. Locally it
+    // stays on the dev server, where the fast refresh loop matters more.
+    command: process.env.CI
+      ? `pnpm start --port ${E2E_PORT}`
+      : `pnpm dev --port ${E2E_PORT}`,
     url: E2E_BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
