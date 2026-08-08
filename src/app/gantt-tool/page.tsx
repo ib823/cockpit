@@ -45,7 +45,9 @@ import { ProjectTabNavigation, type ProjectTab } from "@/components/gantt-tool/P
 const ProjectContextTab = dynamic(() => import("@/components/gantt-tool/ProjectContextTab").then(m => ({ default: m.ProjectContextTab })), { ssr: false });
 const FinancialsTab = dynamic(() => import("@/components/gantt-tool/FinancialsTab").then(m => ({ default: m.FinancialsTab })), { ssr: false });
 import { useFinancialAccess } from "@/hooks/useFinancialAccess";
-import { GlobalNav } from "@/components/navigation/GlobalNav";
+import { AppShell } from "@/components/ds/AppShell";
+import { UserMenu } from "@/components/navigation/UserMenu";
+import { globalNav, toSyncChip } from "@/components/navigation/global-nav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { useSession } from "next-auth/react";
@@ -302,17 +304,19 @@ export default function GanttToolV3Page() {
     </AuthShell>
   ) : (
     <>
-      {/* Global Navigation - Tier 1 */}
-      <GlobalNav session={session} />
-
-      {/* Jobs/Ive: "It just works" - Support any zoom level, any screen size */}
+      {/* The ds top bar (composites spec): destinations, sync chip, account.
+        * Full-bleed because the Gantt canvas owns its own scroll and width. */}
+      <AppShell
+        fullBleed
+        primaryNav={globalNav("/gantt-tool")}
+        sync={toSyncChip(syncStatus)}
+        topBarEnd={<UserMenu session={session} />}
+      >
       {/* WCAG 2.1: Content must be usable at 200% zoom without horizontal scrolling */}
-      <main
-        id="main-content"
-        className="flex flex-col bg-white"
+      <div
+        className="flex-1 flex flex-col bg-white"
         style={{
-          minHeight: "calc(100vh - 56px)", // Minimum height, but allows growth
-          maxHeight: "none", // No maximum height restriction
+          minHeight: 0, // Flexbox fix so inner scroll containers get a bound
         }}
       >
         {/* Tool Navigation Bar - Tier 2 (Tool-specific controls) */}
@@ -1020,7 +1024,8 @@ export default function GanttToolV3Page() {
         </div>
       )}
 
-      </main> {/* End main content container */}
+      </div>
+      </AppShell>{/* End main content container */}
 
       {/* Global Styles */}
       <style jsx global>{`
@@ -1067,7 +1072,7 @@ export default function GanttToolV3Page() {
           user-select: none;
           outline: none;
           position: relative;
-          z-index: 1025; /* Above GlobalNav sticky (1020) and dropdowns (1000) */
+          z-index: 1025; /* Above the shell's sticky top bar and dropdowns (1000) */
         }
 
         .plan-resources-btn:hover {

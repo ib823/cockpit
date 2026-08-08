@@ -11,7 +11,9 @@ import { Share2, Users, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
-import { GlobalNav } from "@/components/navigation/GlobalNav";
+import { AppShell } from "@/components/ds/AppShell";
+import { UserMenu } from "@/components/navigation/UserMenu";
+import { globalNav, toSyncChip } from "@/components/navigation/global-nav";
 import { Tier2Header } from "@/components/navigation/Tier2Header";
 import { NewProjectModal } from "@/components/gantt-tool/NewProjectModal";
 import { OrgChartBuilder } from "@/components/gantt-tool/OrgChartBuilder";
@@ -39,7 +41,7 @@ const TABS = [
 ];
 
 export default function ArchitectureV3Page() {
-  // Session for GlobalNav
+  // Session for the top bar's account cluster
   const { data: session } = useSession();
 
   // Gantt Tool Store Integration (shared with Timeline)
@@ -264,10 +266,12 @@ export default function ArchitectureV3Page() {
       <BeaconLoader label="Loading architecture…" size={64} />
     </div>
   ) : (
-    <>
-      {/* Global Navigation - Tier 1 */}
-      <GlobalNav session={session} />
-
+    <AppShell
+      fullBleed
+      primaryNav={globalNav("/architecture/v3")}
+      sync={toSyncChip(syncStatus)}
+      topBarEnd={<UserMenu session={session} />}
+    >
       <div className={styles.container}>
         {/* Tool Navigation - Tier 2 */}
         <Tier2Header
@@ -537,7 +541,7 @@ export default function ArchitectureV3Page() {
         onCreateProject={handleCreateProject}
       />
     </div>
-    </>
+    </AppShell>
   );
 }
 

@@ -1,0 +1,29 @@
+/* Top-bar account cluster */
+
+.email {
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+  text-decoration: none;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email:hover {
+  color: var(--ds-content-primary);
+  text-decoration: underline;
+}
+
+.email:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+/* Identity yields before state: the sync chip and the logout control keep
+ * their place at narrow widths, the email address does not. */
+@media (max-width: 640px) {
+  .email {
+    display: none;
+  }
+}

@@ -251,6 +251,13 @@
   margin: 0 auto;
 }
 
+/* Tool surfaces own their scroll and width; see AppShellProps.fullBleed. */
+.mainFullBleed {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .pageHeader {
   display: flex;
   align-items: flex-start;

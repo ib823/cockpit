@@ -9,7 +9,7 @@
 
 ```
 /gantt-tool (page.tsx)
-├── GlobalNav · Tier2Header
+├── AppShell (ds top bar) · Tier2Header
 │   └── ProjectTabNavigation (timeline | context | financials)
 │       └── ViewModeSelector (zoom segmented control)
 ├── [timeline] GanttCanvasV3            ← the single primary canvas

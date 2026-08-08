@@ -121,6 +121,36 @@ export function RoleBadge({ role }: { role: ProjectRole }) {
  * Shell
  * ========================================================================*/
 
+/**
+ * Default brand: the beacon mark at 26px — the Brand placement table's
+ * "Top bar — desktop" size — beside the wordmark. Inlined rather than an
+ * `<img>` of the logo file: 26px sits in the 24–39px band of the Brand size
+ * ramp, whose full form is drawn at stroke 2.8, not the ≥40px file's 2.5.
+ * The wordmark is live text, so the SVG is decorative; labelling it would
+ * announce "Cockpit" twice.
+ */
+const DEFAULT_BRAND = (
+  <>
+    <svg width={26} height={26} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <path
+        d="M 29.99 35.84 A 16 16 0 1 0 18.01 35.84"
+        stroke="#3A5060"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 15 21 A 9 9 0 0 1 33 21"
+        stroke="#3A5060"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+      />
+      <path d="M 24 28 L 24 41" stroke="#3A5060" strokeWidth="2.8" strokeLinecap="round" />
+      <circle cx="24" cy="21" r="4" fill="#E5C264" />
+    </svg>
+    <span>Cockpit</span>
+  </>
+);
+
 export interface NavItem {
   label: string;
   href: string;
@@ -153,12 +183,21 @@ export interface AppShellProps {
    */
   costVisibility?: string;
 
+  /**
+   * Tool surfaces (the Gantt canvas, the diagram editor) own their scroll and
+   * width; centring a canvas in a padded 1280px column clips the very thing
+   * the screen exists to show. Full-bleed drops the main padding and the
+   * max-width, and lays children out as a flex column so a tool can take the
+   * remaining viewport with `flex: 1`.
+   */
+  fullBleed?: boolean;
+
   className?: string;
 }
 
 export function AppShell({
   children,
-  brand = "Cockpit",
+  brand = DEFAULT_BRAND,
   projectName,
   projectCode,
   role,
@@ -168,6 +207,7 @@ export function AppShell({
   sync,
   topBarEnd,
   costVisibility,
+  fullBleed,
   className,
 }: AppShellProps) {
   const [navOpen, setNavOpen] = useState(false);
@@ -257,8 +297,11 @@ export function AppShell({
         </div>
       )}
 
-      <main className={styles.main} id="main-content">
-        <div className={styles.mainInner}>{children}</div>
+      <main
+        className={cx(styles.main, fullBleed && styles.mainFullBleed)}
+        id="main-content"
+      >
+        {fullBleed ? children : <div className={styles.mainInner}>{children}</div>}
       </main>
     </div>
   );
