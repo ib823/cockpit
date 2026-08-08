@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { logger } from "@/lib/logger";
-import { Modal, Form, Input, Select, Switch, Button, App, Popconfirm } from "antd";
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  KeyOutlined,
-  CopyOutlined,
-} from "@ant-design/icons";
 import { format, addDays } from "date-fns";
+import { Card } from "@/components/ds/AppShell";
+import { DataTable, type Column } from "@/components/ds/DataTable";
+import { Button } from "@/components/ds/Button";
+import { Input } from "@/components/ds/Input";
+import { Select } from "@/components/ds/Select";
+import { Textarea } from "@/components/ds/Textarea";
+import { Toggle } from "@/components/ds/Choice";
+import { Modal } from "@/components/ds/Modal";
+import { Banner } from "@/components/ds/Banner";
+import { StatusPill, Avatar } from "@/components/ds/Display";
+import { EmptyState } from "@/components/ds/Feedback";
+import styles from "./UserManagementClient.module.css";
 
 interface User {
   id: string;
@@ -19,14 +23,6 @@ interface User {
   role: "USER" | "MANAGER" | "ADMIN";
   createdAt: Date;
   accessExpiresAt: Date;
-  exception: boolean;
-}
-
-interface _UserFormValues {
-  email: string;
-  name?: string;
-  role: "USER" | "MANAGER" | "ADMIN";
-  accessExpiresAt: string;
   exception: boolean;
 }
 
@@ -40,15 +36,52 @@ interface CodeResponse {
   magicLinkExpiry: string;
 }
 
+interface FormState {
+  email: string;
+  name: string;
+  role: "USER" | "MANAGER" | "ADMIN";
+  accessExpiresAt: string;
+  exception: boolean;
+}
+
+interface FormErrors {
+  email?: string;
+  role?: string;
+  accessExpiresAt?: string;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function emptyForm(): FormState {
+  return {
+    email: "",
+    name: "",
+    role: "USER",
+    exception: false,
+    accessExpiresAt: format(addDays(new Date(), 90), "yyyy-MM-dd"),
+  };
+}
+
 export default function UserManagementClient({ initialUsers }: { initialUsers: User[] }) {
-  const { message } = App.useApp();
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [form] = Form.useForm();
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<CodeResponse | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [copiedNotice, setCopiedNotice] = useState("");
+
+  const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setForm((current) => ({ ...current, [key]: value }));
+    if (key in formErrors) {
+      setFormErrors((current) => ({ ...current, [key]: undefined }));
+    }
+  };
 
   // Reload users from API
   const reloadUsers = async () => {
@@ -66,33 +99,66 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
   // Open modal for creating new user
   const handleAddUser = () => {
     setEditingUser(null);
-    form.resetFields();
-    form.setFieldsValue({
-      role: "USER",
-      exception: false,
-      accessExpiresAt: format(addDays(new Date(), 90), "yyyy-MM-dd"),
-    });
+    setForm(emptyForm());
+    setFormErrors({});
     setIsModalOpen(true);
   };
 
   // Open modal for editing user
   const handleEditUser = (user: User) => {
     setEditingUser(user);
-    form.setFieldsValue({
+    setForm({
       email: user.email,
-      name: user.name,
+      name: user.name ?? "",
       role: user.role,
       exception: user.exception,
       accessExpiresAt: format(new Date(user.accessExpiresAt), "yyyy-MM-dd"),
     });
+    setFormErrors({});
     setIsModalOpen(true);
+  };
+
+  const closeFormModal = () => {
+    setIsModalOpen(false);
+    setForm(emptyForm());
+    setFormErrors({});
+  };
+
+  // Same rules the previous form enforced: email required and well-formed,
+  // role required, and an expiry date required unless permanent access is set.
+  const validate = (): boolean => {
+    const errors: FormErrors = {};
+    if (!form.email) {
+      errors.email = "Please enter email";
+    } else if (!EMAIL_RE.test(form.email)) {
+      errors.email = "Please enter a valid email";
+    }
+    if (!form.role) {
+      errors.role = "Please select a role";
+    }
+    if (!form.exception && !form.accessExpiresAt) {
+      errors.accessExpiresAt = "Please select expiration date";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // Handle form submission (create or update)
   const handleSubmit = async () => {
+    if (!validate()) return;
+
     try {
-      const values = await form.validateFields();
       setLoading(true);
+
+      // `name` is omitted when blank — the update schema rejects an empty
+      // string, and the create route stores a missing name as null anyway.
+      const values: Record<string, unknown> = {
+        email: form.email,
+        role: form.role,
+        exception: form.exception,
+        accessExpiresAt: form.accessExpiresAt,
+      };
+      if (form.name.trim() !== "") values.name = form.name;
 
       if (editingUser) {
         // Update existing user
@@ -107,7 +173,7 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
           throw new Error(error.error || "Failed to update user");
         }
 
-        message.success("User updated successfully");
+        setSuccessMessage("User updated successfully");
       } else {
         // Create new user
         const response = await fetch("/api/admin/users", {
@@ -121,20 +187,20 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
           throw new Error(error.error || "Failed to create user");
         }
 
-        message.success("User created successfully");
+        setSuccessMessage("User created successfully");
       }
 
-      setIsModalOpen(false);
-      form.resetFields();
+      setErrorMessage("");
+      closeFormModal();
       await reloadUsers();
     } catch (error: unknown) {
-      message.error(error instanceof Error ? error.message : "An error occurred");
+      setErrorMessage(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle user deletion
+  // Handle user deletion (runs after the confirm dialog)
   const handleDeleteUser = async (userId: string) => {
     try {
       setLoading(true);
@@ -147,10 +213,11 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
         throw new Error(error.error || "Failed to delete user");
       }
 
-      message.success("User deleted successfully");
+      setSuccessMessage("User deleted successfully");
+      setErrorMessage("");
       await reloadUsers();
     } catch (error: unknown) {
-      message.error(error instanceof Error ? error.message : "An error occurred");
+      setErrorMessage(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -171,10 +238,14 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
 
       const data = await response.json();
       setGeneratedCode(data);
+      setCopiedNotice("");
       setIsCodeModalOpen(true);
-      message.success("Access code generated successfully");
+      setSuccessMessage("Access code generated successfully");
+      setErrorMessage("");
     } catch (error: unknown) {
-      message.error(error instanceof Error ? error.message : "Failed to generate access code");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to generate access code"
+      );
     } finally {
       setLoading(false);
     }
@@ -183,299 +254,314 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
   // Copy text to clipboard
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    message.success(`${label} copied to clipboard`);
+    setCopiedNotice(`${label} copied to clipboard`);
   };
+
+  const closeCodeModal = () => {
+    setIsCodeModalOpen(false);
+    setGeneratedCode(null);
+    setCopiedNotice("");
+  };
+
+  const columns: Column<User>[] = [
+    {
+      key: "user",
+      header: "User",
+      render: (user) => (
+        <div className={styles.userCell}>
+          <Avatar name={user.name || user.email} />
+          <div>
+            <div className={styles.userName}>{user.name || "No name"}</div>
+            <div className={styles.userEmail}>{user.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (user) => (
+        <span
+          className={`${styles.role} ${
+            user.role === "ADMIN"
+              ? styles.roleAdmin
+              : user.role === "MANAGER"
+                ? styles.roleManager
+                : styles.roleUser
+          }`}
+        >
+          {user.role}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (user) => {
+        const isExpired =
+          user.accessExpiresAt && new Date(user.accessExpiresAt) <= new Date() && !user.exception;
+        return user.exception ? (
+          <StatusPill tone="success">Permanent Access</StatusPill>
+        ) : isExpired ? (
+          <StatusPill tone="danger">Expired</StatusPill>
+        ) : (
+          <StatusPill tone="success">Active</StatusPill>
+        );
+      },
+    },
+    {
+      key: "created",
+      header: "Created",
+      render: (user) => (
+        <span suppressHydrationWarning>
+          {format(new Date(user.createdAt), "MMM d, yyyy")}
+        </span>
+      ),
+    },
+    {
+      key: "expires",
+      header: "Access Expires",
+      render: (user) => (
+        <span suppressHydrationWarning>
+          {user.exception ? (
+            <span className={styles.never}>Never</span>
+          ) : user.accessExpiresAt ? (
+            format(new Date(user.accessExpiresAt), "MMM d, yyyy")
+          ) : (
+            <span className={styles.notSet}>Not set</span>
+          )}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (user) => (
+        <div className={styles.actions}>
+          <Button size="sm" variant="ghost" onClick={() => handleGenerateCode(user.id)}>
+            Code
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleEditUser(user)}>
+            Edit
+          </Button>
+          {/* Arms the two-step confirm; the actual delete happens in the modal. */}
+          <Button size="sm" variant="danger" onClick={() => setDeleteTarget(user)}>
+            Delete
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div>
-      {/* Header with Add User button */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-          <p className="text-gray-600 mt-1">Manage system users and permissions</p>
-        </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddUser} size="large">
-          Add User
-        </Button>
-      </div>
-
-      {/* Users Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {users.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      {(errorMessage || successMessage) && (
+        <div className={styles.messages}>
+          {errorMessage && (
+            <Banner
+              tone="danger"
+              title="Something went wrong"
+              onDismiss={() => setErrorMessage("")}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No users</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new user.</p>
-            <div className="mt-6">
-              <Button type="primary" icon={<PlusOutlined />} onClick={handleAddUser}>
-                Add User
+              {errorMessage}
+            </Banner>
+          )}
+          {successMessage && (
+            <Banner
+              tone="success"
+              title={successMessage}
+              onDismiss={() => setSuccessMessage("")}
+            />
+          )}
+        </div>
+      )}
+
+      <Card padded={false}>
+        <DataTable
+          caption="System users and permissions"
+          columns={columns}
+          rows={users}
+          rowKey={(user) => user.id}
+          loading={loading}
+          toolbar={
+            <div className={styles.toolbarRow}>
+              <span className={styles.toolbarHint}>
+                Manage system users and permissions
+              </span>
+              <span className={styles.toolbarSpacer} />
+              <Button variant="primary" onClick={handleAddUser}>
+                Add user
               </Button>
             </div>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Access Expires
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => {
-                  const isExpired =
-                    user.accessExpiresAt &&
-                    new Date(user.accessExpiresAt) <= new Date() &&
-                    !user.exception;
-                  return (
-                    <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                              <span className="text-blue-600 font-medium text-sm">
-                                {user.name
-                                  ? user.name[0].toUpperCase()
-                                  : user.email[0].toUpperCase()}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.name || "No name"}
-                            </div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            user.role === "ADMIN"
-                              ? "bg-purple-100 text-purple-800"
-                              : user.role === "MANAGER"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {user.exception ? (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Permanent Access
-                          </span>
-                        ) : isExpired ? (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                            Expired
-                          </span>
-                        ) : (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Active
-                          </span>
-                        )}
-                      </td>
-                      <td
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                        suppressHydrationWarning
-                      >
-                        {format(new Date(user.createdAt), "MMM d, yyyy")}
-                      </td>
-                      <td
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                        suppressHydrationWarning
-                      >
-                        {user.exception ? (
-                          <span className="text-green-600 font-medium">Never</span>
-                        ) : user.accessExpiresAt ? (
-                          format(new Date(user.accessExpiresAt), "MMM d, yyyy")
-                        ) : (
-                          <span className="text-gray-400">Not set</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            type="text"
-                            icon={<KeyOutlined />}
-                            onClick={() => handleGenerateCode(user.id)}
-                            title="Generate access code"
-                          >
-                            Code
-                          </Button>
-                          <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            onClick={() => handleEditUser(user)}
-                            title="Edit user"
-                          >
-                            Edit
-                          </Button>
-                          <Popconfirm
-                            title="Delete user"
-                            description="Are you sure you want to delete this user?"
-                            onConfirm={() => handleDeleteUser(user.id)}
-                            okText="Yes"
-                            cancelText="No"
-                          >
-                            <Button
-                              type="text"
-                              danger
-                              icon={<DeleteOutlined />}
-                              title="Delete user"
-                            >
-                              Delete
-                            </Button>
-                          </Popconfirm>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+          }
+          emptyState={
+            <EmptyState
+              kind="first-run"
+              title="No users"
+              body="Get started by creating a new user."
+              primaryAction={
+                <Button variant="primary" onClick={handleAddUser}>
+                  Add user
+                </Button>
+              }
+            />
+          }
+        />
+      </Card>
 
       {/* Create/Edit User Modal */}
       <Modal
-        title={editingUser ? "Edit User" : "Add New User"}
         open={isModalOpen}
-        onOk={handleSubmit}
-        onCancel={() => {
-          setIsModalOpen(false);
-          form.resetFields();
-        }}
-        confirmLoading={loading}
-        width={600}
+        onClose={closeFormModal}
+        title={editingUser ? "Edit User" : "Add New User"}
+        footer={
+          <>
+            <Button variant="tertiary" loading={loading} onClick={closeFormModal}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              loading={loading}
+              loadingLabel={editingUser ? "Saving…" : "Creating…"}
+              onClick={handleSubmit}
+            >
+              {editingUser ? "Save changes" : "Create user"}
+            </Button>
+          </>
+        }
       >
-        <Form form={form} layout="vertical" className="mt-4">
-          <Form.Item
-            name="email"
+        <div className={styles.formStack}>
+          <Input
             label="Email"
-            rules={[
-              { required: true, message: "Please enter email" },
-              { type: "email", message: "Please enter a valid email" },
-            ]}
-          >
-            <Input placeholder="user@example.com" disabled={!!editingUser} />
-          </Form.Item>
+            required
+            placeholder="user@example.com"
+            value={form.email}
+            disabled={!!editingUser}
+            error={formErrors.email}
+            onChange={(event) => setField("email", event.target.value)}
+          />
 
-          <Form.Item name="name" label="Name">
-            <Input placeholder="John Doe" />
-          </Form.Item>
+          <Input
+            label="Name"
+            optionalHint
+            placeholder="John Doe"
+            value={form.name}
+            onChange={(event) => setField("name", event.target.value)}
+          />
 
-          <Form.Item
-            name="role"
+          <Select
             label="Role"
-            rules={[{ required: true, message: "Please select a role" }]}
-          >
-            <Select>
-              <Select.Option value="USER">User</Select.Option>
-              <Select.Option value="MANAGER">Manager</Select.Option>
-              <Select.Option value="ADMIN">Admin</Select.Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="exception" label="Permanent Access" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-
-          <Form.Item
-            noStyle
-            shouldUpdate={(prevValues, currentValues) =>
-              prevValues.exception !== currentValues.exception
+            required
+            value={form.role}
+            error={formErrors.role}
+            onChange={(event) =>
+              setField("role", event.target.value as FormState["role"])
             }
           >
-            {({ getFieldValue }) =>
-              !getFieldValue("exception") && (
-                <Form.Item
-                  name="accessExpiresAt"
-                  label="Access Expires At"
-                  rules={[{ required: true, message: "Please select expiration date" }]}
-                >
-                  <Input type="date" />
-                </Form.Item>
-              )
-            }
-          </Form.Item>
-        </Form>
+            <option value="USER">User</option>
+            <option value="MANAGER">Manager</option>
+            <option value="ADMIN">Admin</option>
+          </Select>
+
+          <Toggle
+            label="Permanent Access"
+            description="Access never expires. Overrides the expiry date below."
+            checked={form.exception}
+            onChange={(event) => setField("exception", event.target.checked)}
+          />
+
+          {/* The expiry field only applies while permanent access is off —
+              same visibility rule the previous form enforced. */}
+          {!form.exception && (
+            <Input
+              label="Access Expires At"
+              required
+              type="date"
+              value={form.accessExpiresAt}
+              error={formErrors.accessExpiresAt}
+              onChange={(event) => setField("accessExpiresAt", event.target.value)}
+            />
+          )}
+        </div>
+      </Modal>
+
+      {/* Delete confirmation — step two of the destructive action. */}
+      <Modal
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete user"
+        footer={
+          <>
+            <Button
+              variant="tertiary"
+              loading={loading}
+              onClick={() => setDeleteTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              loading={loading}
+              loadingLabel="Deleting…"
+              onClick={async () => {
+                if (!deleteTarget) return;
+                await handleDeleteUser(deleteTarget.id);
+                setDeleteTarget(null);
+              }}
+            >
+              Delete user
+            </Button>
+          </>
+        }
+        size="sm"
+      >
+        {deleteTarget && (
+          <p className={styles.deleteBody}>
+            Are you sure you want to delete{" "}
+            <span className={styles.deleteEmail}>{deleteTarget.email}</span>? This is
+            immediate and cannot be undone.
+          </p>
+        )}
       </Modal>
 
       {/* Access Code Modal */}
       <Modal
-        title="User Access Code"
         open={isCodeModalOpen}
-        onCancel={() => {
-          setIsCodeModalOpen(false);
-          setGeneratedCode(null);
-        }}
-        footer={[
-          <Button
-            key="close"
-            onClick={() => {
-              setIsCodeModalOpen(false);
-              setGeneratedCode(null);
-            }}
-          >
+        onClose={closeCodeModal}
+        title="User Access Code"
+        size="lg"
+        footer={
+          <Button variant="secondary" onClick={closeCodeModal}>
             Close
-          </Button>,
-        ]}
-        width={700}
+          </Button>
+        }
       >
         {generatedCode && (
-          <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-gray-600 mb-2">
-                Share the following access code with <strong>{generatedCode.email}</strong>:
-              </p>
-            </div>
+          <div className={styles.codeStack}>
+            {copiedNotice && (
+              <Banner
+                tone="success"
+                title={copiedNotice}
+                onDismiss={() => setCopiedNotice("")}
+              />
+            )}
+
+            <Banner
+              tone="info"
+              title={`Share the following access code with ${generatedCode.email}`}
+            />
 
             {/* 6-Digit Code */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700">6-Digit Access Code</label>
-                <span className="text-xs text-gray-500">Valid for {generatedCode.codeExpiry}</span>
-              </div>
-              <div className="flex items-center gap-2">
+            <div className={styles.codeSection}>
+              <div className={styles.codeRow}>
                 <Input
+                  label="6-Digit Access Code"
+                  helper={`Valid for ${generatedCode.codeExpiry}`}
                   value={generatedCode.code}
                   readOnly
-                  className="font-mono text-2xl font-bold text-center tracking-wider"
-                  style={{ fontSize: "24px", letterSpacing: "0.5em" }}
+                  className={styles.codeInput}
                 />
                 <Button
-                  icon={<CopyOutlined />}
                   onClick={() => copyToClipboard(generatedCode.code, "Access code")}
                 >
                   Copy
@@ -484,24 +570,17 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
             </div>
 
             {/* Magic Link */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Magic Link (Direct Login)
-                </label>
-                <span className="text-xs text-gray-500">
-                  Valid for {generatedCode.magicLinkExpiry}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Input.TextArea
+            <div className={styles.codeSection}>
+              <div className={styles.codeRow}>
+                <Textarea
+                  label="Magic Link (Direct Login)"
+                  helper={`Valid for ${generatedCode.magicLinkExpiry}`}
                   value={generatedCode.magicUrl}
                   readOnly
                   rows={2}
-                  className="font-mono text-sm"
+                  className={styles.monoArea}
                 />
                 <Button
-                  icon={<CopyOutlined />}
                   onClick={() => copyToClipboard(generatedCode.magicUrl, "Magic link")}
                 >
                   Copy
@@ -510,20 +589,19 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
             </div>
 
             {/* Registration URL */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700">Registration Page</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Input.TextArea
+            <div className={styles.codeSection}>
+              <div className={styles.codeRow}>
+                <Textarea
+                  label="Registration Page"
                   value={generatedCode.registrationUrl}
                   readOnly
                   rows={2}
-                  className="font-mono text-sm"
+                  className={styles.monoArea}
                 />
                 <Button
-                  icon={<CopyOutlined />}
-                  onClick={() => copyToClipboard(generatedCode.registrationUrl, "Registration URL")}
+                  onClick={() =>
+                    copyToClipboard(generatedCode.registrationUrl, "Registration URL")
+                  }
                 >
                   Copy
                 </Button>
@@ -531,22 +609,25 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
             </div>
 
             {/* Instructions */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-800 mb-2"> Instructions for User</h4>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
+            <div className={styles.instructions}>
+              <h4 className={styles.instructionsTitle}>Instructions for User</h4>
+              <ol className={styles.instructionsList}>
                 <li>
                   Send the user either the <strong>6-digit code</strong> OR the{" "}
                   <strong>magic link</strong>
                 </li>
                 <li>
-                  If using the code: User visits the registration page and enters their email and
-                  the 6-digit code
+                  If using the code: User visits the registration page and enters their
+                  email and the 6-digit code
                 </li>
                 <li>
-                  If using magic link: User clicks the link for instant access (expires in{" "}
-                  {generatedCode.magicLinkExpiry})
+                  If using magic link: User clicks the link for instant access (expires
+                  in {generatedCode.magicLinkExpiry})
                 </li>
-                <li>User will be prompted to set up passkey authentication for future logins</li>
+                <li>
+                  User will be prompted to set up passkey authentication for future
+                  logins
+                </li>
               </ol>
             </div>
           </div>

@@ -1,0 +1,199 @@
+/*
+ * UserManagementClient — admin user list, add/edit modal, delete confirm and
+ * access-code modal. Tokens only; component chrome (table, modal, fields)
+ * comes from the design system.
+ */
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-5);
+}
+
+.toolbarRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  width: 100%;
+}
+
+.toolbarHint {
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+}
+
+.toolbarSpacer {
+  flex: 1;
+}
+
+/* --- table cells ------------------------------------------------------- */
+
+.userCell {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.userName {
+  font-weight: 500;
+  color: var(--ds-content-primary);
+}
+
+.userEmail {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-tertiary);
+}
+
+.role {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--ds-space-2);
+  border-radius: var(--ds-radius-full);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  line-height: 1.6;
+}
+
+.roleAdmin {
+  background: var(--ds-accent-subtle);
+  color: var(--ds-accent-default);
+}
+
+.roleManager {
+  background: var(--ds-info-subtle);
+  color: var(--ds-info-default);
+}
+
+.roleUser {
+  background: var(--ds-surface-sunken);
+  color: var(--ds-content-secondary);
+}
+
+.never {
+  color: var(--ds-success-default);
+  font-weight: 500;
+}
+
+.notSet {
+  color: var(--ds-content-tertiary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}
+
+/* --- add / edit form --------------------------------------------------- */
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+}
+
+/* --- delete confirm ---------------------------------------------------- */
+
+.deleteBody {
+  font: var(--ds-type-body);
+  color: var(--ds-content-secondary);
+  margin: 0;
+}
+
+.deleteEmail {
+  font-weight: 600;
+  color: var(--ds-content-primary);
+}
+
+/* --- access code modal ------------------------------------------------- */
+
+.codeStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+}
+
+.codeSection {
+  border: 1px solid var(--ds-border-default);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-4);
+  background: var(--ds-surface-raised);
+}
+
+.codeHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-2);
+}
+
+.codeTitle {
+  font: var(--ds-type-body-sm);
+  font-weight: 600;
+  color: var(--ds-content-primary);
+  margin: 0;
+}
+
+.codeExpiry {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-tertiary);
+}
+
+.codeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+}
+
+.codeRow > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Nudge the copy button down past the field label so it lines up with the box. */
+.codeRow > button {
+  margin-top: var(--ds-space-6);
+}
+
+/* The one-time code is transcription material: mono, large, spaced. */
+.codeInput input {
+  font: var(--ds-type-mono);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.5em;
+}
+
+.monoArea textarea {
+  font: var(--ds-type-mono);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.instructions {
+  border: 1px solid var(--ds-warning-border);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-4);
+  background: var(--ds-warning-subtle);
+}
+
+.instructionsTitle {
+  font: var(--ds-type-body-sm);
+  font-weight: 600;
+  color: var(--ds-content-primary);
+  margin: 0 0 var(--ds-space-2);
+}
+
+.instructionsList {
+  margin: 0;
+  padding-left: var(--ds-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+}

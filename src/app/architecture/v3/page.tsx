@@ -7,12 +7,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { logger } from "@/lib/logger";
-import { Share2, Users, GripVertical } from "lucide-react";
+import { Users, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { AppShell } from "@/components/ds/AppShell";
 import { Button } from "@/components/ds/Button";
+import { Tabs } from "@/components/ds/Tabs";
 import { UserMenu } from "@/components/navigation/UserMenu";
 import { globalNav, toSyncChip } from "@/components/navigation/global-nav";
 import { ProjectSwitcher } from "@/components/gantt-tool/ProjectSwitcher";
@@ -29,12 +30,12 @@ import { CurrentLandscapeTab } from "./components/CurrentLandscapeTab";
 import { ProposedSolutionTab } from "./components/ProposedSolutionTab";
 import { DiagramGenerator } from "./components/DiagramGenerator";
 import { StyleSelector } from "./components/StyleSelector";
-import { useTabKeyboardNavigation } from "./hooks/useKeyboardNavigation";
 import styles from "./styles.module.css";
 
 type Tab = "business-context" | "current-landscape" | "proposed-solution";
 
-// Tab definitions for keyboard navigation
+// The three views of this screen; ds Tabs provides the tablist semantics and
+// the arrow-key/Home/End keyboard navigation.
 const TABS = [
   { id: "business-context" as const, label: "Business Context" },
   { id: "current-landscape" as const, label: "Current Business Landscape" },
@@ -104,13 +105,6 @@ export default function ArchitectureV3Page() {
     showLegend: true,
     showIcons: true,
   };
-
-  // Keyboard navigation for tabs
-  const { containerRef: tabsContainerRef, handleKeyDown: handleTabKeyDown } = useTabKeyboardNavigation(
-    TABS,
-    activeTab,
-    (tabId) => setActiveTab(tabId as Tab)
-  );
 
   // Handle org chart resize
   const handleOrgChartResizeStart = useCallback((e: React.MouseEvent) => {
@@ -300,249 +294,113 @@ export default function ArchitectureV3Page() {
           </Button>
         </div>
 
-      {/* Main Layout with optional sidebar */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Main Content Area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* Tabs */}
-          <div
-            ref={tabsContainerRef}
-            className={styles.tabsContainer}
-            role="tablist"
-            aria-label="Architecture sections"
-          >
-            <TabButton
-              label="Business Context"
-              isActive={activeTab === "business-context"}
-              onClick={() => handleTabChange("business-context")}
-              onKeyDown={handleTabKeyDown}
-              id="tab-business-context"
-              controls="panel-business-context"
-            />
-            <TabButton
-              label="Current Business Landscape"
-              isActive={activeTab === "current-landscape"}
-              onClick={() => handleTabChange("current-landscape")}
-              onKeyDown={handleTabKeyDown}
-              id="tab-current-landscape"
-              controls="panel-current-landscape"
-            />
-            <TabButton
-              label="Proposed Solution"
-              isActive={activeTab === "proposed-solution"}
-              onClick={() => handleTabChange("proposed-solution")}
-              onKeyDown={handleTabKeyDown}
-              id="tab-proposed-solution"
-              controls="panel-proposed-solution"
-            />
+        {/* Main Layout with optional sidebar */}
+        <div className={styles.workspace}>
+          {/* Main Content Area: ds Tabs own the tablist semantics and keyboard
+              navigation (arrow keys, Home/End). */}
+          <div className={styles.mainColumn}>
+            <Tabs
+              tabs={TABS}
+              activeId={activeTab}
+              onChange={(id) => handleTabChange(id as Tab)}
+              label="Architecture sections"
+              className={styles.tabs}
+            >
+              <div className={styles.tabContent}>
+                {isGenerated ? (
+                  <DiagramGenerator
+                    diagramType={currentDiagramType}
+                    businessContext={businessContext}
+                    currentLandscape={currentLandscape}
+                    proposedSolution={proposedSolution}
+                    settings={diagramSettings}
+                    onEdit={() => setIsGenerated(false)}
+                    onChangeStyle={() => setShowStyleSelector(true)}
+                    onExport={handleExport}
+                  />
+                ) : (
+                  <>
+                    {activeTab === "business-context" && (
+                      <BusinessContextTab
+                        data={businessContext}
+                        onChange={updateBusinessContext}
+                        onGenerate={handleGenerate}
+                      />
+                    )}
+                    {activeTab === "current-landscape" && (
+                      <CurrentLandscapeTab
+                        data={currentLandscape}
+                        entities={businessContext.entities}
+                        onChange={updateCurrentLandscape}
+                        onGenerate={handleGenerate}
+                      />
+                    )}
+                    {activeTab === "proposed-solution" && (
+                      <ProposedSolutionTab
+                        data={proposedSolution}
+                        currentSystems={currentLandscape.systems}
+                        externalSystems={currentLandscape.externalSystems}
+                        onChange={updateProposedSolution}
+                        onGenerate={handleGenerate}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </Tabs>
           </div>
 
-          {/* Main Content */}
-          <div className={styles.mainContent}>
-        {isGenerated ? (
-          <DiagramGenerator
-            diagramType={currentDiagramType}
-            businessContext={businessContext}
-            currentLandscape={currentLandscape}
-            proposedSolution={proposedSolution}
-            settings={diagramSettings}
-            onEdit={() => setIsGenerated(false)}
-            onChangeStyle={() => setShowStyleSelector(true)}
-            onExport={handleExport}
-          />
-        ) : (
-          <>
-            <div
-              role="tabpanel"
-              id="panel-business-context"
-              aria-labelledby="tab-business-context"
-              hidden={activeTab !== "business-context"}
-            >
-              {activeTab === "business-context" && (
-                <BusinessContextTab
-                  data={businessContext}
-                  onChange={updateBusinessContext}
-                  onGenerate={handleGenerate}
-                />
-              )}
-            </div>
-            <div
-              role="tabpanel"
-              id="panel-current-landscape"
-              aria-labelledby="tab-current-landscape"
-              hidden={activeTab !== "current-landscape"}
-            >
-              {activeTab === "current-landscape" && (
-                <CurrentLandscapeTab
-                  data={currentLandscape}
-                  entities={businessContext.entities}
-                  onChange={updateCurrentLandscape}
-                  onGenerate={handleGenerate}
-                />
-              )}
-            </div>
-            <div
-              role="tabpanel"
-              id="panel-proposed-solution"
-              aria-labelledby="tab-proposed-solution"
-              hidden={activeTab !== "proposed-solution"}
-            >
-              {activeTab === "proposed-solution" && (
-                <ProposedSolutionTab
-                  data={proposedSolution}
-                  currentSystems={currentLandscape.systems}
-                  externalSystems={currentLandscape.externalSystems}
-                  onChange={updateProposedSolution}
-                  onGenerate={handleGenerate}
-                />
-              )}
-            </div>
-          </>
-        )}
-          </div>
+          {/* Team Allocation Panel - Sidebar */}
+          {showOrgChart && (
+            <>
+              {/* Resizable Divider */}
+              <div
+                role="separator"
+                tabIndex={0}
+                aria-label="Resize panel"
+                onMouseDown={handleOrgChartResizeStart}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOrgChartResizeStart(e as unknown as React.MouseEvent); }}
+                className={`${styles.resizer} ${isResizingOrgChart ? styles.resizerActive : ""}`}
+              >
+                {/* Grip Icon */}
+                <span className={styles.resizerGrip} aria-hidden="true">
+                  <GripVertical size={12} />
+                </span>
+              </div>
+
+              {/* Org Chart Panel Content */}
+              <div className={styles.teamPanel} style={{ width: `${orgChartWidth}px` }}>
+                {/* Panel Header */}
+                <div className={styles.teamPanelHeader}>
+                  <h3 className={styles.teamPanelTitle}>Team Allocation</h3>
+                  <p className={styles.teamPanelSubtitle}>Design your team structure</p>
+                </div>
+
+                {/* Org Chart Builder */}
+                <div className={styles.teamPanelBody}>
+                  <OrgChartBuilder onClose={() => setShowOrgChart(false)} />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Team Allocation Panel - Sidebar */}
-        {showOrgChart && (
-          <>
-            {/* Resizable Divider */}
-            <div
-              role="separator"
-              tabIndex={0}
-              aria-label="Resize panel"
-              onMouseDown={handleOrgChartResizeStart}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOrgChartResizeStart(e as unknown as React.MouseEvent); }}
-              style={{
-                width: "6px",
-                height: "100%",
-                cursor: "col-resize",
-                backgroundColor: isResizingOrgChart ? "var(--color-blue)" : "transparent",
-                borderLeft: "1px solid var(--color-gray-4)",
-                borderRight: "1px solid var(--color-gray-4)",
-                transition: isResizingOrgChart ? "none" : "background-color 0.15s ease",
-                position: "relative",
-                flexShrink: 0,
-                userSelect: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onMouseEnter={(e) => {
-                if (!isResizingOrgChart) e.currentTarget.style.backgroundColor = "rgba(0, 122, 255, 0.1)";
-              }}
-              onMouseLeave={(e) => {
-                if (!isResizingOrgChart) e.currentTarget.style.backgroundColor = "transparent";
-              }}
-            >
-              {/* Grip Icon */}
-              <div
-                style={{
-                  padding: "8px 2px",
-                  backgroundColor: isResizingOrgChart ? "var(--color-blue)" : "rgba(0, 122, 255, 0.15)",
-                  borderRadius: "4px",
-                  pointerEvents: "none",
-                  opacity: isResizingOrgChart ? 1 : 0.6,
-                  transition: "opacity 0.15s ease",
-                }}
-              >
-                <GripVertical className="w-3 h-3" style={{ color: isResizingOrgChart ? "#fff" : "var(--color-blue)" }} />
-              </div>
-            </div>
-
-            {/* Org Chart Panel Content */}
-            <div
-              style={{
-                width: `${orgChartWidth}px`,
-                height: "100%",
-                minWidth: "300px",
-                maxWidth: "600px",
-                backgroundColor: "var(--color-bg-primary)",
-                overflow: "auto",
-                animation: "slideInRight 0.3s ease",
-                flexShrink: 0,
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              {/* Panel Header */}
-              <div style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid var(--line)",
-                backgroundColor: "var(--color-bg-primary)",
-              }}>
-                <h3 style={{
-                  fontFamily: "var(--font-text)",
-                  fontSize: "17px",
-                  fontWeight: 600,
-                  color: "var(--color-text-primary)",
-                  margin: 0,
-                }}>
-                  Team Allocation
-                </h3>
-                <p style={{
-                  fontFamily: "var(--font-text)",
-                  fontSize: "13px",
-                  color: "var(--color-text-secondary)",
-                  margin: "4px 0 0 0",
-                }}>
-                  Design your team structure
-                </p>
-              </div>
-
-              {/* Org Chart Builder */}
-              <div style={{ flex: 1, overflow: "auto" }}>
-                <OrgChartBuilder onClose={() => setShowOrgChart(false)} />
-              </div>
-            </div>
-          </>
+        {/* Style Selector Modal */}
+        {showStyleSelector && (
+          <StyleSelector
+            currentSettings={diagramSettings}
+            onGenerate={handleGenerateWithStyle}
+            onClose={() => setShowStyleSelector(false)}
+          />
         )}
-      </div>
 
-      {/* Style Selector Modal */}
-      {showStyleSelector && (
-        <StyleSelector
-          currentSettings={diagramSettings}
-          onGenerate={handleGenerateWithStyle}
-          onClose={() => setShowStyleSelector(false)}
+        {/* New Project Modal */}
+        <NewProjectModal
+          isOpen={isNewProjectModalOpen}
+          onClose={() => setIsNewProjectModalOpen(false)}
+          onCreateProject={handleCreateProject}
         />
-      )}
-
-      {/* New Project Modal */}
-      <NewProjectModal
-        isOpen={isNewProjectModalOpen}
-        onClose={() => setIsNewProjectModalOpen(false)}
-        onCreateProject={handleCreateProject}
-      />
-    </div>
+      </div>
     </AppShell>
-  );
-}
-
-/**
- * Tab Button
- */
-interface TabButtonProps {
-  label: string;
-  isActive: boolean;
-  onClick: () => void;
-  id: string;
-  controls: string;
-  onKeyDown?: (e: React.KeyboardEvent) => void;
-}
-
-function TabButton({ label, isActive, onClick, id, controls, onKeyDown }: TabButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      onKeyDown={onKeyDown}
-      className={`${styles.tabButton} ${isActive ? styles.tabButtonActive : ""}`}
-      role="tab"
-      aria-selected={isActive}
-      aria-controls={controls}
-      id={id}
-      tabIndex={isActive ? 0 : -1}
-    >
-      {label}
-    </button>
   );
 }

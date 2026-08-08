@@ -6,20 +6,20 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { logger } from '@/lib/logger';
-import { useRouter } from 'next/navigation';
 import { Session } from 'next-auth';
 import {
   FileText,
   Users,
   Shield,
   GitBranch,
+  type LucideIcon,
 } from 'lucide-react';
-import { AppShell } from '@/components/ds/AppShell';
+import { AppShell, PageHeader, Card } from '@/components/ds/AppShell';
 import { UserMenu } from '@/components/navigation/UserMenu';
 import { globalNav } from '@/components/navigation/global-nav';
-import { MetricCard } from './MetricCard';
-import { QuickActionCard } from './QuickActionCard';
+import styles from './dashboard.module.css';
 
 interface UnifiedDashboardProps {
   session: Session;
@@ -37,8 +37,80 @@ interface AdminStats {
   proposals: number;
 }
 
+interface StatTile {
+  label: string;
+  value: number;
+  description: string;
+}
+
+interface ActionLink {
+  href: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}
+
+/** Label + big tabular-nums value + one-line description. A zero renders
+ *  quietly rather than being swapped for an invented placeholder. */
+function StatCard({ label, value, description }: StatTile) {
+  return (
+    <Card>
+      <p className={styles.statLabel}>{label}</p>
+      <p
+        className={
+          value === 0 ? `${styles.statValue} ${styles.statValueQuiet}` : styles.statValue
+        }
+      >
+        {value.toLocaleString()}
+      </p>
+      <p className={styles.statDescription}>{description}</p>
+    </Card>
+  );
+}
+
+function ActionCard({ href, title, description, icon: Icon }: ActionLink) {
+  return (
+    <Link href={href} className={styles.linkCard}>
+      <span className={styles.linkIcon}>
+        <Icon size={18} aria-hidden="true" />
+      </span>
+      <span className={styles.linkTitle}>{title}</span>
+      <span className={styles.linkBody}>{description}</span>
+    </Link>
+  );
+}
+
+const QUICK_ACTIONS: ActionLink[] = [
+  {
+    href: '/gantt-tool',
+    title: 'Timeline',
+    description: 'Create and manage project timelines with interactive Gantt charts',
+    icon: GitBranch,
+  },
+  {
+    href: '/architecture/v3',
+    title: 'Architecture',
+    description: 'Design and visualize system architecture diagrams',
+    icon: FileText,
+  },
+];
+
+const ADMIN_ACTIONS: ActionLink[] = [
+  {
+    href: '/admin/users',
+    title: 'User management',
+    description: 'Add, edit, or remove users and manage permissions',
+    icon: Users,
+  },
+  {
+    href: '/admin/security',
+    title: 'Security monitoring',
+    description: 'View authentication metrics and threat detection',
+    icon: Shield,
+  },
+];
+
 export function UnifiedDashboard({ session }: UnifiedDashboardProps) {
-  const router = useRouter();
   const isAdmin = session.user.role === 'ADMIN';
   const userName = session.user.email?.split('@')[0] || session.user.name || 'User';
 
@@ -49,7 +121,7 @@ export function UnifiedDashboard({ session }: UnifiedDashboardProps) {
   });
 
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
-  const [_isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -86,136 +158,95 @@ export function UnifiedDashboard({ session }: UnifiedDashboardProps) {
     fetchStats();
   }, [isAdmin]);
 
+  const statTiles: StatTile[] = [
+    {
+      label: 'Timeline projects',
+      value: stats.timelineProjects,
+      description: 'Total timeline projects created',
+    },
+    {
+      label: 'Architecture diagrams',
+      value: stats.architectureDiagrams,
+      description: 'Architecture diagrams designed',
+    },
+    {
+      label: 'Total resources',
+      value: stats.totalResources,
+      description: 'Team members across all projects',
+    },
+  ];
+
+  const adminTiles: StatTile[] = adminStats
+    ? [
+        {
+          label: 'Total users',
+          value: adminStats.totalUsers,
+          description: 'Registered users in the system',
+        },
+        {
+          label: 'Active projects',
+          value: adminStats.activeProjects,
+          description: 'Approved and in-progress projects',
+        },
+        {
+          label: 'Proposals',
+          value: adminStats.proposals,
+          description: 'Draft and in-review projects',
+        },
+      ]
+    : [];
+
   return (
     <AppShell primaryNav={globalNav("/dashboard")} topBarEnd={<UserMenu session={session} />}>
       {/* No sync chip here: the dashboard reads aggregate stats, not a
         * project document — a chip with nothing to sync would be a lie. */}
-      <div className="py-4 md:py-8">
-          {/* Welcome Section */}
-          <div className="mb-12 animate-slide-up">
-            <h1 className="display-large mb-2 text-primary">
-              Welcome back, {userName}
-            </h1>
-            <p className="body-large text-secondary">
-              {isAdmin
-                ? 'Manage your projects and oversee system administration.'
-                : "Here's what's happening with your projects today."}
-            </p>
-          </div>
+      <PageHeader
+        title={`Welcome back, ${userName}`}
+        description={
+          isAdmin
+            ? 'Manage your projects and oversee system administration.'
+            : "Here's what's happening with your projects today."
+        }
+      />
 
-          {/* Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            <MetricCard
-              icon={GitBranch}
-              iconColor="blue"
-              label="Timeline Projects"
-              value={stats.timelineProjects}
-              description="Total timeline projects created"
-              isEmpty={stats.timelineProjects === 0}
-            />
-
-            <MetricCard
-              icon={FileText}
-              iconColor="purple"
-              label="Architecture Diagrams"
-              value={stats.architectureDiagrams}
-              description="Architecture diagrams designed"
-              isEmpty={stats.architectureDiagrams === 0}
-            />
-
-            <MetricCard
-              icon={Users}
-              iconColor="green"
-              label="Total Resources"
-              value={stats.totalResources}
-              description="Team members across all projects"
-              isEmpty={stats.totalResources === 0}
-            />
-          </div>
-
-          {/* Quick Actions */}
-          <section className="mb-16">
-            <h2 className="display-small mb-6 text-primary">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <QuickActionCard
-                icon={GitBranch}
-                iconColor="blue"
-                title="Timeline"
-                description="Create and manage project timelines with interactive Gantt charts"
-                onClick={() => router.push('/gantt-tool')}
-              />
-
-              <QuickActionCard
-                icon={FileText}
-                iconColor="purple"
-                title="Architecture"
-                description="Design and visualize system architecture diagrams"
-                onClick={() => router.push('/architecture/v3')}
-              />
-            </div>
-          </section>
-
-          {/* Admin Section (only visible to admins) */}
-          {isAdmin && adminStats && (
-            <section className="pt-12 border-t border-subtle animate-fade-in">
-              <div className="flex items-center gap-3 mb-8">
-                <Shield className="w-6 h-6 text-blue" />
-                <h2 className="display-small text-primary">Administration</h2>
-              </div>
-
-              {/* Admin Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <MetricCard
-                  icon={Users}
-                  iconColor="blue"
-                  label="Total Users"
-                  value={adminStats.totalUsers}
-                  description="Registered users in the system"
-                  isEmpty={adminStats.totalUsers === 0}
-                />
-
-                <MetricCard
-                  icon={FileText}
-                  iconColor="green"
-                  label="Active Projects"
-                  value={adminStats.activeProjects}
-                  description="Approved and in-progress projects"
-                  isEmpty={adminStats.activeProjects === 0}
-                />
-
-                <MetricCard
-                  icon={FileText}
-                  iconColor="orange"
-                  label="Proposals"
-                  value={adminStats.proposals}
-                  description="Draft and in-review projects"
-                  isEmpty={adminStats.proposals === 0}
-                />
-              </div>
-
-              {/* Admin Actions */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <QuickActionCard
-                  icon={Users}
-                  iconColor="blue"
-                  title="User Management"
-                  description="Add, edit, or remove users and manage permissions"
-                  onClick={() => router.push('/admin/users')}
-                  variant="admin"
-                />
-
-                <QuickActionCard
-                  icon={Shield}
-                  iconColor="red"
-                  title="Security Monitoring"
-                  description="View authentication metrics and threat detection"
-                  onClick={() => router.push('/admin/security')}
-                  variant="admin"
-                />
-              </div>
-            </section>
-          )}
+      <div className={styles.statGrid} aria-busy={isLoading}>
+        {statTiles.map((tile) => (
+          <StatCard key={tile.label} {...tile} />
+        ))}
       </div>
+
+      <section aria-labelledby="quick-actions" className={styles.section}>
+        <h2 id="quick-actions" className={styles.sectionHeading}>
+          Quick actions
+        </h2>
+        <div className={styles.linkGrid}>
+          {QUICK_ACTIONS.map((action) => (
+            <ActionCard key={action.href} {...action} />
+          ))}
+        </div>
+      </section>
+
+      {/* Admin section (only visible to admins) */}
+      {isAdmin && adminStats && (
+        <section aria-labelledby="administration" className={styles.adminSection}>
+          <h2 id="administration" className={styles.sectionHeading}>
+            <Shield size={18} aria-hidden="true" className={styles.sectionHeadingIcon} />
+            Administration
+          </h2>
+
+          <div className={styles.statGrid}>
+            {adminTiles.map((tile) => (
+              <StatCard key={tile.label} {...tile} />
+            ))}
+          </div>
+
+          <div className={styles.linkGrid}>
+            {ADMIN_ACTIONS.map((action) => (
+              <ActionCard key={action.href} {...action} />
+            ))}
+          </div>
+        </section>
+      )}
     </AppShell>
   );
 }

@@ -35,6 +35,8 @@ import { UserMenu } from "@/components/navigation/UserMenu";
 import { globalNav, toSyncChip } from "@/components/navigation/global-nav";
 import { ProjectSwitcher } from "@/components/gantt-tool/ProjectSwitcher";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
+import { Banner } from "@/components/ds/Banner";
+import { getOrphanedResourceIds } from "@/lib/gantt-tool/resource-diagnostics";
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import { Share2, Users, FileSpreadsheet, Flag, Layers, CheckSquare, Image as ImageIcon, BarChart3, PieChart } from "lucide-react";
@@ -56,6 +58,7 @@ export default function GanttToolPage() {
     createProject,
     updateProjectName,
     deleteProject,
+    deleteResource,
     unloadCurrentProject,
     isLoading,
     syncStatus
@@ -73,6 +76,8 @@ export default function GanttToolPage() {
   const [isCapacityPanelExpanded, setIsCapacityPanelExpanded] = useState(false);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [showResourceDashboard, setShowResourceDashboard] = useState(false);
+  const [repairingOrphans, setRepairingOrphans] = useState(false);
+  const [orphanBannerDismissed, setOrphanBannerDismissed] = useState(false);
 
   // Financial access check - determines if Financials tab should be shown
   const { hasAccess: hasFinancialAccess, isLoading: isFinancialAccessLoading } = useFinancialAccess(currentProject?.id);
@@ -302,6 +307,46 @@ export default function GanttToolPage() {
         }
       >
         <div className="ds" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", padding: "var(--ds-space-4)" }}>
+          {/* The orphan repair tool, rehomed from the deleted resource panel:
+            * resources whose manager reference is invalid vanish from the org
+            * chart, which is a data problem the user cannot see any other way. */}
+          {(() => {
+            const orphanedIds = getOrphanedResourceIds(currentProject);
+            if (orphanedIds.length === 0 || orphanBannerDismissed) return null;
+            return (
+              <div style={{ marginBottom: "var(--ds-space-3)" }}>
+                <Banner
+                  tone="warning"
+                  title={`${orphanedIds.length} resource${orphanedIds.length === 1 ? " is" : "s are"} hidden from the org chart`}
+                  actions={
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      loading={repairingOrphans}
+                      loadingLabel="Removing…"
+                      onClick={async () => {
+                        setRepairingOrphans(true);
+                        try {
+                          for (const id of orphanedIds) {
+                            await deleteResource(id);
+                          }
+                        } finally {
+                          setRepairingOrphans(false);
+                        }
+                      }}
+                    >
+                      Remove {orphanedIds.length === 1 ? "it" : "them"}
+                    </Button>
+                  }
+                  onDismiss={() => setOrphanBannerDismissed(true)}
+                >
+                  Their manager references point at people who no longer exist, so
+                  they appear nowhere. Removing them deletes the records; fixing a
+                  manager in Team keeps them.
+                </Banner>
+              </div>
+            );
+          })()}
           <Tabs tabs={tabs} activeId={activeTab} onChange={(id) => setActiveTab(id as ProjectTab)} label="Project views">
             {activeTab === "timeline" && (
               <GanttCanvasNext

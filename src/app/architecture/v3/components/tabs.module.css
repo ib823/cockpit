@@ -1,0 +1,723 @@
+/**
+ * Architecture V3 — shared styles for the three capture tabs.
+ * Layout and the few widgets the ds primitives do not cover; every value is a
+ * `--ds-*` token so the tabs render on the design-system palette.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Vertical rhythm
+ * ------------------------------------------------------------------------- */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-5);
+}
+
+.sectionHead {
+  margin-bottom: var(--ds-space-4);
+}
+
+.sectionTitle {
+  font: var(--ds-type-heading-md);
+  letter-spacing: var(--ds-ls-heading-md);
+  color: var(--ds-content-primary);
+  margin: 0;
+}
+
+.sectionSubtitle {
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+  margin: var(--ds-space-1) 0 0;
+}
+
+.subHead {
+  font: var(--ds-type-heading-sm);
+  letter-spacing: var(--ds-ls-heading-sm);
+  color: var(--ds-content-primary);
+  margin: 0;
+}
+
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  flex-wrap: wrap;
+}
+
+.buttonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------------------
+ * Accordion (Business Context sections)
+ * ------------------------------------------------------------------------- */
+
+.accordion {
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface-raised);
+  overflow: hidden;
+}
+
+.accordionTrigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.accordionTrigger:hover {
+  background: var(--ds-surface-hover);
+}
+
+.accordionTitle {
+  display: block;
+  font: var(--ds-type-heading-sm);
+  letter-spacing: var(--ds-ls-heading-sm);
+  color: var(--ds-content-primary);
+}
+
+.accordionSubtitle {
+  display: block;
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+  margin-top: 2px;
+}
+
+.accordionChevron {
+  flex-shrink: 0;
+  color: var(--ds-content-secondary);
+  transition: transform var(--ds-duration-base) var(--ds-easing-standard);
+}
+
+.accordionChevronOpen {
+  transform: rotate(180deg);
+}
+
+.accordionBody {
+  padding: var(--ds-space-5);
+  border-top: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  background: var(--ds-surface-sunken);
+}
+
+/* ---------------------------------------------------------------------------
+ * Template pickers
+ * ------------------------------------------------------------------------- */
+
+.templatePanel {
+  margin-top: var(--ds-space-4);
+  padding: var(--ds-space-4);
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-lg);
+}
+
+.templatePanelTitle {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-primary);
+  margin: 0 0 var(--ds-space-3);
+}
+
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.templateBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  text-align: left;
+  background: var(--ds-surface-base);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-md);
+  cursor: pointer;
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-standard),
+    background-color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.templateBtn:hover {
+  border-color: var(--ds-accent-border);
+  background: var(--ds-accent-subtle);
+}
+
+.templateBtnName {
+  font: var(--ds-type-body-sm);
+  font-weight: 600;
+  color: var(--ds-content-primary);
+}
+
+.templateBtnCount {
+  font: var(--ds-type-label);
+  color: var(--ds-content-secondary);
+}
+
+/* ---------------------------------------------------------------------------
+ * Item cards (entities, actors, systems)
+ * ------------------------------------------------------------------------- */
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--ds-space-4);
+}
+
+.cardGridWide {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.itemCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-elevation-1);
+}
+
+/* Tone variants signal status alongside the pill, never instead of it. */
+.itemCardSuccess { border-color: var(--ds-success-border); }
+.itemCardInfo { border-color: var(--ds-info-border); }
+.itemCardWarning { border-color: var(--ds-warning-border); }
+
+.itemCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-2);
+}
+
+.itemCardRow {
+  display: flex;
+  gap: var(--ds-space-2);
+}
+
+.itemCardRow > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.externalGlyph {
+  color: var(--ds-warning-default);
+  flex-shrink: 0;
+}
+
+.reusedNote {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-info-default);
+  background: var(--ds-info-subtle);
+  border-radius: var(--ds-radius-sm);
+  padding: var(--ds-space-1) var(--ds-space-2);
+  text-align: center;
+}
+
+/* Dashed add-tile that closes a card grid. */
+.addTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  min-height: 140px;
+  padding: var(--ds-space-5);
+  border: 2px dashed var(--ds-border-default);
+  border-radius: var(--ds-radius-lg);
+  background: none;
+  color: var(--ds-content-secondary);
+  font: var(--ds-type-body-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-standard),
+    color var(--ds-duration-fast) var(--ds-easing-standard),
+    background-color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.addTile:hover {
+  border-color: var(--ds-accent-border);
+  color: var(--ds-accent-default);
+  background: var(--ds-accent-subtle);
+}
+
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---------------------------------------------------------------------------
+ * Capability pills
+ * ------------------------------------------------------------------------- */
+
+.pillRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.capPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1) var(--ds-space-3);
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  background: var(--ds-surface-sunken);
+  color: var(--ds-content-primary);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  cursor: pointer;
+}
+
+.capPillInfo {
+  background: var(--ds-info-subtle);
+  border-color: var(--ds-info-border);
+  color: var(--ds-info-default);
+}
+
+.capPillSuccess {
+  background: var(--ds-success-subtle);
+  border-color: var(--ds-success-border);
+  color: var(--ds-success-default);
+}
+
+.capPillWarning {
+  background: var(--ds-warning-subtle);
+  border-color: var(--ds-warning-border);
+  color: var(--ds-warning-default);
+}
+
+.capPillDanger {
+  background: var(--ds-danger-subtle);
+  border-color: var(--ds-danger-border);
+  color: var(--ds-danger-default);
+}
+
+.capPillAccent {
+  background: var(--ds-accent-subtle);
+  border-color: var(--ds-accent-border);
+  color: var(--ds-accent-default);
+}
+
+.capPillDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--ds-radius-full);
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.capPillRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  border-radius: var(--ds-radius-full);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.capPillRemove:hover {
+  color: var(--ds-danger-default);
+}
+
+.capPillInput {
+  padding: var(--ds-space-1) var(--ds-space-3);
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-hairline) solid var(--ds-accent-border);
+  background: var(--ds-surface-raised);
+  color: var(--ds-content-primary);
+  font: var(--ds-type-label);
+  min-width: 140px;
+  outline: none;
+}
+
+.addPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1) var(--ds-space-3);
+  border-radius: var(--ds-radius-full);
+  border: 2px dashed var(--ds-border-default);
+  background: none;
+  color: var(--ds-content-secondary);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  cursor: pointer;
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-standard),
+    color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.addPill:hover {
+  border-color: var(--ds-accent-border);
+  color: var(--ds-accent-default);
+}
+
+/* ---------------------------------------------------------------------------
+ * View-mode segmented control
+ * ------------------------------------------------------------------------- */
+
+.viewToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding-top: var(--ds-space-4);
+  border-top: var(--ds-border-hairline) solid var(--ds-border-subtle);
+}
+
+.viewToggleLabel {
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+}
+
+.segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--ds-surface-sunken);
+  border-radius: var(--ds-radius-md);
+}
+
+.segmentedBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1) var(--ds-space-3);
+  border: none;
+  border-radius: var(--ds-radius-sm);
+  background: none;
+  color: var(--ds-content-secondary);
+  font: var(--ds-type-body-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.segmentedBtn:hover {
+  color: var(--ds-content-primary);
+}
+
+.segmentedBtnActive {
+  background: var(--ds-surface-raised);
+  color: var(--ds-accent-default);
+  box-shadow: var(--ds-elevation-1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Generate row
+ * ------------------------------------------------------------------------- */
+
+.generateRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--ds-space-5);
+  border-top: var(--ds-border-hairline) solid var(--ds-border-subtle);
+}
+
+.generateRowCentered {
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------------------
+ * Phases (Proposed Solution)
+ * ------------------------------------------------------------------------- */
+
+.phaseCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-5);
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-elevation-1);
+}
+
+.phaseInScope { border-color: var(--ds-success-border); }
+.phaseFuture { border-color: var(--ds-warning-border); }
+
+.phaseHead {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.phaseNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-accent-subtle);
+  color: var(--ds-accent-default);
+  font: var(--ds-type-heading-sm);
+}
+
+.phaseFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--ds-space-4);
+}
+
+.legendWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.legendTrigger {
+  color: var(--ds-content-secondary);
+  cursor: help;
+}
+
+.legendPop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--ds-space-1);
+  min-width: 220px;
+  padding: var(--ds-space-3);
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-elevation-3);
+  z-index: var(--ds-z-dropdown);
+}
+
+.legendTitle {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  color: var(--ds-content-primary);
+  margin: 0 0 var(--ds-space-2);
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+}
+
+.legendRow + .legendRow {
+  margin-top: var(--ds-space-1);
+}
+
+.legendGlyphSuccess { color: var(--ds-success-default); }
+.legendGlyphWarning { color: var(--ds-warning-default); }
+
+.emptySpan {
+  grid-column: 1 / -1;
+}
+
+/* ---------------------------------------------------------------------------
+ * TO-BE integration board
+ * ------------------------------------------------------------------------- */
+
+.extToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1) var(--ds-space-3);
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  background: var(--ds-surface-raised);
+  color: var(--ds-content-secondary);
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  cursor: pointer;
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-standard),
+    background-color var(--ds-duration-fast) var(--ds-easing-standard),
+    color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.extToggle:hover {
+  border-color: var(--ds-warning-border);
+}
+
+.extToggleActive {
+  background: var(--ds-warning-subtle);
+  border-color: var(--ds-warning-border);
+  color: var(--ds-warning-default);
+}
+
+.board {
+  padding: var(--ds-space-6);
+  min-height: 400px;
+  background: var(--ds-surface-sunken);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-lg);
+}
+
+.boardCols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--ds-space-6);
+}
+
+.boardCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+}
+
+.boardColTitle {
+  font: var(--ds-type-label);
+  letter-spacing: var(--ds-ls-label);
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0;
+}
+
+.boardColTitleSuccess { color: var(--ds-success-default); }
+.boardColTitleInfo { color: var(--ds-info-default); }
+.boardColTitleWarning { color: var(--ds-warning-default); }
+
+.boardColEmpty {
+  text-align: center;
+  padding: var(--ds-space-4) 0;
+  font: var(--ds-type-body-sm);
+  font-style: italic;
+  color: var(--ds-content-tertiary);
+}
+
+.node {
+  padding: var(--ds-space-3);
+  border-radius: var(--ds-radius-md);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  text-align: center;
+  font: var(--ds-type-body-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration-fast) var(--ds-easing-standard),
+    border-color var(--ds-duration-fast) var(--ds-easing-standard);
+}
+
+.nodeNew {
+  background: var(--ds-success-subtle);
+  border-color: var(--ds-success-border);
+  color: var(--ds-success-default);
+}
+
+.nodeNewSelected {
+  background: var(--ds-success-default);
+  border-color: var(--ds-success-default);
+  color: var(--ds-success-on);
+}
+
+.nodeReused {
+  background: var(--ds-info-subtle);
+  border-color: var(--ds-info-border);
+  color: var(--ds-info-default);
+}
+
+.nodeReusedSelected {
+  background: var(--ds-info-default);
+  border-color: var(--ds-info-default);
+  color: var(--ds-info-on);
+}
+
+.nodeExternal {
+  background: var(--ds-warning-subtle);
+  border-color: var(--ds-warning-border);
+  color: var(--ds-warning-default);
+}
+
+.nodeExternalSelected {
+  background: var(--ds-warning-default);
+  border-color: var(--ds-warning-default);
+  color: var(--ds-warning-on);
+}
+
+.integrationHint {
+  margin-top: var(--ds-space-5);
+  padding: var(--ds-space-3);
+  text-align: center;
+  font: var(--ds-type-body-sm);
+  font-weight: 600;
+  color: var(--ds-info-default);
+  background: var(--ds-info-subtle);
+  border: var(--ds-border-hairline) solid var(--ds-info-border);
+  border-radius: var(--ds-radius-md);
+}
+
+.integrationGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.integrationRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  background: var(--ds-surface-raised);
+  border: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  border-radius: var(--ds-radius-md);
+}
+
+.integrationText {
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.integrationArrow {
+  color: var(--ds-content-tertiary);
+  margin: 0 var(--ds-space-1);
+}
+
+.integrationMethod {
+  margin-left: var(--ds-space-2);
+  padding: 1px var(--ds-space-2);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-sunken);
+  color: var(--ds-content-secondary);
+  font: var(--ds-type-label);
+}
+
+.howToList {
+  margin: 0;
+  padding-left: var(--ds-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

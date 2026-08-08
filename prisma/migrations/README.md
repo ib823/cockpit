@@ -167,9 +167,16 @@ what this file assumed:
   `20251020150129_add_org_chart_to_gantt_project` and
   `20251119032925_team_capacity_models`. Prisma does not object: with the
   baseline recorded, `migrate status` reports "Database schema is up to date!".
-  But the database's history and this repo's disagree, and that gap is a
-  restore-drill problem waiting to happen — a restore replays what is in the
-  repo, which is not what built the live schema.
+  But the database's history and this repo's disagree.
+
+  **Assessed 2026-08-08 — no reconciliation needed.** `0_init` was generated
+  from the post-`db push` schema, which already includes everything those two
+  migrations created (`ResourceWeeklyAllocation` and the other team-capacity
+  tables, the org-chart column are all in `0_init/migration.sql`). A fresh
+  restore replaying the repo's migrations therefore reproduces the live
+  schema exactly; the two extra rows are history entries only, and creating
+  matching migration files would double-apply their DDL on restore and fail.
+  The gap is cosmetic ledger drift, not a restore risk.
 - `20251020150129_...` appears twice: rolled back at 03:14:07 on 2025-10-24 and
   re-applied in the same second. Resolved, not broken — see the table above.
 
