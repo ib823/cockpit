@@ -43,6 +43,9 @@ import type { ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
 import { toCanvasMilestones, toCanvasModel } from "./adapter";
 import { buildAxisTicks, buildNonWorkingDays } from "./axis";
 import { buildRowDetails } from "./details";
+import { toCapacityMatrix } from "./capacity";
+import { GanttCapacityPanel } from "@/components/ds/gantt/GanttCapacityPanel";
+import { calculateResourceCapacity } from "@/lib/gantt-tool/resource-capacity-calculator";
 
 /**
  * The legacy zoom vocabulary has an "auto" and a "year"; the canvas grain has a
@@ -71,6 +74,13 @@ export interface GanttCanvasNextProps {
    */
   showMilestoneModal?: boolean;
   onShowMilestoneModalChange?: (open: boolean) => void;
+  /**
+   * Shows the resource capacity matrix under the canvas — the same page
+   * toggle the legacy canvas takes. Manual per-week overrides (a legacy
+   * feature held in that component's local state) are not ported yet; the
+   * matrix shows calculated allocations only.
+   */
+  showResourceCapacity?: boolean;
 }
 
 export function GanttCanvasNext({
@@ -78,6 +88,7 @@ export function GanttCanvasNext({
   height,
   showMilestoneModal,
   onShowMilestoneModalChange,
+  showResourceCapacity = false,
 }: GanttCanvasNextProps) {
   const currentProject = useGanttToolStore((s) => s.currentProject);
   const getProjectDuration = useGanttToolStore((s) => s.getProjectDuration);
@@ -152,6 +163,27 @@ export function GanttCanvasNext({
     [phases, currentProject?.holidays]
   );
 
+  const resources = currentProject?.resources;
+
+  // The same calculator with the same inputs as the legacy panel, so the two
+  // can never show different allocations for one plan. Guarded on the toggle:
+  // for a large plan this walks every task × week, and computing it while the
+  // panel is closed is pure waste.
+  const capacity = useMemo(() => {
+    if (!showResourceCapacity || !bounds || !phases || !resources?.length) {
+      return { columns: [], rows: [] };
+    }
+    return toCapacityMatrix(
+      calculateResourceCapacity({
+        phases,
+        resources,
+        projectStartDate: bounds.startDate,
+        projectEndDate: bounds.endDate,
+      }),
+      resources
+    );
+  }, [showResourceCapacity, phases, resources, bounds]);
+
   /**
    * Commits a Move to the store.
    *
@@ -223,6 +255,10 @@ export function GanttCanvasNext({
         onMilestoneActivate={() => setMilestoneModalOpen(true)}
         height={height}
       />
+
+      {showResourceCapacity && (
+        <GanttCapacityPanel columns={capacity.columns} rows={capacity.rows} />
+      )}
 
       {/* The same modal, the same store wiring, as GanttCanvasV3 — including
         * the alert() on failure, which is not this slice's to redesign. */}

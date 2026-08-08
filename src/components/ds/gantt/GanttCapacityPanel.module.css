@@ -1,0 +1,117 @@
+/*
+ * Capacity matrix. A real <table>, because that is what it is — a screen
+ * reader gets row and column headers for free, which is exactly the context
+ * an allocation figure needs ("Ada Lovelace, W07: 120% allocated").
+ */
+
+.panel {
+  border-top: var(--ds-border-hairline) solid var(--ds-border-default);
+  background: var(--ds-surface-raised);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
+}
+
+.title {
+  margin: 0;
+  font: var(--ds-type-label);
+  color: var(--ds-content-primary);
+}
+
+.search {
+  width: 220px;
+  padding: var(--ds-space-1) var(--ds-space-2);
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-primary);
+  background: var(--ds-surface-base);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-radius: var(--ds-radius-sm);
+}
+
+.search:focus-visible {
+  outline: var(--ds-border-focus-width) solid var(--ds-border-focus);
+  outline-offset: var(--ds-focus-offset);
+}
+
+.count {
+  font: var(--ds-type-label);
+  color: var(--ds-content-secondary);
+}
+
+.scroller {
+  overflow: auto;
+  max-height: 320px;
+}
+
+.matrix {
+  border-collapse: collapse;
+}
+
+.nameHeader,
+.weekHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--ds-surface-sunken);
+  font: var(--ds-type-label);
+  color: var(--ds-content-secondary);
+  text-align: left;
+  padding: var(--ds-space-1) var(--ds-space-2);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-default);
+  white-space: nowrap;
+}
+
+.weekHeader { text-align: center; }
+
+/* The name column stays put while the weeks scroll, or a row loses its
+ * identity forty weeks in. */
+.nameHeader,
+.nameCell {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--ds-surface-raised);
+  min-width: 200px;
+  max-width: 260px;
+}
+
+.nameHeader { z-index: 3; }
+
+.nameCell {
+  padding: var(--ds-space-1) var(--ds-space-2);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
+  font: var(--ds-type-body-sm);
+  font-weight: 400;
+  text-align: left;
+}
+
+.resourceName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ds-content-primary);
+}
+
+.resourceMeta {
+  display: block;
+  font: var(--ds-type-label);
+  color: var(--ds-content-secondary);
+}
+
+.weekCell {
+  padding: 2px;
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--ds-space-4);
+  font: var(--ds-type-body-sm);
+  color: var(--ds-content-secondary);
+}

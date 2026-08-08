@@ -579,6 +579,7 @@ export default function GanttToolV3Page() {
               zoomMode={activeZoomMode}
               showMilestoneModal={showMilestoneModal}
               onShowMilestoneModalChange={setShowMilestoneModal}
+              showResourceCapacity={isCapacityPanelExpanded}
             />
           ) : (
             <GanttCanvasV3
