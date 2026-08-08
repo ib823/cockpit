@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
 import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
@@ -14,6 +15,7 @@ import { StatusPill } from "@/components/ds/Display";
 import { EmptyState } from "@/components/ds/Feedback";
 import { Modal } from "@/components/ds/Modal";
 import { adminNav } from "../nav";
+import { UserMenu } from "@/components/navigation/UserMenu";
 
 interface RecoveryRequest {
   id: string;
@@ -34,6 +36,7 @@ interface RecoveryRequest {
 }
 
 export default function RecoveryRequestsPage() {
+  const { data: session } = useSession();
   const router = useRouter();
 
   const [requests, setRequests] = useState<RecoveryRequest[]>([]);
@@ -183,7 +186,11 @@ export default function RecoveryRequestsPage() {
 
   if (loading) {
     return (
-      <AppShell brand="Admin" primaryNav={adminNav("/admin/recovery-requests")}>
+      <AppShell
+      brand="Admin"
+      primaryNav={adminNav("/admin/recovery-requests")}
+      topBarEnd={<UserMenu session={session} />}
+    >
         <PageHeader title="Account recovery" />
         <AuthStatus message="Loading recovery requests…" />
       </AppShell>
@@ -269,7 +276,11 @@ export default function RecoveryRequestsPage() {
   const FILTERS = ["pending", "approved", "rejected", "all"] as const;
 
   return (
-    <AppShell brand="Admin" primaryNav={adminNav("/admin/recovery-requests")}>
+    <AppShell
+      brand="Admin"
+      primaryNav={adminNav("/admin/recovery-requests")}
+      topBarEnd={<UserMenu session={session} />}
+    >
       <PageHeader
         title="Account recovery"
         description="Approving a request lets someone re-enrol a passkey on an account they are locked out of. Verify identity before approving."

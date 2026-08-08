@@ -2,7 +2,7 @@ import { authConfig } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LogoutButton } from "@/components/common/LogoutButton";
+import { UserMenu } from "@/components/navigation/UserMenu";
 import { prisma, withRetry } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { logger } from "@/lib/logger";
@@ -64,12 +64,7 @@ export default async function AdminDashboard() {
     <AppShell
       brand="Admin"
       primaryNav={adminNav("/admin")}
-      topBarEnd={
-        <>
-          <span className={styles.email}>{session.user.email}</span>
-          <LogoutButton />
-        </>
-      }
+      topBarEnd={<UserMenu session={session} />}
     >
       <PageHeader title="Overview" description="Users, projects and system settings." />
 

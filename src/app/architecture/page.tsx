@@ -1,10 +1,9 @@
-import { DiagramWizard } from './components/DiagramWizard';
-import { HydrationWrapper } from './components/HydrationWrapper';
+import { redirect } from "next/navigation";
 
+/**
+ * The architecture tool lives at /architecture/v3; this route survives only
+ * so old bookmarks and links keep working.
+ */
 export default function Page() {
-  return (
-    <HydrationWrapper>
-      <DiagramWizard />
-    </HydrationWrapper>
-  );
+  redirect("/architecture/v3");
 }

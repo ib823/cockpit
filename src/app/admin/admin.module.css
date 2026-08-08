@@ -1,11 +1,5 @@
 /* Admin overview — layout only. Every value is a --ds- token. */
 
-.email {
-  font: var(--ds-type-label);
-  letter-spacing: var(--ds-ls-label);
-  color: var(--ds-content-secondary);
-}
-
 .bannerSlot {
   margin-bottom: var(--ds-space-5);
 }

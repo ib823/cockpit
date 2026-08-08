@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { AppShell, PageHeader, Card } from "@/components/ds/AppShell";
 import { DataTable, type Column } from "@/components/ds/DataTable";
 import { Button } from "@/components/ds/Button";
@@ -8,6 +9,7 @@ import { Banner } from "@/components/ds/Banner";
 import { StatusPill } from "@/components/ds/Display";
 import { EmptyState } from "@/components/ds/Feedback";
 import { adminNav } from "../nav";
+import { UserMenu } from "@/components/navigation/UserMenu";
 import styles from "../admin.module.css";
 
 type Row = {
@@ -23,6 +25,7 @@ type Row = {
 };
 
 export default function AdminApprovalsPage() {
+  const { data: session } = useSession();
   const [rows, setRows] = useState<Row[]>([]);
   const [kpi, setKpi] = useState<{
     users: number;
@@ -172,7 +175,11 @@ export default function AdminApprovalsPage() {
     : [];
 
   return (
-    <AppShell brand="Admin" primaryNav={adminNav("/admin/approvals")}>
+    <AppShell
+      brand="Admin"
+      primaryNav={adminNav("/admin/approvals")}
+      topBarEnd={<UserMenu session={session} />}
+    >
       <PageHeader
         title="Approvals and audit"
         description="Access status, exceptions and activity for every non-admin user."

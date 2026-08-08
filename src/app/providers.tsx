@@ -1,9 +1,7 @@
 "use client";
-import { App } from "antd";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { AntDThemeBridge } from "@/ui/compat/AntDThemeBridge";
 import { ToastProvider } from "@/ui/toast/ToastProvider";
 import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -46,16 +44,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // be noise the app cannot act on.
     const originalError = console.error;
     const SUPPRESSED = [
-      // antd v5 React 19 compatibility banner
-      (msg: string) => msg.includes("antd: compatible"),
       // Expected while the session endpoint is unreachable; surfaced in the UI
       (msg: string) => msg.includes("[next-auth][error][CLIENT_FETCH_ERROR]"),
-      // antd css-in-js emits different class hashes on server and client
-      (msg: string) => msg.includes("Hydration") && msg.includes("css-dev-only-do-not-override"),
-      // The splash loader is injected client-side only, so it always mismatches
-      (msg: string) => msg.includes("Hydration") && msg.includes("initial-loader"),
-      // We deliberately use the standalone message API over the static one
-      (msg: string) => msg.includes("[antd: message]") && msg.includes("Static function"),
     ];
 
     console.error = (...args) => {
@@ -76,20 +66,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider refetchInterval={0} refetchOnWindowFocus={false}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <AntDThemeBridge>
-            <ToastProvider>
-              <App>
-                <DynamicFavicon />
-                {/*
-                  Catches render errors in the client tree. `error.tsx` only
-                  covers errors thrown during a route render; a throw inside an
-                  already-mounted client component (the Gantt canvas, a modal)
-                  unmounts the whole tree to a blank page without this.
-                */}
-                <ErrorBoundary>{children}</ErrorBoundary>
-              </App>
-            </ToastProvider>
-          </AntDThemeBridge>
+          <ToastProvider>
+            <DynamicFavicon />
+            {/*
+              Catches render errors in the client tree. `error.tsx` only
+              covers errors thrown during a route render; a throw inside an
+              already-mounted client component (the Gantt canvas, a modal)
+              unmounts the whole tree to a blank page without this.
+            */}
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </ToastProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </SessionProvider>

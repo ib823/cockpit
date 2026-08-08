@@ -1,7 +1,7 @@
 import { authConfig } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { LogoutButton } from "@/components/common/LogoutButton";
+import { UserMenu } from "@/components/navigation/UserMenu";
 import { SecurityDashboardClient } from "@/components/admin/SecurityDashboardClient";
 import {
   getAuthMetricsSummary,
@@ -34,19 +34,7 @@ export default async function SecurityDashboard() {
     <AppShell
       brand="Admin"
       primaryNav={adminNav("/admin/security")}
-      topBarEnd={
-        <>
-          <span
-            style={{
-              font: "var(--ds-type-label)",
-              color: "var(--ds-content-secondary)",
-            }}
-          >
-            {session.user.email}
-          </span>
-          <LogoutButton />
-        </>
-      }
+      topBarEnd={<UserMenu session={session} />}
     >
       <PageHeader
         title="Security monitoring"
