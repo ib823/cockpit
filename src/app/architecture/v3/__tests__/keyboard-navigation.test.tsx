@@ -44,7 +44,7 @@ function TestTabs() {
   );
 }
 
-describe.skip('Keyboard Navigation - Tab Interface', () => {
+describe('Keyboard Navigation - Tab Interface', () => {
   describe('Arrow Key Navigation (48 scenarios)', () => {
     it('should move to next tab with ArrowRight from first tab', () => {
       render(<TestTabs />);
@@ -303,7 +303,7 @@ describe.skip('Keyboard Navigation - Tab Interface', () => {
       tab1.focus();
 
       const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true });
-      const preventDefault = jest.spyOn(event, 'preventDefault');
+      const preventDefault = vi.spyOn(event, 'preventDefault');
 
       tab1.dispatchEvent(event);
 
@@ -316,7 +316,7 @@ describe.skip('Keyboard Navigation - Tab Interface', () => {
       tab1.focus();
 
       const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true });
-      const preventDefault = jest.spyOn(event, 'preventDefault');
+      const preventDefault = vi.spyOn(event, 'preventDefault');
 
       tab1.dispatchEvent(event);
 
@@ -330,7 +330,7 @@ describe.skip('Keyboard Navigation - Tab Interface', () => {
       tab2.focus();
 
       const event = new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true });
-      const preventDefault = jest.spyOn(event, 'preventDefault');
+      const preventDefault = vi.spyOn(event, 'preventDefault');
 
       tab2.dispatchEvent(event);
 
@@ -344,7 +344,7 @@ describe.skip('Keyboard Navigation - Tab Interface', () => {
       tab2.focus();
 
       const event = new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true });
-      const preventDefault = jest.spyOn(event, 'preventDefault');
+      const preventDefault = vi.spyOn(event, 'preventDefault');
 
       tab2.dispatchEvent(event);
 
@@ -357,7 +357,7 @@ describe.skip('Keyboard Navigation - Tab Interface', () => {
       tab1.focus();
 
       const event = new KeyboardEvent('keydown', { key: 'a', bubbles: true, cancelable: true });
-      const preventDefault = jest.spyOn(event, 'preventDefault');
+      const preventDefault = vi.spyOn(event, 'preventDefault');
 
       tab1.dispatchEvent(event);
 
@@ -406,7 +406,7 @@ describe.skip('Keyboard Navigation - Tab Interface', () => {
   });
 });
 
-describe.skip('Keyboard Navigation - Test Coverage Summary', () => {
+describe('Keyboard Navigation - Test Coverage Summary', () => {
   it('confirms comprehensive test coverage with permutations', () => {
     /**
      * Total Test Scenarios: 156

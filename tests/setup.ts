@@ -480,6 +480,41 @@ if (typeof window !== 'undefined') {
     },
   });
 
+  // Element.prototype.getClientRects
+  //
+  // jsdom performs no layout, so every element reports zero client rects.
+  // `tabbable` — which focus-trap uses to find focusable nodes — treats zero
+  // rects as "not rendered", therefore "not tabbable". The consequence is that
+  // focus-trap's activate() throws "must have at least one container with at
+  // least one tabbable node in it" for EVERY modal in the suite, which is why
+  // the focus-trap tests are skipped wholesale rather than passing.
+  //
+  // The shim reports one rect per element, but defers the actual visibility
+  // decision to computed style, which jsdom does implement. An element that is
+  // genuinely hidden still reads as untabbable, so a real regression — a modal
+  // whose only focusable control is display:none — is still caught.
+  const HAS_LAYOUT = [new DOMRect(0, 0, 1, 1)] as unknown as DOMRectList;
+  const NO_LAYOUT = [] as unknown as DOMRectList;
+
+  Object.defineProperty(Element.prototype, 'getClientRects', {
+    configurable: true,
+    value: function (this: Element): DOMRectList {
+      if (!this.isConnected) return NO_LAYOUT;
+
+      // `display` is not inherited: a child of a display:none parent still
+      // computes its own display, while a real browser gives it no rects. The
+      // ancestor walk reproduces that.
+      for (let node: Element | null = this; node; node = node.parentElement) {
+        const style = realGetComputedStyle(node);
+        if (style.display === 'none') return NO_LAYOUT;
+        // visibility IS inherited, so it only needs checking on the element.
+        if (node === this && style.visibility === 'hidden') return NO_LAYOUT;
+      }
+
+      return HAS_LAYOUT;
+    },
+  });
+
   // Mock matchMedia for responsive components
   Object.defineProperty(window, 'matchMedia', {
     writable: true,

@@ -80,6 +80,13 @@ describe('Architecture V3 - Integration Tests (10 scenarios)', () => {
     vi.useRealTimers();
   });
 
+  /**
+   * Still skipped, but for a stated reason rather than by default: these
+   * exercise the architecture store's save path, which the suite does not
+   * stand up — the scenarios time out waiting for a persistence round trip
+   * that never happens. Tracked in docs/REMEDIATION.md; they need a store
+   * fixture, not a change to the assertions.
+   */
   describe.skip('Full CRUD Workflow (3 scenarios)', () => {
     it('should complete full project lifecycle: create → update → delete', async () => {
       const store = useArchitectureStore.getState();
@@ -215,6 +222,13 @@ describe('Architecture V3 - Integration Tests (10 scenarios)', () => {
     });
   });
 
+  /**
+   * Still skipped, but for a stated reason rather than by default: these
+   * exercise the architecture store's save path, which the suite does not
+   * stand up — the scenarios time out waiting for a persistence round trip
+   * that never happens. Tracked in docs/REMEDIATION.md; they need a store
+   * fixture, not a change to the assertions.
+   */
   describe.skip('Auto-Save Integration (2 scenarios)', () => {
     it('should auto-save after 2 seconds of inactivity', async () => {
       useArchitectureStore.setState({ currentProject: mockProject as any });
@@ -285,7 +299,7 @@ describe('Architecture V3 - Integration Tests (10 scenarios)', () => {
     });
   });
 
-  describe.skip('Navigation + Keyboard Integration (2 scenarios)', () => {
+  describe('Navigation + Keyboard Integration (2 scenarios)', () => {
     it('should navigate tabs with arrow keys and maintain state', () => {
       const TabComponent = () => {
         const [activeTab, setActiveTab] = React.useState(0);
@@ -387,7 +401,7 @@ describe('Architecture V3 - Integration Tests (10 scenarios)', () => {
     });
   });
 
-  describe.skip('Modal + Focus Management Integration (2 scenarios)', () => {
+  describe('Modal + Focus Management Integration (2 scenarios)', () => {
     it('should trap focus in modal and restore on close', () => {
       const ModalComponent = ({ onClose }: { onClose: () => void }) => {
         return (
@@ -481,6 +495,13 @@ describe('Architecture V3 - Integration Tests (10 scenarios)', () => {
     });
   });
 
+  /**
+   * Still skipped, but for a stated reason rather than by default: these
+   * exercise the architecture store's save path, which the suite does not
+   * stand up — the scenarios time out waiting for a persistence round trip
+   * that never happens. Tracked in docs/REMEDIATION.md; they need a store
+   * fixture, not a change to the assertions.
+   */
   describe.skip('Data Persistence Integration (1 scenario)', () => {
     it('should persist data across page refresh simulation', async () => {
       // Simulate: Create project → Save → "Refresh" → Load

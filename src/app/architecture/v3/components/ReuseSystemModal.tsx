@@ -1,6 +1,11 @@
 "use client";
 
 import type { CurrentSystem } from "../types";
+// Explicit default import: tsconfig uses `jsx: "preserve"` with no automatic
+// runtime, so the compiled JSX calls React.createElement by name. Next's own
+// build injects it, which is why this only ever surfaced under the test
+// transform — as `ReferenceError: React is not defined` on render.
+import React from "react";
 import { Package } from "lucide-react";
 import { BaseModal, ModalButton } from "@/components/ui/BaseModal";
 
@@ -22,6 +27,7 @@ export function ReuseSystemModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Reuse System from AS-IS"
+      closeLabel="Close reuse system dialog"
       subtitle="Select a system from your Current Landscape that was marked with the KEEP status"
       icon={<Package className="w-6 h-6" />}
       size="medium"

@@ -7,7 +7,11 @@
 
 "use client";
 
-import { useState } from "react";
+// Explicit default import: tsconfig uses `jsx: "preserve"` with no automatic
+// runtime, so the compiled JSX calls React.createElement by name. Next's own
+// build injects it, which is why this only ever surfaced under the test
+// transform — as `ReferenceError: React is not defined` on render.
+import React, { useState } from "react";
 import { Plus, Trash2, Cloud } from "lucide-react";
 import type { CurrentLandscapeData, CurrentSystem, ExternalSystem, BusinessEntity } from "../types";
 import clsx from "clsx";
