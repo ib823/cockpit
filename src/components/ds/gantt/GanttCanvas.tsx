@@ -37,6 +37,7 @@ import React, {
 } from "react";
 import styles from "./GanttCanvas.module.css";
 import { GanttBar } from "./GanttBar";
+import { GanttMilestones, type CanvasMilestone } from "./GanttMilestones";
 import { GanttStatus } from "./GanttStatus";
 import { TimelineAxis, type AxisTick, type NonWorkingDay } from "./TimelineAxis";
 import { Button } from "../Button";
@@ -89,6 +90,10 @@ export interface GanttCanvasProps {
   minorTicks?: AxisTick[];
   nonWorkingDays?: NonWorkingDay[];
   todayDay?: number;
+  /** Milestones, in the same day-offset space as placements. */
+  milestones?: CanvasMilestone[];
+  /** Opens milestone editing. Markers render inert without it. */
+  onMilestoneActivate?: (id: string) => void;
   /** Extra toolbar content, e.g. filters. */
   toolbar?: ReactNode;
   height?: number;
@@ -113,6 +118,8 @@ export function GanttCanvas({
   minorTicks = [],
   nonWorkingDays = [],
   todayDay,
+  milestones = [],
+  onMilestoneActivate,
   toolbar,
   height = 520,
   debugAnnouncements,
@@ -434,6 +441,23 @@ export function GanttCanvas({
             />
 
             <div style={{ height: window_.totalHeight, position: "relative", width: totalDays * px }}>
+              {/* Milestone rules and markers span the full canvas height, so
+                * they sit on the unwindowed container rather than the
+                * translated slice below.
+                *
+                * Known ARIA-structure trade, made on purpose: this container
+                * is inside the treegrid, and a strict grid wants only rows as
+                * children. The alternative — an overlay outside the treegrid
+                * kept in sync with two scroll axes — reintroduces exactly the
+                * sync machinery whose drift this canvas was built to avoid.
+                * The markers are real named buttons either way; what is
+                * compromised is validator purity, not reachability. */}
+              <GanttMilestones
+                milestones={milestones}
+                grain={grain}
+                totalDays={totalDays}
+                onActivate={onMilestoneActivate}
+              />
               <div style={{ transform: `translateY(${window_.offsetTop}px)` }}>
                 {visible.map((row) => {
                   const placement = placements[row.id];

@@ -575,7 +575,11 @@ export default function GanttToolV3Page() {
           * `components/gantt-tool/next/canvas-flag.ts`. */}
         <div className="flex-1" style={{ minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
           {canvasChoice === "next" ? (
-            <GanttCanvasNext zoomMode={activeZoomMode} />
+            <GanttCanvasNext
+              zoomMode={activeZoomMode}
+              showMilestoneModal={showMilestoneModal}
+              onShowMilestoneModalChange={setShowMilestoneModal}
+            />
           ) : (
             <GanttCanvasV3
               zoomMode={activeZoomMode}

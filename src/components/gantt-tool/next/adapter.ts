@@ -36,9 +36,14 @@
  */
 
 import { differenceInDays } from "date-fns";
-import type { GanttPhase as StorePhase, GanttTask as StoreTask } from "@/types/gantt-tool";
+import type {
+  GanttMilestone as StoreMilestone,
+  GanttPhase as StorePhase,
+  GanttTask as StoreTask,
+} from "@/types/gantt-tool";
 import type { BarPlacement } from "@/components/ds/gantt/GanttCanvas";
 import type { GanttPhase as CanvasPhase } from "@/components/ds/gantt/rows";
+import type { CanvasMilestone } from "@/components/ds/gantt/GanttMilestones";
 
 /** Timeline bounds as `getProjectDuration()` returns them. */
 export interface ProjectBounds {
@@ -132,4 +137,31 @@ export function toCanvasModel(
     placements,
     totalDays: bounds.durationDays,
   };
+}
+
+/**
+ * Store milestones → canvas milestones, in the same day-offset space as the
+ * bars — via the same `dayOffset`, so a milestone and a bar on the same date
+ * can never disagree by a day.
+ *
+ * Out-of-range milestones are NOT dropped here: the canvas layer drops them
+ * against `totalDays`, the same split the bars use. `formatDay` comes in from
+ * the caller so the accessible date reads identically to the bar dates beside
+ * it.
+ */
+export function toCanvasMilestones(
+  milestones: StoreMilestone[],
+  bounds: ProjectBounds,
+  formatDay: (day: number) => string
+): CanvasMilestone[] {
+  return milestones.map((m) => {
+    const day = dayOffset(m.date, bounds.startDate);
+    return {
+      id: m.id,
+      name: m.name,
+      day,
+      dateLabel: formatDay(day),
+      color: m.color || undefined,
+    };
+  });
 }

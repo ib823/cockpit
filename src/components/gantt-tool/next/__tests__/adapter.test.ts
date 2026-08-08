@@ -14,6 +14,7 @@ import type { GanttPhase, GanttTask } from "@/types/gantt-tool";
 import {
   dayOffset,
   inclusiveDays,
+  toCanvasMilestones,
   toCanvasModel,
   type ProjectBounds,
 } from "../adapter";
@@ -228,5 +229,53 @@ describe("toCanvasModel", () => {
 
     expect(model.placements.crit.critical).toBe(true);
     expect(model.placements.plain.critical).toBe(false);
+  });
+});
+
+describe("toCanvasMilestones", () => {
+  const b = bounds("2026-01-05", "2026-03-31");
+
+  it("uses the bars' day arithmetic, so same-date things can never disagree", () => {
+    const [m] = toCanvasMilestones(
+      [{ id: "m1", name: "UAT", date: "2026-02-01", icon: "🚩", color: "#0B57D0" }],
+      b,
+      (day) => `day ${day}`
+    );
+
+    expect(m.day).toBe(dayOffset("2026-02-01", b.startDate));
+    expect(m.day).toBe(27);
+  });
+
+  it("labels the date through the caller's formatter, matching the bars beside it", () => {
+    const [m] = toCanvasMilestones(
+      [{ id: "m1", name: "UAT", date: "2026-02-01", icon: "", color: "" }],
+      b,
+      (day) => `formatted:${day}`
+    );
+
+    expect(m.dateLabel).toBe("formatted:27");
+  });
+
+  it("keeps out-of-range milestones — dropping is the canvas layer's decision", () => {
+    const out = toCanvasMilestones(
+      [{ id: "m1", name: "Early", date: "2025-12-01", icon: "", color: "" }],
+      b,
+      () => ""
+    );
+
+    expect(out).toHaveLength(1);
+    expect(out[0].day).toBeLessThan(0);
+  });
+
+  it("normalises an empty colour to undefined so the layer's default applies", () => {
+    // The store persists color: "" for milestones created without one, and an
+    // empty string would win over the CSS/prop default and paint nothing.
+    const [m] = toCanvasMilestones(
+      [{ id: "m1", name: "Plain", date: "2026-02-01", icon: "", color: "" }],
+      b,
+      () => ""
+    );
+
+    expect(m.color).toBeUndefined();
   });
 });

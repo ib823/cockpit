@@ -19,9 +19,14 @@
  * double-clicking through to a modal. So this slice can only add, and the
  * regression risk on the legacy path is nil.
  *
+ * Milestones (slice 2) reuse the legacy MilestoneModal verbatim rather than
+ * rebuilding it: the modal is the editing surface both canvases share, and
+ * porting it belongs to a later slice, if at all. Activating any marker opens
+ * it, exactly as the legacy diamond does.
+ *
  * ## What it does not cover yet
  *
- * Milestones, the resource capacity panel, resource drag-assignment, search
+ * The resource capacity panel, resource drag-assignment, search
  * and column configuration, AMS chevrons, and the WBS third level. Each is a
  * later slice. Until they land, `?canvas=next` is for comparison, not for use.
  */
@@ -29,10 +34,13 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { addDays, differenceInDays, format } from "date-fns";
 import { GanttCanvas } from "@/components/ds/gantt/GanttCanvas";
+import { MilestoneModal } from "@/components/gantt-tool/MilestoneModal";
+import type { MilestoneFormData } from "@/types/gantt-tool";
+import { logger } from "@/lib/logger";
 import type { ZoomGrain } from "@/components/ds/gantt/scale";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import type { ZoomMode } from "@/components/gantt-tool/ViewModeSelector";
-import { toCanvasModel } from "./adapter";
+import { toCanvasMilestones, toCanvasModel } from "./adapter";
 
 /**
  * The legacy zoom vocabulary has an "auto" and a "year"; the canvas grain has a
@@ -54,16 +62,37 @@ const GRAIN_BY_ZOOM: Record<ZoomMode, ZoomGrain> = {
 export interface GanttCanvasNextProps {
   zoomMode: ZoomMode;
   height?: number;
+  /**
+   * The page owns "open the milestone modal" (its toolbar button sets it), so
+   * the next canvas honours the same pair of props the legacy one takes —
+   * otherwise that button silently stops working behind `?canvas=next`.
+   */
+  showMilestoneModal?: boolean;
+  onShowMilestoneModalChange?: (open: boolean) => void;
 }
 
-export function GanttCanvasNext({ zoomMode, height }: GanttCanvasNextProps) {
+export function GanttCanvasNext({
+  zoomMode,
+  height,
+  showMilestoneModal,
+  onShowMilestoneModalChange,
+}: GanttCanvasNextProps) {
   const currentProject = useGanttToolStore((s) => s.currentProject);
   const getProjectDuration = useGanttToolStore((s) => s.getProjectDuration);
   const updateTask = useGanttToolStore((s) => s.updateTask);
   const updatePhase = useGanttToolStore((s) => s.updatePhase);
+  const addMilestone = useGanttToolStore((s) => s.addMilestone);
+  const updateMilestone = useGanttToolStore((s) => s.updateMilestone);
+  const deleteMilestone = useGanttToolStore((s) => s.deleteMilestone);
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [grainOverride, setGrainOverride] = useState<ZoomGrain | null>(null);
+
+  // Controlled by the page when it passes the pair, local otherwise — the
+  // same arrangement GanttCanvasV3 uses for the same prop.
+  const [milestoneModalLocal, setMilestoneModalLocal] = useState(false);
+  const milestoneModalOpen = showMilestoneModal ?? milestoneModalLocal;
+  const setMilestoneModalOpen = onShowMilestoneModalChange ?? setMilestoneModalLocal;
 
   const bounds = getProjectDuration();
   const phases = currentProject?.phases;
@@ -92,6 +121,14 @@ export function GanttCanvasNext({ zoomMode, height }: GanttCanvasNextProps) {
     const day = differenceInDays(new Date(), bounds.startDate);
     return day >= 0 && day < bounds.durationDays ? day : undefined;
   }, [bounds]);
+
+  const milestones = useMemo(
+    () =>
+      bounds && currentProject?.milestones
+        ? toCanvasMilestones(currentProject.milestones, bounds, formatDay)
+        : [],
+    [currentProject?.milestones, bounds, formatDay]
+  );
 
   /**
    * Commits a Move to the store.
@@ -141,18 +178,53 @@ export function GanttCanvasNext({ zoomMode, height }: GanttCanvasNextProps) {
   }
 
   return (
-    <GanttCanvas
-      phases={model.phases}
-      placements={model.placements}
-      totalDays={model.totalDays}
-      formatDay={formatDay}
-      grain={grainOverride ?? GRAIN_BY_ZOOM[zoomMode]}
-      onGrainChange={setGrainOverride}
-      expandedIds={expandedIds}
-      onExpandedChange={setExpandedIds}
-      onMove={handleMove}
-      todayDay={todayDay}
-      height={height}
-    />
+    <>
+      <GanttCanvas
+        phases={model.phases}
+        placements={model.placements}
+        totalDays={model.totalDays}
+        formatDay={formatDay}
+        grain={grainOverride ?? GRAIN_BY_ZOOM[zoomMode]}
+        onGrainChange={setGrainOverride}
+        expandedIds={expandedIds}
+        onExpandedChange={setExpandedIds}
+        onMove={handleMove}
+        todayDay={todayDay}
+        milestones={milestones}
+        // Legacy behaviour exactly: any marker opens the milestone modal,
+        // which lists and edits all of them. A per-milestone editor would be
+        // an improvement, but parity first — improvements after the flip.
+        onMilestoneActivate={() => setMilestoneModalOpen(true)}
+        height={height}
+      />
+
+      {/* The same modal, the same store wiring, as GanttCanvasV3 — including
+        * the alert() on failure, which is not this slice's to redesign. */}
+      <MilestoneModal
+        open={milestoneModalOpen}
+        onOpenChange={setMilestoneModalOpen}
+        onSave={async (data) => {
+          try {
+            if (data.id) {
+              await updateMilestone(data.id, data);
+            } else {
+              await addMilestone(data as MilestoneFormData);
+            }
+          } catch (error) {
+            logger.error("Error saving milestone:", { error });
+            alert("Failed to save milestone. Please try again.");
+          }
+        }}
+        onDelete={async (id) => {
+          try {
+            await deleteMilestone(id);
+          } catch (error) {
+            logger.error("Error deleting milestone:", { error });
+            alert("Failed to delete milestone. Please try again.");
+          }
+        }}
+        milestones={currentProject?.milestones || []}
+      />
+    </>
   );
 }
