@@ -1,7 +1,7 @@
 /**
  * Dynamic Favicon API
  *
- * Generates favicons with status-based colors for Bound brand.
+ * Generates favicons with status-based colors for the Cockpit brand.
  * Use ?status=connected|disconnected|none to change appearance.
  *
  * Status colors:
@@ -34,43 +34,58 @@ const STATUS_COLORS = {
 type Status = keyof typeof STATUS_COLORS;
 
 /**
- * Bound ≈ mark - two parallel wave strokes
+ * The Cockpit mark: a beacon. Same geometry as public/logo-cockpit.svg,
+ * drawn in the status foreground colour so it stays readable on every
+ * status background.
  *
- * Clean, bold, recognizable ≈ design:
- * - Two parallel sinusoidal curves
- * - Optically centered in the container
- * - Gentle wave (Apple-like restraint)
+ * The favicon uses a heavier stroke than the full-size mark (34 vs 17 in a
+ * 512 viewBox): at 16-32px a 17-unit stroke aliases into fog, and a favicon
+ * that cannot be recognised in a tab strip is decoration. The gold point
+ * keeps its brand colour except on the amber "disconnected" background,
+ * where gold-on-amber has no contrast and the foreground colour takes over.
  */
-function BoundMark({
+function CockpitMark({
   color = "#FFFFFF",
+  dotColor,
   size: iconSize = 32,
 }: {
   color?: string;
+  dotColor?: string;
   size?: number;
 }) {
-  const scale = iconSize * 0.65;
+  const scale = iconSize * 0.72;
 
   return (
     <svg
       width={scale}
       height={scale}
-      viewBox="0 0 100 100"
+      viewBox="0 0 512 512"
       fill="none"
       style={{ display: "block" }}
     >
-      {/* Top wave stroke */}
+      {/* Outer ring, broken at the base for the stem */}
       <path
-        d="M15 38 C25 24, 40 24, 50 38 C60 52, 75 52, 85 38"
+        d="M 284.6 393.2 A 150 150 0 1 0 227.4 393.2"
         stroke={color}
-        strokeWidth="10"
+        strokeWidth="34"
         strokeLinecap="round"
         fill="none"
       />
-      {/* Bottom wave stroke */}
+      {/* Inner arc */}
       <path
-        d="M15 62 C25 48, 40 48, 50 62 C60 76, 75 76, 85 62"
+        d="M 176.2 283.2 A 88 88 0 1 1 335.8 283.2"
         stroke={color}
-        strokeWidth="10"
+        strokeWidth="34"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* The gold point */}
+      <circle cx="256" cy="246" r="36" fill={dotColor ?? "#E3B54D"} />
+      {/* Stem, through the break */}
+      <path
+        d="M 256 296 L 256 424"
+        stroke={color}
+        strokeWidth="34"
         strokeLinecap="round"
         fill="none"
       />
@@ -110,7 +125,13 @@ export async function GET(request: NextRequest) {
           borderRadius: `${borderRadius}px`,
         }}
       >
-        <BoundMark color={colors.foreground} size={size} />
+        <CockpitMark
+          color={colors.foreground}
+          // Gold on amber has no contrast; the disconnected state hands the
+          // point to the foreground colour instead.
+          dotColor={status === "disconnected" ? colors.foreground : undefined}
+          size={size}
+        />
       </div>
     ),
     {
