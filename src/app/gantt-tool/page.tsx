@@ -14,8 +14,22 @@
 import dynamic from "next/dynamic";
 import { logger } from "@/lib/logger";
 import { GanttCanvasV3 } from "@/components/gantt-tool/GanttCanvasV3";
-import { GanttCanvasNext } from "@/components/gantt-tool/next/GanttCanvasNext";
 import { useGanttCanvasChoice } from "@/components/gantt-tool/next/canvas-flag";
+
+// Loaded lazily, and that is load-bearing: a static import ships the entire
+// replacement canvas (ds canvas, capacity calculator, milestone wiring) to
+// every /gantt-tool visitor ALONGSIDE the legacy canvas — measured at +8kB
+// over the route's 1300kB first-load budget, which is exactly the regression
+// the budget test exists to catch. The strangler's contract is that the
+// replacement costs nothing until the URL asks for it; dynamic() is what
+// makes that true at the bundle level, not just the render level.
+const GanttCanvasNext = dynamic(
+  () =>
+    import("@/components/gantt-tool/next/GanttCanvasNext").then(
+      (m) => m.GanttCanvasNext
+    ),
+  { ssr: false }
+);
 // Lazy-load modals and heavy tabs (E-02: route-level code splitting)
 const NewProjectModal = dynamic(() => import("@/components/gantt-tool/NewProjectModal").then(m => ({ default: m.NewProjectModal })), { ssr: false });
 const ImportModal = dynamic(() => import("@/components/gantt-tool/ImportModal").then(m => ({ default: m.ImportModal })), { ssr: false });
