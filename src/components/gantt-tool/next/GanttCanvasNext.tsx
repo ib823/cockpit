@@ -48,18 +48,21 @@ import { logger } from "@/lib/logger";
 import type { ZoomGrain } from "@/components/ds/gantt/scale";
 import { useGanttToolStoreV2 as useGanttToolStore } from "@/stores/gantt-tool-store-v2";
 import { toCanvasMilestones, toCanvasModel } from "./adapter";
-import { buildAxisTicks, buildNonWorkingDays } from "./axis";
+import { computeTimelineWindow } from "@/components/ds/gantt/timeline-window";
+import { buildWorkingCalendar } from "@/lib/gantt-tool/working-calendar";
 import { buildRowDetails } from "./details";
 import { toCapacityMatrix } from "./capacity";
 import { GanttCapacityPanel } from "@/components/ds/gantt/GanttCapacityPanel";
 import { calculateResourceCapacity } from "@/lib/gantt-tool/resource-capacity-calculator";
 
 /**
- * The starting grain follows the plan's span: a two-month plan at Quarter is
- * an empty screen, a three-year programme at Day is an endless corridor. The
- * user's explicit choice in the zoom control always overrides this.
+ * The grain the canvas OPENS at, chosen from the plan's span — a two-month
+ * plan at Quarter opens nearly empty, a three-year programme at Day opens in
+ * an endless corridor. It decides the first frame only: from then on the
+ * grain is the user's, and the horizon each one shows is a planning window
+ * that extends well past the plan (see `timeline-window.ts`).
  */
-function autoGrain(durationDays: number): ZoomGrain {
+function openingGrain(durationDays: number): ZoomGrain {
   if (durationDays <= 180) return "Week";
   if (durationDays <= 730) return "Month";
   return "Quarter";
@@ -118,14 +121,49 @@ export function GanttCanvasNext({
 
   const bounds = getProjectDuration();
   const phases = currentProject?.phases;
-  const grain = grainOverride ?? autoGrain(bounds?.durationDays ?? 0);
+  const grain = grainOverride ?? openingGrain(bounds?.durationDays ?? 0);
 
-  const model = useMemo(
-    () => (bounds && phases ? toCanvasModel(phases, bounds) : null),
-    [phases, bounds]
+  /**
+   * The canvas measures its own scrolling pane and reports it here, so the
+   * horizon can be extended past a wide monitor. Without it a 4K screen would
+   * run out of calendar before it ran out of pane.
+   */
+  const [viewportPx, setViewportPx] = useState(0);
+  const handleViewportWidth = useCallback((px: number) => setViewportPx(px), []);
+
+  /**
+   * The window is the calendar the canvas draws — a planning horizon per
+   * grain, anchored just before the plan, NOT the plan's own span. Every
+   * offset below is measured from its origin: bars, milestones, today, the
+   * header bands and the shading, so none of them can disagree.
+   */
+  const timelineWindow = useMemo(
+    () =>
+      computeTimelineWindow({
+        grain,
+        projectStart: bounds?.startDate,
+        projectEnd: bounds?.endDate,
+        viewportPx,
+      }),
+    [grain, bounds?.startDate, bounds?.endDate, viewportPx]
   );
 
-  const origin = bounds?.startDate;
+  /** The window in the shape the placement adapter takes. */
+  const windowBounds = useMemo(
+    () => ({
+      startDate: timelineWindow.origin,
+      endDate: addDays(timelineWindow.origin, Math.max(0, timelineWindow.totalDays - 1)),
+      durationDays: timelineWindow.totalDays,
+    }),
+    [timelineWindow]
+  );
+
+  const model = useMemo(
+    () => (phases ? toCanvasModel(phases, windowBounds) : null),
+    [phases, windowBounds]
+  );
+
+  const origin = timelineWindow.origin;
 
   const formatDay = useCallback(
     (day: number) => (origin ? format(addDays(origin, day), "d MMM yy") : ""),
@@ -140,36 +178,44 @@ export function GanttCanvasNext({
    * is a lie that reads as a bug in the data.
    */
   const todayDay = useMemo(() => {
-    if (!bounds) return undefined;
-    const day = differenceInDays(new Date(), bounds.startDate);
-    return day >= 0 && day < bounds.durationDays ? day : undefined;
-  }, [bounds]);
+    const day = differenceInDays(new Date(), timelineWindow.origin);
+    return day >= 0 && day < timelineWindow.totalDays ? day : undefined;
+  }, [timelineWindow]);
 
   const milestones = useMemo(
     () =>
-      bounds && currentProject?.milestones
-        ? toCanvasMilestones(currentProject.milestones, bounds, formatDay)
+      currentProject?.milestones
+        ? toCanvasMilestones(currentProject.milestones, windowBounds, formatDay)
         : [],
-    [currentProject?.milestones, bounds, formatDay]
+    [currentProject?.milestones, windowBounds, formatDay]
   );
 
-  const axis = useMemo(
-    () => (bounds ? buildAxisTicks(bounds, grain) : { majorTicks: [], minorTicks: [] }),
-    [bounds, grain]
+  /**
+   * The one working-calendar read. Everything non-working on screen comes from
+   * here — and so does the holiday list the duration columns are computed
+   * with, which is the point: before this, the axis shaded the region's public
+   * holidays while the working-day counts had only ever seen the project's
+   * own, so a bar over Hari Raya was shaded and counted as a working day.
+   */
+  const calendar = useMemo(
+    () =>
+      buildWorkingCalendar(
+        timelineWindow.origin,
+        timelineWindow.totalDays,
+        currentProject?.holidays ?? []
+      ),
+    [timelineWindow, currentProject?.holidays]
   );
 
-  // Same holiday source, same "ABMY" region default, as the legacy canvas —
-  // so both canvases shade identical days on the same plan.
-  const nonWorkingDays = useMemo(
-    () => (bounds ? buildNonWorkingDays(bounds, currentProject?.holidays ?? []) : []),
-    [bounds, currentProject?.holidays]
-  );
-
-  // Same holiday list as the shading, so the "working days" a row reports and
-  // the days the axis shades can never disagree.
   const details = useMemo(
-    () => (phases ? buildRowDetails(phases, currentProject?.holidays ?? []) : {}),
-    [phases, currentProject?.holidays]
+    () => (phases ? buildRowDetails(phases, calendar.holidayList) : {}),
+    [phases, calendar.holidayList]
+  );
+
+  /** The plan's own span — used by "Fit project" and nothing else. */
+  const fitDates = useMemo(
+    () => (bounds ? { start: bounds.startDate, end: bounds.endDate } : undefined),
+    [bounds]
   );
 
   const resources = currentProject?.resources;
@@ -232,7 +278,7 @@ export function GanttCanvasNext({
     [currentProject, updatePhase, updateTask]
   );
 
-  if (!model || !bounds) {
+  if (!model) {
     return (
       <div style={{ padding: "var(--ds-space-6, 24px)" }}>
         <p>No plan loaded.</p>
@@ -245,13 +291,15 @@ export function GanttCanvasNext({
       <GanttCanvas
         phases={model.phases}
         placements={model.placements}
+        originDate={timelineWindow.origin}
         totalDays={model.totalDays}
         formatDay={formatDay}
         grain={grain}
         onGrainChange={setGrainOverride}
-        majorTicks={axis.majorTicks}
-        minorTicks={axis.minorTicks}
-        nonWorkingDays={nonWorkingDays}
+        weekendDays={calendar.weekendDays}
+        holidays={calendar.holidays}
+        fitDates={fitDates}
+        onViewportWidthChange={handleViewportWidth}
         details={details}
         expandedIds={expandedIds}
         onExpandedChange={setExpandedIds}

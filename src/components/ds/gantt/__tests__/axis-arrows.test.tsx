@@ -11,88 +11,96 @@ import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TimelineAxis } from "../TimelineAxis";
+import { buildAxisBands } from "../axis-bands";
+import { PX_PER_DAY, HOLIDAY_MIN_PX, type ZoomGrain } from "../scale";
 import { DependencyArrow, DependencyStub } from "../DependencyArrow";
 
-const TICKS = [{ day: 0, label: "Jan" }, { day: 31, label: "Feb" }];
-const NON_WORKING = [
-  { day: 3 },
-  { day: 4 },
-  { day: 25, name: "Thaipusam (MY)" },
-];
+const ORIGIN = new Date(2026, 0, 5); // Monday 5 Jan 2026
+const WEEKENDS = [5, 6, 12, 13];
+const HOLIDAYS = [{ day: 25, name: "Thaipusam (MY)", label: "30 Jan 2026" }];
+
+function axis(grain: ZoomGrain, totalDays = 60, props: Record<string, unknown> = {}) {
+  return (
+    <TimelineAxis
+      grain={grain}
+      totalDays={totalDays}
+      pxPerDay={PX_PER_DAY[grain]}
+      bands={buildAxisBands(ORIGIN, totalDays, grain)}
+      weekendDays={WEEKENDS}
+      holidays={HOLIDAYS}
+      {...props}
+    />
+  );
+}
 
 describe("TimelineAxis", () => {
-  test("shading renders where a day is wide enough to read", () => {
-    const { container } = render(
-      <TimelineAxis
-        grain="Day"
-        totalDays={60}
-        majorTicks={TICKS}
-        minorTicks={[]}
-        nonWorkingDays={NON_WORKING}
-      />
-    );
-    expect(container.querySelectorAll("[class*='shade']")).toHaveLength(3);
+  test("weekends shade where a day is wide enough to read", () => {
+    const { container } = render(axis("Day"));
+    expect(container.querySelectorAll("[class*='weekend']")).toHaveLength(4);
   });
 
-  test("shading is dropped once a day is too narrow", () => {
-    // At Month a day is 2.9px and the shading becomes texture, which is what
-    // hides the exception you were looking for.
-    const { container } = render(
-      <TimelineAxis
-        grain="Month"
-        totalDays={60}
-        majorTicks={TICKS}
-        minorTicks={[]}
-        nonWorkingDays={NON_WORKING}
-      />
-    );
-    expect(container.querySelectorAll("[class*='shade']")).toHaveLength(0);
+  test("weekend shading is dropped once a day is too narrow", () => {
+    // At Month a weekend is 5.8px every 20px — stripes, which hide exactly the
+    // exception you were looking for.
+    const { container } = render(axis("Month"));
+    expect(container.querySelectorAll("[class*='weekend']")).toHaveLength(0);
   });
 
-  test("holidays are distinguishable from weekends by more than hue", () => {
-    const { container } = render(
-      <TimelineAxis
-        grain="Day"
-        totalDays={60}
-        majorTicks={TICKS}
-        minorTicks={[]}
-        nonWorkingDays={NON_WORKING}
-      />
+  test("a holiday survives every zoom, because a named day changes the plan", () => {
+    for (const grain of ["Day", "Week", "Month", "Quarter"] as const) {
+      const { container, unmount } = render(axis(grain));
+      expect(container.querySelectorAll("[class*='holiday']")).toHaveLength(1);
+      unmount();
+    }
+  });
+
+  test("a holiday marks its own day, never the period containing it", () => {
+    // The failure this guards: colouring the whole week, month or quarter that
+    // contains the holiday, which reads as five days off instead of one.
+    const { container } = render(axis("Quarter"));
+    const marker = container.querySelector("[class*='holiday']") as HTMLElement;
+    const width = parseFloat(marker.style.width);
+
+    expect(width).toBe(HOLIDAY_MIN_PX); // floored, not widened to the quarter
+    expect(width).toBeLessThan(30 * PX_PER_DAY.Quarter); // narrower than a month
+  });
+
+  test("a holiday carries its name and date for the tooltip", () => {
+    const { container } = render(axis("Week"));
+    expect(container.querySelector("[class*='holiday']")).toHaveAttribute(
+      "title",
+      "Thaipusam (MY) — 30 Jan 2026"
     );
-    expect(container.querySelectorAll("[class*='holiday']")).toHaveLength(1);
-    expect(container.querySelectorAll("[class*='weekend']")).toHaveLength(2);
+  });
+
+  test("the header nests two labelled rows plus unlabelled subdivisions", () => {
+    // Week grain: months above, weeks below, days as gridlines.
+    const { container } = render(axis("Week", 60));
+    expect(container.querySelectorAll("[class*='major']").length).toBeGreaterThan(0);
+    expect(container.querySelectorAll("[class*='minor']").length).toBeGreaterThan(0);
+    expect(container.querySelectorAll("[class*='gridline']").length).toBeGreaterThan(0);
   });
 
   test("the axis is hidden from assistive technology", () => {
     // Three hundred announced tick labels would bury the bars.
-    const { container } = render(
-      <TimelineAxis grain="Day" totalDays={60} majorTicks={TICKS} minorTicks={[]} />
-    );
+    const { container } = render(axis("Day"));
     expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");
   });
 
   test("today renders when inside the window and not otherwise", () => {
-    const inside = render(
-      <TimelineAxis grain="Day" totalDays={60} majorTicks={[]} minorTicks={[]} todayDay={30} />
-    );
+    const inside = render(axis("Day", 60, { todayDay: 30 }));
     expect(inside.container.querySelectorAll("[class*='today']").length).toBeGreaterThan(0);
 
-    const outside = render(
-      <TimelineAxis grain="Day" totalDays={60} majorTicks={[]} minorTicks={[]} todayDay={900} />
-    );
+    const outside = render(axis("Day", 60, { todayDay: 900 }));
     expect(outside.container.querySelectorAll("[class*='today']")).toHaveLength(0);
   });
 
-  test("tick positions scale with the grain", () => {
-    const { container, rerender } = render(
-      <TimelineAxis grain="Day" totalDays={60} majorTicks={TICKS} minorTicks={[]} />
-    );
-    const dayLeft = (container.querySelector("[class*='major']:nth-of-type(2)") as HTMLElement)
-      ?.style.left;
+  test("band positions scale with the grain", () => {
+    const { container, rerender } = render(axis("Day"));
+    const dayLeft = (container.querySelectorAll("[class*='minor']")[3] as HTMLElement)?.style.left;
 
-    rerender(<TimelineAxis grain="Week" totalDays={60} majorTicks={TICKS} minorTicks={[]} />);
-    const weekLeft = (container.querySelector("[class*='major']:nth-of-type(2)") as HTMLElement)
-      ?.style.left;
+    rerender(axis("Week"));
+    const weekLeft = (container.querySelectorAll("[class*='minor']")[3] as HTMLElement)?.style.left;
 
     expect(dayLeft).not.toBe(weekLeft);
   });

@@ -75,6 +75,32 @@
   flex: none;
 }
 
+/* Sizing the view to the plan is a command, not a behaviour — so it looks
+   like one, sitting beside the zoom control it overrides. */
+.fitButton {
+  height: 26px;
+  padding: 0 var(--ds-space-3);
+  margin-left: var(--ds-space-2);
+  border-radius: var(--ds-radius-sm);
+  border: var(--ds-border-hairline) solid var(--ds-border-default);
+  background: var(--ds-surface-raised);
+  font: var(--ds-type-body-sm);
+  font-weight: 500;
+  color: var(--ds-content-secondary);
+  cursor: pointer;
+  flex: none;
+}
+
+.fitButton:hover {
+  color: var(--ds-content-primary);
+  border-color: var(--ds-border-strong);
+}
+
+.fitButton:focus-visible {
+  outline: var(--ds-focus-ring-width) solid var(--ds-focus-ring);
+  outline-offset: 2px;
+}
+
 .spacer { flex: 1 1 auto; }
 
 .rowCount {
@@ -227,7 +253,27 @@
 
 .shadeWeekend { background: var(--ds-surface-app); }
 
-.shadeHoliday { background: var(--ds-warning-subtle); }
+/* Named, and the only shading with something to say — so it takes the pointer
+   for its tooltip while the weekend fill stays inert. The top rule keeps it
+   distinguishable from a weekend without relying on hue. */
+.shadeHoliday {
+  background: var(--ds-warning-subtle);
+  border-left: 1px solid var(--ds-warning-default);
+  pointer-events: auto;
+  cursor: help;
+}
+
+/* The header's subdivision lines, continued down the canvas so a bar can be
+   read against the same divisions that label it. Quieter than any border. */
+.gridline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--ds-border-subtle);
+  opacity: 0.45;
+  pointer-events: none;
+}
 
 /* Continues the axis' today marker down the canvas. Never pulses. */
 .todayRule {

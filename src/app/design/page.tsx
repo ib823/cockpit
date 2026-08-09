@@ -87,6 +87,14 @@ const DEMO_PHASES: GanttPhase[] = [
   ]},
 ];
 
+/** Monday 5 Jan 2026 — day 0 of the showcase timeline. */
+const GANTT_ORIGIN = new Date(2026, 0, 5);
+
+/** Saturdays and Sundays from that Monday, so the shading lands on real ones. */
+const GANTT_WEEKENDS = Array.from({ length: 460 }, (_, day) => day).filter(
+  (day) => day % 7 === 5 || day % 7 === 6
+);
+
 const DEMO_PLACEMENTS = {
   prepare: { startDay: 0, durationDays: 60, progress: 100 },
   t1: { startDay: 0, durationDays: 14, progress: 100 },
@@ -295,19 +303,17 @@ export default function DesignShowcasePage() {
                 year: "2-digit",
               });
             }}
+            originDate={GANTT_ORIGIN}
             totalDays={460}
             grain={ganttGrain}
             onGrainChange={setGanttGrain}
             expandedIds={ganttExpanded}
             onExpandedChange={setGanttExpanded}
-            majorTicks={[
-              { day: 0, label: "Q1 2026" },
-              { day: 90, label: "Q2 2026" },
-              { day: 181, label: "Q3 2026" },
-              { day: 273, label: "Q4 2026" },
-              { day: 365, label: "Q1 2027" },
+            weekendDays={GANTT_WEEKENDS}
+            holidays={[
+              { day: 25, name: "Thaipusam (MY)", label: "30 Jan 2026" },
+              { day: 48, name: "Chinese New Year", label: "22 Feb 2026" },
             ]}
-            nonWorkingDays={[{ day: 25, name: "Thaipusam (MY)" }, { day: 48, name: "Chinese New Year" }]}
             todayDay={120}
             height={340}
             debugAnnouncements

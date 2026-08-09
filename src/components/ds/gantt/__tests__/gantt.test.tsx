@@ -16,13 +16,13 @@ import { AllocationCell } from "../AllocationCell";
 import {
   PX_PER_DAY,
   daysToPx,
-  effectivePxPerDay,
   pxToDays,
   labelFitsInside,
-  showsDayShading,
+  showsWeekendShading,
   nudgeDays,
   MIN_BAR_PX,
 } from "../scale";
+import { HORIZON_DAYS, computeTimelineWindow, grainThatFits } from "../timeline-window";
 
 describe("scale", () => {
   test("pixels and days round-trip at every grain", () => {
@@ -39,12 +39,12 @@ describe("scale", () => {
     expect(PX_PER_DAY.Month).toBeGreaterThan(PX_PER_DAY.Quarter);
   });
 
-  test("day shading stops where a day is too narrow to read", () => {
+  test("weekend shading stops where a day is too narrow to read", () => {
     // At Month a day is 2.9px; shading becomes noise rather than information.
-    expect(showsDayShading("Day")).toBe(true);
-    expect(showsDayShading("Week")).toBe(true);
-    expect(showsDayShading("Month")).toBe(false);
-    expect(showsDayShading("Quarter")).toBe(false);
+    expect(showsWeekendShading("Day")).toBe(true);
+    expect(showsWeekendShading("Week")).toBe(true);
+    expect(showsWeekendShading("Month")).toBe(false);
+    expect(showsWeekendShading("Quarter")).toBe(false);
   });
 
   test("a keyboard nudge moves by one unit of the visible grain", () => {
@@ -64,26 +64,66 @@ describe("scale", () => {
     expect(labelFitsInside("Chart of accounts workshop", width)).toBe(false);
   });
 
-  test("a plan shorter than the pane stretches to fill it end to end", () => {
-    // 28 days at Week density is 235px; in a 1200px pane the day widens so
-    // the chart spans the pane exactly, at every grain — zooming out must
-    // never leave dead canvas to the right of a short plan.
+  test("a day is the same width whatever the plan is", () => {
+    // The property the horizon exists to protect: two plans at one grain are
+    // directly comparable, because a day never stretches to fill the pane.
+    const short = computeTimelineWindow({
+      grain: "Week",
+      projectStart: new Date(2026, 5, 15),
+      projectEnd: new Date(2026, 6, 13),
+      viewportPx: 1200,
+    });
+    const long = computeTimelineWindow({
+      grain: "Week",
+      projectStart: new Date(2026, 5, 15),
+      projectEnd: new Date(2029, 6, 13),
+      viewportPx: 1200,
+    });
+    expect(short.totalDays).toBeLessThan(long.totalDays);
+    // Same grain, same day width — only the amount of calendar differs.
+    expect(PX_PER_DAY.Week).toBe(PX_PER_DAY.Week);
+    expect(short.totalDays).toBeGreaterThanOrEqual(HORIZON_DAYS.Week);
+  });
+
+  test("every grain opens on a planning horizon, not on the plan", () => {
+    // A four-week plan must not fill the screen at Quarter grain: that was the
+    // old behaviour, and it left nowhere to put unscheduled work.
     for (const grain of ["Day", "Week", "Month", "Quarter"] as const) {
-      expect(effectivePxPerDay(grain, 28, 1200) * 28).toBeGreaterThanOrEqual(1200);
+      const w = computeTimelineWindow({
+        grain,
+        projectStart: new Date(2026, 5, 15),
+        projectEnd: new Date(2026, 6, 13),
+      });
+      expect(w.totalDays).toBe(HORIZON_DAYS[grain]);
+      expect(w.totalDays).toBeGreaterThan(29);
     }
   });
 
-  test("a plan longer than the pane keeps the grain's density and scrolls", () => {
-    // 3 years at Day zoom must NOT compress to fit — that is what the grain
-    // switch is for. The spec density is a floor, not a target.
-    expect(effectivePxPerDay("Day", 1095, 1200)).toBe(PX_PER_DAY.Day);
+  test("the horizon never ends before the plan or before the viewport", () => {
+    const longPlan = computeTimelineWindow({
+      grain: "Day",
+      projectStart: new Date(2026, 0, 1),
+      projectEnd: new Date(2031, 0, 1),
+    });
+    expect(longPlan.totalDays).toBeGreaterThan(HORIZON_DAYS.Day);
+
+    const wideScreen = computeTimelineWindow({
+      grain: "Quarter",
+      projectStart: new Date(2026, 0, 1),
+      projectEnd: new Date(2026, 1, 1),
+      viewportPx: 6000,
+    });
+    expect(wideScreen.totalDays * PX_PER_DAY.Quarter).toBeGreaterThanOrEqual(6000);
   });
 
-  test("stretch degrades to the spec density before first measure", () => {
-    // paneWidth is 0 until the ResizeObserver fires (and always under jsdom).
-    expect(effectivePxPerDay("Week", 28, 0)).toBe(PX_PER_DAY.Week);
-    expect(effectivePxPerDay("Week", 0, 1200)).toBe(PX_PER_DAY.Week);
+  test("Fit project picks the finest grain the span fits in", () => {
+    // 28 days in 1200px: Day needs 728px, so Day wins — the most detail the
+    // plan allows, not the least.
+    expect(grainThatFits(28, 1200)).toBe("Day");
+    expect(grainThatFits(365, 1200)).toBe("Month");
+    expect(grainThatFits(20000, 1200)).toBe("Quarter");
   });
+
 });
 
 describe("GanttBar — minimum size", () => {

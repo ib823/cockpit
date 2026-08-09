@@ -51,6 +51,7 @@ function Harness({
       phases={phases}
       placements={placementsFor(phases)}
       formatDay={(d) => `day ${d}`}
+      originDate={new Date(2026, 0, 5)}
       totalDays={365}
       grain={grain}
       onGrainChange={setGrain}

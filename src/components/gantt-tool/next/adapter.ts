@@ -36,6 +36,7 @@
  */
 
 import { differenceInDays } from "date-fns";
+import { parseIsoDate } from "@/lib/gantt-tool/working-calendar";
 import type {
   GanttMilestone as StoreMilestone,
   GanttPhase as StorePhase,
@@ -66,7 +67,11 @@ export interface CanvasModel {
  * of defect nobody reports and everybody distrusts.
  */
 export function dayOffset(iso: string, origin: Date): number {
-  return differenceInDays(new Date(iso), origin);
+  // Local-midnight parsing, matching the working calendar and the window
+  // origin. `new Date("2026-06-17")` is midnight UTC, and subtracting that
+  // from a local-midnight origin is up to a day of error east of Greenwich —
+  // a bar and the holiday shading under it landing on different columns.
+  return differenceInDays(parseIsoDate(iso), origin);
 }
 
 /**
@@ -76,7 +81,7 @@ export function dayOffset(iso: string, origin: Date): number {
  * `startDate === endDate` for a single-day task.
  */
 export function inclusiveDays(startIso: string, endIso: string): number {
-  const span = differenceInDays(new Date(endIso), new Date(startIso)) + 1;
+  const span = differenceInDays(parseIsoDate(endIso), parseIsoDate(startIso)) + 1;
   return span > 0 ? span : 1;
 }
 
