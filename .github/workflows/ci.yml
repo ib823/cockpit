@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  # Manual re-run. A `pull_request` event occasionally fails to spawn a run at
+  # all — the PR then sits with no validate/e2e signal whatsoever, which is
+  # indistinguishable from "not finished yet" and cannot be recovered by
+  # reopening. This makes re-running possible without an empty commit.
+  workflow_dispatch:
 
 jobs:
   validate:

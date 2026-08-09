@@ -168,6 +168,13 @@ export interface GanttCanvasProps {
 
 const GRAINS: ZoomGrain[] = ["Day", "Week", "Month", "Quarter"];
 
+/**
+ * Scroll arithmetic is done in milliseconds rather than through date-fns: a
+ * DST shift is 1/24 of a day, which is at most a pixel, while date-fns' day
+ * truncation would silently round a scroll position to the nearest midnight.
+ */
+const MS_PER_DAY = 86_400_000;
+
 export function GanttCanvas({
   phases,
   placements,
@@ -234,10 +241,8 @@ export function GanttCanvas({
    *
    * Held as a date rather than a day offset because the window's origin moves
    * with the grain — an offset would be measured from somewhere else after
-   * the switch. Plain millisecond arithmetic: a DST shift is 1/24 of a day,
-   * which is at most a pixel, and date-fns' day truncation is not.
+   * the switch.
    */
-  const MS_PER_DAY = 86_400_000;
   const centreDateRef = useRef<Date | null>(null);
   const originRef = useRef(originDate);
   originRef.current = originDate;
