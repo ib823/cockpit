@@ -48,22 +48,6 @@ export const MIN_BAR_PX = 4;
 /** The invisible hit area given to a sub-minimum bar. */
 export const MIN_HIT_PX = 24;
 
-/**
- * The day width actually rendered: the grain's density, raised so a plan
- * shorter than the viewport still spans it end to end. The grain then only
- * changes tick density, never leaves dead canvas to the right — a 4-week plan
- * at Quarter zoom is a full-width chart, not a 32px sliver.
- */
-export function effectivePxPerDay(
-  grain: ZoomGrain,
-  totalDays: number,
-  viewportPx: number
-): number {
-  const base = PX_PER_DAY[grain];
-  if (totalDays <= 0 || viewportPx <= 0) return base;
-  return Math.max(base, viewportPx / totalDays);
-}
-
 export function daysToPx(days: number, grain: ZoomGrain): number {
   return days * PX_PER_DAY[grain];
 }
@@ -91,11 +75,25 @@ export function labelFitsInside(label: string, barPx: number): boolean {
  */
 export const MIN_OUTSIDE_LABEL_PX = 60;
 
-/** Weekend and holiday shading is only drawn where a day is wide enough to
- *  read. At Month a single day is 2.9px and the shading becomes noise. */
-export function showsDayShading(grain: ZoomGrain): boolean {
+/**
+ * Weekend shading is drawn only where a day is wide enough to read as a day.
+ * At Month grain a weekend is 5.8px of fill every 20px — stripes, which hide
+ * exactly the exception you were looking for.
+ *
+ * Holidays are NOT gated this way: a named day that changes what a plan costs
+ * survives the zoom, floored at `HOLIDAY_MIN_PX` and anchored to its own date.
+ */
+export function showsWeekendShading(grain: ZoomGrain): boolean {
   return grain === "Day" || grain === "Week";
 }
+
+/**
+ * The narrowest a holiday marker may be drawn. At Quarter grain a day is
+ * 1.15px, which sub-pixel rounding can erase entirely; 3px is visible and
+ * still unmistakably narrower than the month it sits in, so it reads as a day
+ * rather than as a shaded period.
+ */
+export const HOLIDAY_MIN_PX = 3;
 
 /** Arrow-key nudge distance: one unit of the current grain, so the keyboard
  *  equivalent of a drag moves by what the user can actually see. */

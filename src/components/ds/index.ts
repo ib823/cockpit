@@ -80,12 +80,23 @@ export {
   daysToPx,
   pxToDays,
   labelFitsInside,
-  showsDayShading,
+  showsWeekendShading,
+  HOLIDAY_MIN_PX,
   nudgeDays,
 } from "./gantt/scale";
 export type { ZoomGrain } from "./gantt/scale";
 export { TimelineAxis } from "./gantt/TimelineAxis";
-export type { TimelineAxisProps, AxisTick, NonWorkingDay } from "./gantt/TimelineAxis";
+export type { TimelineAxisProps, AxisHoliday } from "./gantt/TimelineAxis";
+export { buildAxisBands } from "./gantt/axis-bands";
+export type { AxisBand, AxisBands } from "./gantt/axis-bands";
+export {
+  computeTimelineWindow,
+  grainThatFits,
+  snapToGrainStart,
+  HORIZON_DAYS,
+  LEAD_DAYS,
+} from "./gantt/timeline-window";
+export type { TimelineWindow } from "./gantt/timeline-window";
 export { DependencyArrow, DependencyStub } from "./gantt/DependencyArrow";
 export type { DependencyArrowProps, LinkType } from "./gantt/DependencyArrow";
 export { GanttStatus } from "./gantt/GanttStatus";

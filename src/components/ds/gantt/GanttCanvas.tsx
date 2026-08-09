@@ -40,7 +40,9 @@ import { GanttAmsChevron } from "./GanttAmsChevron";
 import { GanttBar } from "./GanttBar";
 import { GanttMilestones, type CanvasMilestone } from "./GanttMilestones";
 import { GanttStatus } from "./GanttStatus";
-import { TimelineAxis, type AxisTick, type NonWorkingDay } from "./TimelineAxis";
+import { TimelineAxis, type AxisHoliday } from "./TimelineAxis";
+import { buildAxisBands } from "./axis-bands";
+import { grainThatFits } from "./timeline-window";
 import {
   computeWindow,
   flattenRows,
@@ -49,7 +51,14 @@ import {
   type FlatRow,
   type GanttPhase,
 } from "./rows";
-import { ROW_HEIGHT, effectivePxPerDay, nudgeDays, showsDayShading, type ZoomGrain } from "./scale";
+import {
+  HOLIDAY_MIN_PX,
+  PX_PER_DAY,
+  ROW_HEIGHT,
+  nudgeDays,
+  showsWeekendShading,
+  type ZoomGrain,
+} from "./scale";
 import {
   sayCursorMove,
   sayExpand,
@@ -105,6 +114,13 @@ export interface GanttCanvasProps {
   placements: Record<string, BarPlacement>;
   /** Turns a day offset into a human date, e.g. "14 Jul 26". */
   formatDay: (day: number) => string;
+  /**
+   * Day 0 of the canvas. This is the WINDOW's origin, not the plan's start —
+   * the horizon deliberately opens before the first bar (see
+   * `timeline-window.ts`), and every offset here is measured from it.
+   */
+  originDate: Date;
+  /** Horizon length in days. Wider than the plan, and scrolled. */
   totalDays: number;
   grain: ZoomGrain;
   onGrainChange: (grain: ZoomGrain) => void;
@@ -114,10 +130,22 @@ export interface GanttCanvasProps {
   onMove?: (id: string, startDay: number, deltaDays: number) => void;
   /** Queued local changes, reported in the commit announcement. */
   pendingChanges?: number;
-  majorTicks?: AxisTick[];
-  minorTicks?: AxisTick[];
-  nonWorkingDays?: NonWorkingDay[];
+  /** Weekend day offsets from the shared working calendar. */
+  weekendDays?: number[];
+  /** Named non-working days from the same calendar, with dates for tooltips. */
+  holidays?: AxisHoliday[];
   todayDay?: number;
+  /**
+   * The plan's own span. Drives the "Fit project" command — the only place
+   * the canvas sizes itself to the plan rather than to the calendar. Absent,
+   * the command is not offered.
+   */
+  fitDates?: { start: Date; end: Date };
+  /**
+   * Reports the scrolling pane's width so the caller can extend the horizon
+   * past it. Must be referentially stable.
+   */
+  onViewportWidthChange?: (px: number) => void;
   /**
    * Per-row detail columns. When present the tree pane becomes the four-column
    * grid the legacy canvas renders (name, duration, work days, dates); when
@@ -144,6 +172,7 @@ export function GanttCanvas({
   phases,
   placements,
   formatDay,
+  originDate,
   totalDays,
   grain,
   onGrainChange,
@@ -151,10 +180,11 @@ export function GanttCanvas({
   onExpandedChange,
   onMove,
   pendingChanges = 0,
-  majorTicks = [],
-  minorTicks = [],
-  nonWorkingDays = [],
+  weekendDays = [],
+  holidays = [],
   todayDay,
+  fitDates,
+  onViewportWidthChange,
   details,
   milestones = [],
   onMilestoneActivate,
@@ -181,23 +211,94 @@ export function GanttCanvas({
   // The axis is the spec's two 28px tiers.
   const viewportHeight = height - 56;
 
-  // The timeline pane's inner width. The grain's density is a MINIMUM — a
-  // plan shorter than the pane stretches to fill it, so the chart always runs
-  // end to end and zooming only changes tick density (see effectivePxPerDay).
-  // 0 until first measure (and under test, where ResizeObserver is absent),
-  // which falls back to the spec density.
-  const [paneWidth, setPaneWidth] = useState(0);
+  /**
+   * A day is the grain's width, full stop. It does not stretch to fill the
+   * pane: a day that meant a different distance on every screen is precisely
+   * what made two plans incomparable. A pane wider than the horizon is
+   * answered by extending the horizon (the caller's job, via
+   * `onViewportWidthChange`), so the canvas shows MORE TIME rather than
+   * wider time.
+   */
+  const px = PX_PER_DAY[grain];
+
+  const bands = useMemo(
+    () => buildAxisBands(originDate, totalDays, grain),
+    [originDate, totalDays, grain]
+  );
+
+  /**
+   * Scale changes preserve the user's place in the CALENDAR, not in the
+   * scroll bar. Switching Week → Quarter with the scroll offset kept would
+   * land you three years from where you were looking; what has to survive the
+   * switch is the date in the middle of the screen.
+   *
+   * Held as a date rather than a day offset because the window's origin moves
+   * with the grain — an offset would be measured from somewhere else after
+   * the switch. Plain millisecond arithmetic: a DST shift is 1/24 of a day,
+   * which is at most a pixel, and date-fns' day truncation is not.
+   */
+  const MS_PER_DAY = 86_400_000;
+  const centreDateRef = useRef<Date | null>(null);
+  const originRef = useRef(originDate);
+  originRef.current = originDate;
+  const originTime = originDate.getTime();
+
+  // Reported up so the horizon can be extended past a wide pane.
   React.useLayoutEffect(() => {
     const el = bodyRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
-    const measure = () => setPaneWidth(el.clientWidth);
+    const measure = () => onViewportWidthChange?.(el.clientWidth);
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [onViewportWidthChange]);
 
-  const px = effectivePxPerDay(grain, totalDays, paneWidth);
+  // Re-centre on the remembered date whenever the window or the scale moves.
+  React.useLayoutEffect(() => {
+    const el = bodyRef.current;
+    const centre = centreDateRef.current;
+    if (!el || !centre) return;
+    const day = (centre.getTime() - originRef.current.getTime()) / MS_PER_DAY;
+    el.scrollLeft = Math.max(0, day * px - el.clientWidth / 2);
+  }, [originTime, px]);
+
+  /**
+   * First paint opens on the plan rather than on the runway before it — the
+   * lead-in exists so work can be dragged earlier, not so the plan starts off
+   * screen. Once only; after that the view is the user's.
+   */
+  const openedRef = useRef(false);
+  React.useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (openedRef.current || !fitDates || !el || el.clientWidth === 0) return;
+    openedRef.current = true;
+    const startDay = (fitDates.start.getTime() - originRef.current.getTime()) / MS_PER_DAY;
+    el.scrollLeft = Math.max(0, startDay * px - el.clientWidth * 0.1);
+  }, [fitDates, px]);
+
+  /**
+   * "Fit project" — the one command that sizes the view to the plan, kept
+   * explicit because doing it automatically is what made the timeline a
+   * picture of the plan instead of a calendar. Picks the finest grain the
+   * span fits in and centres it; the re-centre effect above does the
+   * scrolling once the new window arrives.
+   */
+  const fitProject = useCallback(() => {
+    const el = bodyRef.current;
+    if (!fitDates || !el) return;
+    const spanDays = (fitDates.end.getTime() - fitDates.start.getTime()) / MS_PER_DAY + 1;
+    const next = grainThatFits(spanDays, el.clientWidth);
+    const centre = new Date((fitDates.start.getTime() + fitDates.end.getTime()) / 2);
+    centreDateRef.current = centre;
+
+    if (next !== grain) {
+      onGrainChange(next);
+      return;
+    }
+    const day = (centre.getTime() - originRef.current.getTime()) / MS_PER_DAY;
+    el.scrollLeft = Math.max(0, day * px - el.clientWidth / 2);
+  }, [fitDates, grain, onGrainChange, px]);
 
   const window_ = computeWindow(rows.length, rowHeight, scrollTop, viewportHeight);
   const visible = rows.slice(window_.startIndex, window_.endIndex);
@@ -386,7 +487,7 @@ export function GanttCanvas({
 
   const hasMilestones = milestones.length > 0;
   const hasAms = Object.values(placements).some((p) => p.ams);
-  const hasHolidays = nonWorkingDays.some((d) => d.name);
+  const hasHolidays = holidays.length > 0;
 
   return (
     <div className={styles.frame}>
@@ -407,6 +508,11 @@ export function GanttCanvas({
             </button>
           ))}
         </div>
+        {fitDates && (
+          <button type="button" className={styles.fitButton} onClick={fitProject}>
+            Fit project
+          </button>
+        )}
         {toolbar && <span className={styles.toolbarDivider} aria-hidden="true" />}
         {toolbar}
         <span className={styles.spacer} />
@@ -493,44 +599,67 @@ export function GanttCanvas({
             aria-rowcount={rows.length}
             onKeyDown={handleKeyDown}
             onScroll={(event) => {
-              const top = event.currentTarget.scrollTop;
-              setScrollTop(top);
+              const el = event.currentTarget;
+              setScrollTop(el.scrollTop);
+              // Remembered so a scale change can put the same date back in the
+              // middle of the screen.
+              centreDateRef.current = new Date(
+                originRef.current.getTime() +
+                  ((el.scrollLeft + el.clientWidth / 2) / px) * MS_PER_DAY
+              );
               // The timeline drives the tree, so the panes cannot drift.
-              const tree = event.currentTarget
+              const tree = el
                 .closest(`.${styles.canvas}`)
                 ?.querySelector(`.${styles.treeBody}`);
-              if (tree) (tree as HTMLElement).scrollTop = top;
+              if (tree) (tree as HTMLElement).scrollTop = el.scrollTop;
             }}
           >
             <TimelineAxis
               grain={grain}
               totalDays={totalDays}
-              majorTicks={majorTicks}
-              minorTicks={minorTicks}
-              nonWorkingDays={nonWorkingDays}
-              todayDay={todayDay}
               pxPerDay={px}
+              bands={bands}
+              weekendDays={weekendDays}
+              holidays={holidays}
+              todayDay={todayDay}
             />
 
             <div style={{ height: window_.totalHeight, position: "relative", width: totalDays * px }}>
               {/* Non-working shading spans the full canvas height, not just
-                * the axis strip — a weekend is non-working for every row. Same
-                * grain gate as the axis: at Month a day is 2.9px and shading
-                * becomes texture. Decorative here: the working-day count
-                * reaches assistive technology through each bar's description. */}
+                * the axis strip — a weekend is non-working for every row.
+                * Decorative here: the working-day count reaches assistive
+                * technology through each bar's description. */}
               <div aria-hidden="true">
-                {showsDayShading(grain) &&
-                  nonWorkingDays.map((d) => (
+                {/* Subdivision lines first, so every fill and every bar sits
+                  * above them rather than being cut by one. */}
+                {bands.gridlineDays.map((day) => (
+                  <span
+                    key={`g${day}`}
+                    className={styles.gridline}
+                    style={{ left: day * px }}
+                  />
+                ))}
+                {showsWeekendShading(grain) &&
+                  weekendDays.map((day) => (
                     <span
-                      key={`${d.day}-${d.name ?? "weekend"}`}
-                      className={cx(
-                        styles.shadeBand,
-                        d.name ? styles.shadeHoliday : styles.shadeWeekend
-                      )}
-                      style={{ left: d.day * px, width: px }}
-                      title={d.name}
+                      key={`w${day}`}
+                      className={cx(styles.shadeBand, styles.shadeWeekend)}
+                      style={{ left: day * px, width: px }}
                     />
                   ))}
+                {/* Every grain, at the day's own proportional position —
+                  * never widened to the week or quarter containing it. */}
+                {holidays.map((holiday) => (
+                  <span
+                    key={`h${holiday.day}`}
+                    className={cx(styles.shadeBand, styles.shadeHoliday)}
+                    style={{
+                      left: holiday.day * px,
+                      width: Math.max(px, HOLIDAY_MIN_PX),
+                    }}
+                    title={`${holiday.name} — ${holiday.label}`}
+                  />
+                ))}
                 {todayDay != null && todayDay >= 0 && todayDay <= totalDays && (
                   <span className={styles.todayRule} style={{ left: todayDay * px }} />
                 )}

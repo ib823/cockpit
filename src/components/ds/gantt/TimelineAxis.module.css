@@ -1,6 +1,6 @@
 /* Design system — timeline axis (layer 4) */
 
-/* Two 28px tiers, per the spec: months above, days/weeks below. */
+/* Two 28px tiers: the naming row above, the column row below. */
 .axis {
   position: relative;
   height: 56px;
@@ -10,54 +10,82 @@
   overflow: hidden;
 }
 
+/* Bands span their period rather than marking its start, so a label always
+   describes exactly the columns beneath it — including when the window edge
+   cuts the period in half. */
 .major, .minor {
   position: absolute;
-  top: 0;
   font: var(--ds-type-label);
   letter-spacing: var(--ds-ls-label);
   white-space: nowrap;
-  padding-left: 6px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
+/* The naming row reads as a section heading, so it is left-aligned: on a year
+   band a thousand pixels wide, a centred label is somewhere off screen most of
+   the time. */
 .major {
+  top: 0;
   height: 28px;
   line-height: 28px;
+  padding: 0 8px;
   color: var(--ds-content-primary);
   font-weight: 600;
   border-left: var(--ds-border-hairline) solid var(--ds-border-default);
+  border-bottom: var(--ds-border-hairline) solid var(--ds-border-subtle);
 }
 
+/* The column row is centred: each label names its own column, and centring is
+   what makes a run of them read as a scale rather than a list. */
 .minor {
   top: 28px;
   height: 28px;
   line-height: 28px;
+  text-align: center;
   color: var(--ds-content-secondary);
   font-variant-numeric: tabular-nums;
   border-left: var(--ds-border-hairline) solid var(--ds-border-subtle);
 }
 
-/* Non-working shading. Decorative in the canvas: the same information is in
-   every bar's accessible name as a working-day count, so a screen reader
-   never depends on seeing it. */
-.shade {
+/* Unlabelled subdivision — days inside a week, weeks inside a month, months
+   inside a quarter. Behind the labels and quieter than either border. */
+.gridline {
   position: absolute;
-  top: 0;
+  top: 28px;
   bottom: 0;
+  width: 1px;
+  background: var(--ds-border-subtle);
+  opacity: 0.6;
   pointer-events: none;
 }
 
-.weekend { background: var(--ds-surface-app); }
+/* Non-working days. Decorative here: the same information is in every bar's
+   accessible name as a working-day count, so a screen reader never depends on
+   seeing it. */
+.weekend, .holiday {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
 
-/* Holidays are distinguishable from weekends without relying on hue alone —
-   they carry a top rule as well as a slightly stronger fill. */
+/* Rhythm, not information — a flat recessive fill and no rule. */
+.weekend {
+  background: var(--ds-surface-app);
+  pointer-events: none;
+}
+
+/* A named day: distinguishable from a weekend without relying on hue, by the
+   rule along the top as well as the stronger fill. Hoverable, because it is
+   the one mark in the strip that carries a name and a date. */
 .holiday {
   background: var(--ds-warning-subtle);
   border-top: 2px solid var(--ds-warning-default);
+  pointer-events: auto;
+  cursor: help;
 }
 
-/* Today. A 1.5px accent rule plus a label, never a pulse: a permanently
-   animating marker on a plan people stare at for an hour is an accessibility
-   problem, not a delight. */
+/* Today. A 1.5px accent rule plus a chip, never a pulse. */
 .today {
   position: absolute;
   top: 0;
@@ -78,4 +106,5 @@
   font: var(--ds-type-label);
   font-size: 10px;
   line-height: 14px;
+  pointer-events: none;
 }
