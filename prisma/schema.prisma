@@ -1389,7 +1389,7 @@ model ProjectCosting {
 
   // Revenue calculations
   grossServiceRevenue Decimal @db.Decimal(12, 2) // GSR = Total Std Rate × Days
-  realizationRate     Decimal @db.Decimal(5, 4) // RR = e.g., 0.4300 (43%)
+  realizationRate     Decimal @db.Decimal(5, 4) // RR: standard → commercial discount
   commercialRate      Decimal @db.Decimal(12, 2) // Commercial = GSR × RR
   netServiceRevenue   Decimal @db.Decimal(12, 2) // NSR = Commercial × Days (actual billable)
 
@@ -1475,19 +1475,23 @@ model ProjectCostingConfig {
   projectId String @unique
 
   // Realization Rate configuration
-  realizationRatePercent Decimal @default(0.4300) @db.Decimal(5, 4) // 43% default from YTL Cement
+  // Commercial figures are NOT defaulted in this public schema. Neutral
+  // defaults (no discount, no markup, no per-diem) are visibly wrong rather
+  // than plausibly wrong; load real values via scripts/seed-team-capacity-data.ts
+  // from your own rate-card file. See docs/RATE_CARD.md.
+  realizationRatePercent Decimal @default(1.0000) @db.Decimal(5, 4) // 1 = no discount
 
   // Internal Cost Percentage (confidential - Finance only)
-  internalCostPercent Decimal @default(0.3500) @db.Decimal(5, 4) // 35% of standard rate
+  internalCostPercent Decimal @default(0.0000) @db.Decimal(5, 4) // configure per organisation
 
   // OPE Defaults (per day rates in MYR)
-  opeAccommodationPerDay Decimal @default(150.00) @db.Decimal(10, 2) // RM 150/night
-  opeMealsPerDay         Decimal @default(50.00) @db.Decimal(10, 2) // RM 50/day
-  opeTransportPerDay     Decimal @default(100.00) @db.Decimal(10, 2) // RM 100/day
-  opeTotalDefaultPerDay  Decimal @default(500.00) @db.Decimal(10, 2) // RM 500/day
+  opeAccommodationPerDay Decimal @default(0.00) @db.Decimal(10, 2)
+  opeMealsPerDay         Decimal @default(0.00) @db.Decimal(10, 2)
+  opeTransportPerDay     Decimal @default(0.00) @db.Decimal(10, 2)
+  opeTotalDefaultPerDay  Decimal @default(0.00) @db.Decimal(10, 2)
 
   // Intercompany Markup (when using cross-region resources)
-  intercompanyMarkupPercent Decimal @default(1.1500) @db.Decimal(5, 4) // 15% markup
+  intercompanyMarkupPercent Decimal @default(1.0000) @db.Decimal(5, 4) // 1 = no markup
   // Home region for intercompany markup. The markup applies to resources whose
   // region differs from this. Null/empty = intercompany markup disabled.
   intercompanyHomeRegion    String?

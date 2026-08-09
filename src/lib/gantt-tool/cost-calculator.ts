@@ -321,33 +321,12 @@ export function calculateWhatIfScenario(
 }
 
 /**
- * Get default resource ratios by designation
- * (Ratios instead of currency-based rates)
+ * Default per-designation rates USED TO LIVE HERE, as ratios. They were the
+ * organisation's real rate card divided by a constant, so the whole rate
+ * structure was recoverable from them — a thin disguise on confidential data
+ * in a public repository. Nothing consumed them.
+ *
+ * A resource without a rate is now left without one: the costing path reports
+ * it in `unratedResources` rather than filling in a plausible guess.
  */
-export const DEFAULT_RESOURCE_RATES: Record<string, number> = {
-  principal: 2.1672,
-  director: 1.7337,
-  senior_manager: 1.3003,
-  manager: 0.8127,
-  senior_consultant: 0.4443,
-  consultant: 0.2817,
-  analyst: 0.2601,
-  subcontractor: 0.2,
-};
 
-/**
- * Apply default ratios to resources that don't have rates set
- */
-export function applyDefaultRates(resources: Resource[]): Resource[] {
-  return resources.map((resource) => {
-    if (!resource.chargeRatePerHour || resource.chargeRatePerHour === 0) {
-      const defaultRate = DEFAULT_RESOURCE_RATES[resource.designation] || 0.4443;
-      return {
-        ...resource,
-        chargeRatePerHour: defaultRate,
-        isBillable: resource.isBillable !== undefined ? resource.isBillable : true,
-      };
-    }
-    return resource;
-  });
-}

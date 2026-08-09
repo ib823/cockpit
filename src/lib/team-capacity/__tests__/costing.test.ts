@@ -4,6 +4,10 @@
  * These exercise the PURE computation extracted from the DB lookup, with known
  * inputs and exact expected outputs — the correctness coverage the integration
  * smoke tests do not provide.
+ *
+ * Every figure below is INVENTED. The fixtures used to be the organisation's
+ * real rate and realization, which made this file a public copy of the rate
+ * card; round synthetic numbers test the same arithmetic and disclose nothing.
  */
 import { describe, it, expect } from "vitest";
 import { computeInternalCost, calculateSubcontractorCost } from "../costing";
@@ -11,39 +15,39 @@ import { computeInternalCost, calculateSubcontractorCost } from "../costing";
 describe("computeInternalCost (7-layer model)", () => {
   it("computes the full chain for a single MYR resource", () => {
     const r = computeInternalCost({
-      standardRatePerHourLocal: 2000,
+      standardRatePerHourLocal: 100,
       currency: "MYR",
       forexToMYR: 1,
       totalMandays: 10,
-      realizationRate: 0.43,
-      internalCostPercent: 0.35,
+      realizationRate: 0.5,
+      internalCostPercent: 0.25,
       visibilityLevel: "FINANCE_ONLY",
     });
-    expect(r.standardRatePerDay).toBe(16000); // 2000 × 8
-    expect(r.grossStandardRate).toBe(160000); // 10 × 16000
-    expect(r.netStandardRate).toBeCloseTo(68800, 6); // 16000 × 0.43 × 10
-    expect(r.totalInternalCost).toBeCloseTo(56000, 6); // 16000 × 0.35 × 10
-    expect(r.margin).toBeCloseTo(12800, 6); // 68800 − 56000
-    expect(r.marginPercent).toBeCloseTo(18.604651, 4);
+    expect(r.standardRatePerDay).toBe(800); // 100 × 8
+    expect(r.grossStandardRate).toBe(8000); // 10 × 800
+    expect(r.netStandardRate).toBeCloseTo(4000, 6); // 800 × 0.5 × 10
+    expect(r.totalInternalCost).toBeCloseTo(2000, 6); // 800 × 0.25 × 10
+    expect(r.margin).toBeCloseTo(2000, 6); // 4000 − 2000
+    expect(r.marginPercent).toBeCloseTo(50, 4);
   });
 
   it("applies forex conversion for non-MYR rates (regression for the currency bug)", () => {
-    // 650 SGD/hr × 3.25 = 2112.5 MYR/hr
+    // 100 SGD/hr × 3 = 300 MYR/hr
     const r = computeInternalCost({
-      standardRatePerHourLocal: 650,
+      standardRatePerHourLocal: 100,
       currency: "SGD",
-      forexToMYR: 3.25,
+      forexToMYR: 3,
       totalMandays: 10,
-      realizationRate: 0.43,
-      internalCostPercent: 0.35,
+      realizationRate: 0.5,
+      internalCostPercent: 0.25,
       visibilityLevel: "FINANCE_ONLY",
     });
-    expect(r.standardRatePerHour).toBeCloseTo(2112.5, 6); // converted to MYR
-    expect(r.standardRatePerDay).toBeCloseTo(16900, 6);
-    expect(r.grossStandardRate).toBeCloseTo(169000, 6);
-    expect(r.netStandardRate).toBeCloseTo(72670, 6);
-    // Pre-fix (no forex) this was 650 × 8 × 0.43 × 10 = 22360 — guard against regression
-    expect(r.netStandardRate).not.toBeCloseTo(22360, 0);
+    expect(r.standardRatePerHour).toBeCloseTo(300, 6); // converted to MYR
+    expect(r.standardRatePerDay).toBeCloseTo(2400, 6);
+    expect(r.grossStandardRate).toBeCloseTo(24000, 6);
+    expect(r.netStandardRate).toBeCloseTo(12000, 6);
+    // Pre-fix (no forex) this was 100 × 8 × 0.5 × 10 = 4000 — guard against regression
+    expect(r.netStandardRate).not.toBeCloseTo(4000, 0);
     expect(r.currency).toBe("SGD"); // original local currency retained for reference
   });
 
@@ -53,8 +57,8 @@ describe("computeInternalCost (7-layer model)", () => {
       currency: "MYR",
       forexToMYR: 1,
       totalMandays: 5,
-      realizationRate: 0.43,
-      internalCostPercent: 0.35,
+      realizationRate: 0.5,
+      internalCostPercent: 0.25,
       visibilityLevel: "FINANCE_ONLY",
     });
     expect(r.netStandardRate).toBe(0);
@@ -68,8 +72,8 @@ describe("computeInternalCost (7-layer model)", () => {
       currency: "MYR",
       forexToMYR: 1,
       totalMandays: 20,
-      realizationRate: 0.43,
-      internalCostPercent: 0.35,
+      realizationRate: 0.5,
+      internalCostPercent: 0.25,
       opePerDay: 500,
       onsiteDaysPercent: 50,
       visibilityLevel: "FINANCE_ONLY",
@@ -78,7 +82,9 @@ describe("computeInternalCost (7-layer model)", () => {
     expect(r.opeAmount).toBe(5000); // 10 × 500
   });
 
-  it("falls back to default RR / internal-cost percent when zero is passed", () => {
+  it("falls back to neutral RR / internal-cost percent when zero is passed", () => {
+    // Neutral, not commercial: the real percentages are configuration, never
+    // constants in this repository (see docs/RATE_CARD.md).
     const r = computeInternalCost({
       standardRatePerHourLocal: 1000,
       currency: "MYR",
@@ -88,8 +94,8 @@ describe("computeInternalCost (7-layer model)", () => {
       internalCostPercent: 0,
       visibilityLevel: "FINANCE_ONLY",
     });
-    expect(r.realizationRate).toBe(0.43);
-    expect(r.internalCostPercent).toBe(0.35);
+    expect(r.realizationRate).toBe(1); // no discount
+    expect(r.internalCostPercent).toBe(0); // no internal cost recorded
   });
 
   it("applies intercompany markup to internal cost (reducing margin)", () => {
@@ -98,8 +104,8 @@ describe("computeInternalCost (7-layer model)", () => {
       currency: "MYR",
       forexToMYR: 1,
       totalMandays: 10,
-      realizationRate: 0.43,
-      internalCostPercent: 0.35,
+      realizationRate: 0.5,
+      internalCostPercent: 0.25,
       visibilityLevel: "FINANCE_ONLY" as const,
     };
     const base = computeInternalCost(common);

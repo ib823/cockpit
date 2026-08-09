@@ -2,17 +2,20 @@
  * Team Capacity API - Rate Card lookup
  *
  * GET /api/gantt-tool/team-capacity/rates
- *   Returns the standard rate card keyed by `${regionCode}_${designation}`.
- *   The DB `ResourceRateLookup` table is authoritative; any region/designation
- *   not present in the DB is filled from the canonical baseline so the client
- *   always receives a complete map (and works against an unseeded DB).
+ *   Returns the standard rate card keyed by `${regionCode}_${designation}`,
+ *   from the `ResourceRateLookup` table and nowhere else.
+ *
+ *   There is no code-side baseline to fall back on: the rate card is
+ *   commercially confidential and this repository is public. An unseeded
+ *   database returns an empty map, and the costing path reports the affected
+ *   resources as unrated rather than costing them at a guess.
  */
 
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
-import { RATE_CARD_DATA, toRateInfo, type RateInfo } from "@/lib/team-capacity/rate-card-data";
+import { toRateInfo, type RateInfo } from "@/lib/team-capacity/rate-card";
 
 export const maxDuration = 10;
 
@@ -40,15 +43,9 @@ export const GET = withAuth(async () => {
       });
     }
   } catch (err) {
-    logger.error("[Rates] DB lookup failed; serving canonical baseline", { error: err });
-  }
-
-  // 2) Fill any gaps (and an empty/unseeded DB) from the canonical baseline.
-  for (const [region, designations] of Object.entries(RATE_CARD_DATA)) {
-    for (const [designation, rate] of Object.entries(designations)) {
-      const key = `${region}_${designation}`;
-      if (!rates[key]) rates[key] = toRateInfo(rate);
-    }
+    // An empty map is the honest answer: the caller shows the affected
+    // resources as unrated instead of inventing figures.
+    logger.error("[Rates] DB lookup failed; serving an empty rate card", { error: err });
   }
 
   return NextResponse.json({ rates });
