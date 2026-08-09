@@ -817,7 +817,7 @@ export interface ProjectCosting {
 
   // Revenue calculations
   grossServiceRevenue: number; // GSR = Total Std Rate × Days
-  realizationRate: number; // RR = e.g., 0.43 (43%)
+  realizationRate: number; // RR: standard → commercial discount; 1 = none
   commercialRate: number; // Commercial = GSR × RR
   netServiceRevenue: number; // NSR = Commercial × Days (actual billable)
 

@@ -47,12 +47,14 @@ already serves the new values for any rows the DB lacks, so missing rows are fin
 1. Log in; open a project that has resources **with weekly allocations** (costing
    reads `weeklyAllocations`, not just the Gantt resource list).
 2. **Financials tab → Recalculate.** GSR / NSR / Gross Margin should populate.
-3. **Costing sanity checks** (defaults RR 43%, internal 35%, no intercompany):
+3. **Costing sanity checks.** Work them out from the rate card you seeded —
+   real rates and percentages are not published here (see `docs/RATE_CARD.md`).
+   Check the arithmetic rather than the amounts:
 
-   | Resource | Mandays | Expect (MYR) |
-   |---|---|---|
-   | **ABMY** Principal | 10 | GSR **160,000** · NSR **68,800** · internal **56,000** · margin **12,800** (18.6%) |
-   | **ABSG** Principal | 10 | GSR **≈345,117** (112,000 SGD × forex 3.0814) — proves **forex + ×8 basis** |
+   | Check | Expect |
+   |---|---|
+   | Home-region resource, N mandays | GSR = hourly × 8 × N; NSR = GSR × realization; margin = NSR − internal |
+   | Foreign-region resource | GSR converted at that region's `forexRate` — proves **forex + ×8 basis** |
 
 4. **Breakdowns:** "By Region" / "By Designation" now populate (were empty stubs).
 5. **Intercompany markup:** Costing Config → set **Home Region = ABMY**, markup
@@ -66,7 +68,7 @@ already serves the new values for any rows the DB lacks, so missing rows are fin
 
 ## 5. Known data caveats to confirm with Finance
 
-- **VND / THB forex** in the seed are flagged *unofficial* (Yahoo Finance) — set
-  authoritative values in `ResourceRateLookup.forexRate`.
+- **Forex rates** in your seed file may be unofficial — confirm the
+  authoritative values with Finance and set them in `ResourceRateLookup.forexRate`.
 - **Gaps:** no `subcontractor` rate-card row (they use `SubcontractorRate`); ABSG
   has no `analyst` grade. Add to the rate card if those combinations are needed.

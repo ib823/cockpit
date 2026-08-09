@@ -1,0 +1,40 @@
+{
+  "_comment": "SAMPLE ONLY — every figure here is invented and deliberately round. Copy to rate-card.local.json (gitignored) and replace with your organisation's real values, or set RATE_CARD_FILE. Never commit the filled-in file: see docs/RATE_CARD.md.",
+  "rateCards": [
+    {
+      "regionCode": "ABMY",
+      "designation": "principal",
+      "hourlyRate": 100,
+      "localCurrency": "MYR",
+      "forexRate": 1,
+      "baseCurrency": "MYR"
+    },
+    {
+      "regionCode": "ABMY",
+      "designation": "manager",
+      "hourlyRate": 50,
+      "localCurrency": "MYR",
+      "forexRate": 1,
+      "baseCurrency": "MYR"
+    },
+    {
+      "regionCode": "ABMY",
+      "designation": "consultant",
+      "hourlyRate": 25,
+      "localCurrency": "MYR",
+      "forexRate": 1,
+      "baseCurrency": "MYR"
+    }
+  ],
+  "costingConfig": {
+    "realizationRatePercent": 1,
+    "internalCostPercent": 0.5,
+    "opeAccommodationPerDay": 0,
+    "opeMealsPerDay": 0,
+    "opeTransportPerDay": 0,
+    "opeTotalDefaultPerDay": 0,
+    "intercompanyMarkupPercent": 1,
+    "baseCurrency": "MYR",
+    "costVisibilityLevel": "FINANCE_ONLY"
+  }
+}

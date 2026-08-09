@@ -356,7 +356,10 @@ export const useResourcePlanningStore = create<ResourcePlanningStore>()(
           const result: OptimizationResult = {
             scenario: "optimized",
             totalCost,
-            margin: 0.25, // 25% margin (hardcoded for MVP)
+            // No assumed margin: a hardcoded commercial assumption in a public
+            // repository is a disclosure, and an invented one is also wrong.
+            // Real margin comes from the costing engine's rate card.
+            margin: 0,
             resources: updatedResources,
             utilization: avgUtilization,
             bottlenecks: get().getBottlenecks(),

@@ -2,7 +2,7 @@
  * Team Capacity & Proposal Engine - TypeScript Type Definitions
  *
  * Comprehensive types for resource allocation, costing, and proposal generation
- * Aligns with Prisma schema and validated requirements from YTL Cement RP.xlsx
+ * Aligns with the Prisma schema and the validated costing requirements.
  */
 
 import type {
@@ -93,7 +93,7 @@ export interface CostCalculationResult {
   grossStandardRate: number; // totalMandays × standardRatePerDay
 
   // Step 4: Realization Rate (RR)
-  realizationRate: number; // From config (e.g., 0.43 = 43%)
+  realizationRate: number; // From ProjectCostingConfig; 1 = no discount
   commercialRatePerDay: number; // standardRatePerDay × RR
 
   // Step 5: Net Standard Rate (NSR)

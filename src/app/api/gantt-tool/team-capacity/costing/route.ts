@@ -4,13 +4,13 @@
  * POST /api/gantt-tool/team-capacity/costing - Calculate project costing (7-layer model)
  * GET /api/gantt-tool/team-capacity/costing?projectId=xxx - Get saved costing data
  *
- * 7-LAYER COSTING MODEL (from YTL Cement RP.xlsx):
+ * 7-LAYER COSTING MODEL:
  * 1. Rate Lookup (region + designation → standard rate/hour)
  * 2. Daily Rate Conversion (hourly × 8)
  * 3. Gross Standard Rate (GSR) (total mandays × standard rate/day)
  * 4. Realization Rate (RR) Application (discount factor)
  * 5. Net Standard Rate (NSR) (actual billable revenue)
- * 6. Internal Cost (35% of standard rate - CONFIDENTIAL)
+ * 6. Internal Cost (a share of the standard rate — CONFIDENTIAL, configured per project)
  * 7. Margin Calculation (NSR - Internal Cost - CONFIDENTIAL)
  *
  * SECURITY CRITICAL: Three-tier visibility

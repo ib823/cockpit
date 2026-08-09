@@ -1,13 +1,13 @@
 /**
  * Cost Calculation Engine
  *
- * Implements 7-layer costing model from YTL Cement RP.xlsx:
+ * Implements the 7-layer costing model:
  * 1. Rate Lookup (region + designation → standard rate/hour)
  * 2. Daily Rate Conversion (hourly × 8)
  * 3. Gross Standard Rate (GSR) (total mandays × standard rate/day)
  * 4. Realization Rate (RR) Application (discount factor)
  * 5. Net Standard Rate (NSR) (actual billable revenue)
- * 6. Internal Cost (35% of standard rate - CONFIDENTIAL)
+ * 6. Internal Cost (a share of the standard rate — CONFIDENTIAL, configured per project)
  * 7. Margin Calculation (NSR - Internal Cost - CONFIDENTIAL)
  *
  * Security: Three-tier visibility (PUBLIC, PRESALES_AND_FINANCE, FINANCE_ONLY)
@@ -23,15 +23,27 @@ import type {
   CostBreakdownByDesignation,
 } from "./types";
 import { prisma } from "@/lib/db";
-import { RATE_CARD_DATA } from "./rate-card-data";
+
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
 const HOURS_PER_DAY = 8;
-const DEFAULT_INTERNAL_COST_PERCENT = 0.35; // 35% of standard rate
-const DEFAULT_REALIZATION_RATE = 0.43; // 43% discount factor
+/**
+ * Internal cost as a share of the standard rate is also commercially
+ * confidential. 0 means "no internal cost recorded", which shows up as a
+ * margin equal to revenue — obviously unconfigured, rather than a plausible
+ * figure someone might act on. Set the real value in `ProjectCostingConfig`.
+ */
+const NO_INTERNAL_COST = 0;
+/**
+ * Realization — the discount from standard to commercial rate — is a
+ * commercial secret and is NOT carried in this public repository. 1 means "no
+ * discount", which is visibly wrong rather than plausibly wrong, so a project
+ * with no `realizationRatePercent` configured cannot quietly under-report.
+ */
+const NO_REALIZATION_DISCOUNT = 1;
 
 /** Safe percentage: avoids NaN/Infinity when the denominator is zero. */
 function pct(numerator: number, denominator: number): number {
@@ -72,17 +84,10 @@ export async function lookupStandardRate(
   });
 
   if (!rateCard) {
-    // Fall back to the canonical baseline so costing still works against an
-    // unseeded / partially-seeded DB (and tolerates designation gaps).
-    const fallback = RATE_CARD_DATA[region]?.[designation];
-    if (!fallback) {
-      return null;
-    }
-    return {
-      standardRatePerHour: fallback.standardRatePerHour,
-      currency: fallback.currency,
-      currencyConversionToMYR: fallback.forexRate,
-    };
+    // No code-side baseline to fall back on — the rate card lives only in the
+    // database. Null flows through to `unratedResources`, which is the honest
+    // outcome: a guessed rate that looks plausible is worse than a visible gap.
+    return null;
   }
 
   return {
@@ -126,7 +131,7 @@ export function computeInternalCost(params: {
   const grossStandardRate = params.totalMandays * standardRatePerDay;
 
   // STEP 4: Realization Rate (RR) Application
-  const realizationRate = params.realizationRate || DEFAULT_REALIZATION_RATE;
+  const realizationRate = params.realizationRate || NO_REALIZATION_DISCOUNT;
   const commercialRatePerDay = standardRatePerDay * realizationRate;
 
   // STEP 5: Net Standard Rate (NSR)
@@ -134,7 +139,7 @@ export function computeInternalCost(params: {
 
   // STEP 6: Internal Cost (CONFIDENTIAL - Finance Only)
   const internalCostPercent =
-    params.internalCostPercent || DEFAULT_INTERNAL_COST_PERCENT;
+    params.internalCostPercent || NO_INTERNAL_COST;
   const internalCostPerDay = standardRatePerDay * internalCostPercent;
   // Intercompany markup increases the internal (transfer) cost for resources
   // borrowed from another region's entity. Default 1 = no markup.
@@ -195,9 +200,9 @@ export async function calculateInternalResourceCost(
     forexToMYR: rateInfo.currencyConversionToMYR,
     totalMandays: input.totalMandays,
     realizationRate:
-      input.projectCostingConfig.realizationRatePercent?.toNumber() ?? DEFAULT_REALIZATION_RATE,
+      input.projectCostingConfig.realizationRatePercent?.toNumber() ?? NO_REALIZATION_DISCOUNT,
     internalCostPercent:
-      input.projectCostingConfig.internalCostPercent?.toNumber() ?? DEFAULT_INTERNAL_COST_PERCENT,
+      input.projectCostingConfig.internalCostPercent?.toNumber() ?? NO_INTERNAL_COST,
     opePerDay: input.projectCostingConfig.opeTotalDefaultPerDay?.toNumber(),
     onsiteDaysPercent: input.onsiteDaysPercent,
     intercompanyMarkup: input.intercompanyMarkup,
@@ -395,7 +400,7 @@ export async function calculateProjectCostingSummary(
   const marginPercent = pct(grossMargin, totalNSR);
 
   const realizationRate =
-    costingConfig.realizationRatePercent?.toNumber() || DEFAULT_REALIZATION_RATE;
+    costingConfig.realizationRatePercent?.toNumber() || NO_REALIZATION_DISCOUNT;
 
   // Breakdown by region (cost/margin gated to FINANCE_ONLY)
   const byRegion: CostBreakdownByRegion[] = Array.from(regionMap.values()).map((r) => ({

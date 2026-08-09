@@ -1,42 +1,78 @@
 /**
  * Team Capacity Data Seeding Script
  *
- * This script initializes:
- * 1. ResourceRateLookup table with 16 rate cards (4 regions × 4 designations)
- * 2. ProjectCostingConfig for all existing projects
+ * Loads the rate card and the default costing configuration into the database
+ * from a file that lives OUTSIDE this repository.
  *
- * Run with: npx tsx scripts/seed-team-capacity-data.ts
+ * Rates, realization, internal-cost percentages and per-diems are commercially
+ * confidential and this repository is public, so none of them are committed
+ * here. Point the script at your own file:
+ *
+ *     RATE_CARD_FILE=/secure/path/rate-card.json npx tsx scripts/seed-team-capacity-data.ts
+ *
+ * It defaults to `rate-card.local.json` in the repository root, which is
+ * gitignored. `docs/RATE_CARD.md` documents the schema and
+ * `rate-card.example.json` is a runnable, obviously-fake sample.
  */
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { PrismaClient, WeekNumberingType, CostVisibilityLevel } from "@prisma/client";
-import { canonicalRateRows } from "../src/lib/team-capacity/rate-card-data";
 
 const prisma = new PrismaClient();
 
-// ============================================================================
-// RATE CARD DATA (from YTL Cement RP.xlsx)
-// ============================================================================
+interface RateCardRow {
+  regionCode: string;
+  designation: string;
+  hourlyRate: number;
+  localCurrency: string;
+  forexRate: number;
+  baseCurrency: string;
+}
 
-// Rate cards come from the canonical baseline (single source of truth, shared
-// with the rates API and the client fallback). Adjust rates in the DB after
-// seeding, or update the baseline in src/lib/team-capacity/rate-card-data.ts.
-const RATE_CARDS = canonicalRateRows();
+interface RateCardFile {
+  rateCards: RateCardRow[];
+  costingConfig: {
+    realizationRatePercent: number;
+    internalCostPercent: number;
+    opeAccommodationPerDay: number;
+    opeMealsPerDay: number;
+    opeTransportPerDay: number;
+    opeTotalDefaultPerDay: number;
+    intercompanyMarkupPercent: number;
+    baseCurrency: string;
+    costVisibilityLevel: CostVisibilityLevel;
+  };
+}
 
-// ============================================================================
-// DEFAULT COSTING CONFIG
-// ============================================================================
+function loadRateCardFile(): RateCardFile {
+  const path = resolve(process.env.RATE_CARD_FILE ?? "rate-card.local.json");
 
-const DEFAULT_COSTING_CONFIG = {
-  realizationRatePercent: 0.43, // 43% from YTL Cement
-  internalCostPercent: 0.35, // 35% of standard rate
-  opeAccommodationPerDay: 150.0, // RM 150/night
-  opeMealsPerDay: 50.0, // RM 50/day
-  opeTransportPerDay: 100.0, // RM 100/day
-  opeTotalDefaultPerDay: 500.0, // RM 500/day
-  intercompanyMarkupPercent: 1.15, // 15% markup
-  baseCurrency: "MYR",
-  costVisibilityLevel: "FINANCE_ONLY" as CostVisibilityLevel,
-};
+  let raw: string;
+  try {
+    raw = readFileSync(path, "utf8");
+  } catch {
+    // Failing loudly beats seeding placeholder money into a real database.
+    throw new Error(
+      `No rate-card file at ${path}.\n` +
+        `Rates are confidential and are not committed to this repository.\n` +
+        `Copy rate-card.example.json to rate-card.local.json and fill in your own ` +
+        `figures, or set RATE_CARD_FILE to point at yours. See docs/RATE_CARD.md.`
+    );
+  }
+
+  const parsed = JSON.parse(raw) as RateCardFile;
+  if (!Array.isArray(parsed.rateCards) || !parsed.costingConfig) {
+    throw new Error(
+      `${path} is missing "rateCards" or "costingConfig" — see docs/RATE_CARD.md.`
+    );
+  }
+  return parsed;
+}
+
+const RATE_CARD_FILE = loadRateCardFile();
+const RATE_CARDS = RATE_CARD_FILE.rateCards;
+const DEFAULT_COSTING_CONFIG = RATE_CARD_FILE.costingConfig;
 
 // ============================================================================
 // SEED FUNCTIONS

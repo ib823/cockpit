@@ -202,3 +202,9 @@ latestEnd
 cleanup-repo.sh
 
 .env.prisma
+
+# Rate card and costing figures — commercially confidential, never committed.
+# See docs/RATE_CARD.md; rate-card.example.json is the fake-figure template.
+rate-card.local.json
+rate-card*.json
+!rate-card.example.json

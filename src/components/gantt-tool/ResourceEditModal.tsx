@@ -122,13 +122,17 @@ export function ResourceEditModal({
   const [isRateOverridden, setIsRateOverridden] = useState(false);
 
   // Get the auto-calculated rate based on current designation and region
-  const autoCalculatedRate = useMemo((): RateInfo => {
+  // Null when the rate card has no entry for this region/designation — the
+  // rate card lives in the database, so an unseeded one has none.
+  const autoCalculatedRate = useMemo((): RateInfo | null => {
     return getRateForResource(formData.designation, formData.regionCode);
   }, [formData.designation, formData.regionCode, getRateForResource]);
 
-  // Auto-update rate when designation or region changes (unless manually overridden)
+  // Auto-update rate when designation or region changes (unless manually
+  // overridden). With no rate on file the field is left alone for the user to
+  // enter, rather than being filled with an invented figure.
   useEffect(() => {
-    if (!isRateOverridden && formData.isBillable) {
+    if (!isRateOverridden && formData.isBillable && autoCalculatedRate) {
       setFormData(prev => ({
         ...prev,
         chargeRatePerHour: autoCalculatedRate.standardRatePerHour,
@@ -142,7 +146,9 @@ export function ResourceEditModal({
     if (mode === "edit" && existingResource) {
       // Check if existing rate differs from standard rate (means it was overridden)
       const standardRate = getRateForResource(existingResource.designation, existingResource.regionCode);
-      const wasOverridden = existingResource.chargeRatePerHour !== standardRate.standardRatePerHour;
+      const wasOverridden =
+        standardRate != null &&
+        existingResource.chargeRatePerHour !== standardRate.standardRatePerHour;
       setIsRateOverridden(wasOverridden);
 
       setFormData({
@@ -980,7 +986,7 @@ export function ResourceEditModal({
                               >
                                 {isRateOverridden ? "Custom Rate" : "Standard Rate"}
                               </span>
-                              {isRateOverridden && (
+                              {isRateOverridden && autoCalculatedRate && (
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1070,7 +1076,7 @@ export function ResourceEditModal({
                                   const newRate = parseFloat(e.target.value) || 0;
                                   updateField("chargeRatePerHour", newRate);
                                   // Mark as overridden if different from standard
-                                  if (newRate !== autoCalculatedRate.standardRatePerHour) {
+                                  if (newRate !== autoCalculatedRate?.standardRatePerHour) {
                                     setIsRateOverridden(true);
                                   }
                                 }}
