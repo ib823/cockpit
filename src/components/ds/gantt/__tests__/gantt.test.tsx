@@ -16,6 +16,7 @@ import { AllocationCell } from "../AllocationCell";
 import {
   PX_PER_DAY,
   daysToPx,
+  effectivePxPerDay,
   pxToDays,
   labelFitsInside,
   showsDayShading,
@@ -61,6 +62,27 @@ describe("scale", () => {
     const width = 100;
     expect(labelFitsInside("Build", width)).toBe(true);
     expect(labelFitsInside("Chart of accounts workshop", width)).toBe(false);
+  });
+
+  test("a plan shorter than the pane stretches to fill it end to end", () => {
+    // 28 days at Week density is 235px; in a 1200px pane the day widens so
+    // the chart spans the pane exactly, at every grain — zooming out must
+    // never leave dead canvas to the right of a short plan.
+    for (const grain of ["Day", "Week", "Month", "Quarter"] as const) {
+      expect(effectivePxPerDay(grain, 28, 1200) * 28).toBeGreaterThanOrEqual(1200);
+    }
+  });
+
+  test("a plan longer than the pane keeps the grain's density and scrolls", () => {
+    // 3 years at Day zoom must NOT compress to fit — that is what the grain
+    // switch is for. The spec density is a floor, not a target.
+    expect(effectivePxPerDay("Day", 1095, 1200)).toBe(PX_PER_DAY.Day);
+  });
+
+  test("stretch degrades to the spec density before first measure", () => {
+    // paneWidth is 0 until the ResizeObserver fires (and always under jsdom).
+    expect(effectivePxPerDay("Week", 28, 0)).toBe(PX_PER_DAY.Week);
+    expect(effectivePxPerDay("Week", 0, 1200)).toBe(PX_PER_DAY.Week);
   });
 });
 

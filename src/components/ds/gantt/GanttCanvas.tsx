@@ -49,7 +49,7 @@ import {
   type FlatRow,
   type GanttPhase,
 } from "./rows";
-import { PX_PER_DAY, ROW_HEIGHT, nudgeDays, showsDayShading, type ZoomGrain } from "./scale";
+import { ROW_HEIGHT, effectivePxPerDay, nudgeDays, showsDayShading, type ZoomGrain } from "./scale";
 import {
   sayCursorMove,
   sayExpand,
@@ -180,6 +180,24 @@ export function GanttCanvas({
   const bodyRef = useRef<HTMLDivElement | null>(null);
   // The axis is the spec's two 28px tiers.
   const viewportHeight = height - 56;
+
+  // The timeline pane's inner width. The grain's density is a MINIMUM — a
+  // plan shorter than the pane stretches to fill it, so the chart always runs
+  // end to end and zooming only changes tick density (see effectivePxPerDay).
+  // 0 until first measure (and under test, where ResizeObserver is absent),
+  // which falls back to the spec density.
+  const [paneWidth, setPaneWidth] = useState(0);
+  React.useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const measure = () => setPaneWidth(el.clientWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const px = effectivePxPerDay(grain, totalDays, paneWidth);
 
   const window_ = computeWindow(rows.length, rowHeight, scrollTop, viewportHeight);
   const visible = rows.slice(window_.startIndex, window_.endIndex);
@@ -337,7 +355,7 @@ export function GanttCanvas({
             // place in the plan.
             bodyRef.current.scrollLeft = Math.max(
               0,
-              todayDay * PX_PER_DAY[grain] - bodyRef.current.clientWidth / 2
+              todayDay * px - bodyRef.current.clientWidth / 2
             );
           }
           break;
@@ -362,10 +380,10 @@ export function GanttCanvas({
       onMove,
       onRowActivate,
       pendingChanges,
+      px,
     ]
   );
 
-  const px = PX_PER_DAY[grain];
   const hasMilestones = milestones.length > 0;
   const hasAms = Object.values(placements).some((p) => p.ams);
   const hasHolidays = nonWorkingDays.some((d) => d.name);
@@ -491,6 +509,7 @@ export function GanttCanvas({
               minorTicks={minorTicks}
               nonWorkingDays={nonWorkingDays}
               todayDay={todayDay}
+              pxPerDay={px}
             />
 
             <div style={{ height: window_.totalHeight, position: "relative", width: totalDays * px }}>
@@ -532,6 +551,7 @@ export function GanttCanvas({
                 grain={grain}
                 totalDays={totalDays}
                 onActivate={onMilestoneActivate}
+                pxPerDay={px}
               />
               <div style={{ transform: `translateY(${window_.offsetTop}px)` }}>
                 {visible.map((row) => {

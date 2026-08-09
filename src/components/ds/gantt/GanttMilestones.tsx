@@ -43,6 +43,11 @@ export interface GanttMilestonesProps {
   totalDays: number;
   /** Opens milestone editing. Absent renders the layer inert but visible. */
   onActivate?: (id: string) => void;
+  /**
+   * Rendered day width. The canvas passes its stretch-to-fit density so the
+   * markers and the bars can never disagree; absent, the grain's spec density.
+   */
+  pxPerDay?: number;
 }
 
 /** Matches the legacy default (#FF3B30) so the two canvases agree on a plan. */
@@ -53,8 +58,9 @@ export function GanttMilestones({
   grain,
   totalDays,
   onActivate,
+  pxPerDay,
 }: GanttMilestonesProps) {
-  const px = PX_PER_DAY[grain];
+  const px = pxPerDay ?? PX_PER_DAY[grain];
 
   const visible = milestones.filter((m) => m.day >= 0 && m.day <= totalDays);
   if (visible.length === 0) return null;

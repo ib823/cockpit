@@ -48,6 +48,22 @@ export const MIN_BAR_PX = 4;
 /** The invisible hit area given to a sub-minimum bar. */
 export const MIN_HIT_PX = 24;
 
+/**
+ * The day width actually rendered: the grain's density, raised so a plan
+ * shorter than the viewport still spans it end to end. The grain then only
+ * changes tick density, never leaves dead canvas to the right — a 4-week plan
+ * at Quarter zoom is a full-width chart, not a 32px sliver.
+ */
+export function effectivePxPerDay(
+  grain: ZoomGrain,
+  totalDays: number,
+  viewportPx: number
+): number {
+  const base = PX_PER_DAY[grain];
+  if (totalDays <= 0 || viewportPx <= 0) return base;
+  return Math.max(base, viewportPx / totalDays);
+}
+
 export function daysToPx(days: number, grain: ZoomGrain): number {
   return days * PX_PER_DAY[grain];
 }

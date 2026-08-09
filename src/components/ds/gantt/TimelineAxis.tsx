@@ -47,6 +47,11 @@ export interface TimelineAxisProps {
   nonWorkingDays?: NonWorkingDay[];
   /** Day offset of today, or undefined when outside the window. */
   todayDay?: number;
+  /**
+   * Rendered day width. The canvas passes its stretch-to-fit density so the
+   * axis and the bars can never disagree; absent, the grain's spec density.
+   */
+  pxPerDay?: number;
 }
 
 export function TimelineAxis({
@@ -56,8 +61,9 @@ export function TimelineAxis({
   minorTicks,
   nonWorkingDays = [],
   todayDay,
+  pxPerDay,
 }: TimelineAxisProps) {
-  const px = PX_PER_DAY[grain];
+  const px = pxPerDay ?? PX_PER_DAY[grain];
   const width = totalDays * px;
   const shading = showsDayShading(grain);
 
